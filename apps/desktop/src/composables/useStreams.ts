@@ -8,6 +8,8 @@ import { useMediaCodecs } from "./useMediaCodecs";
 import { useRecording } from "./useRecording";
 import { useWorkspaces } from "./useWorkspaces";
 import { nativePlayerId } from "@/lib/nativePlayer";
+import { usePreferences } from "./usePreferences";
+import { layoutForStreamAddition } from "@/config/layouts";
 import { WATCH_TIME_CONFIG } from "@/config/watchTime";
 import { channelIdentityKey } from "@/lib/channelIdentity";
 
@@ -31,6 +33,7 @@ const _useStreams = () => {
   const { t } = useI18n();
   const streams = useStorage<Stream[]>("streams", []);
   const { addRecent } = useRecents();
+  const { streamLayout } = usePreferences();
   const { clearFocus, focusedStreamId } = useFocusedStream();
   const { checkVideoCodecs } = useMediaCodecs();
   const { activeWorkspaceId, workspaceIdOf, workspaces } = useWorkspaces();
@@ -223,6 +226,10 @@ const _useStreams = () => {
       },
     ];
 
+    streamLayout.value = layoutForStreamAddition(
+      streamLayout.value,
+      streams.value.filter((s) => inWorkspace(s) && s.id !== replacingId).length
+    );
     now.value = Date.now();
 
     const streamName = displayName || cleanHandle || channel;

@@ -1,5 +1,6 @@
 import { effectScope, EffectScope, nextTick, ref } from "vue";
 import { describe, it, expect, beforeEach, beforeAll, afterAll, afterEach, vi } from "vitest";
+import { usePreferences } from "../usePreferences";
 import { useStreams } from "../useStreams";
 import { toast } from "@/composables/useToast";
 
@@ -30,6 +31,11 @@ vi.mock("../useRecording", () => ({
     isRecording: mockIsRecording,
     stopRecording: mockStopRecording,
   }),
+}));
+
+const mockStreamLayoutRef = ref("auto");
+vi.mock("../usePreferences", () => ({
+  usePreferences: () => ({ streamLayout: mockStreamLayoutRef }),
 }));
 
 const mockWorkspacesRef = ref([{ id: "ws-test", name: "Room" }]);
@@ -64,6 +70,7 @@ describe("useStreams composable unit tests", () => {
 
   beforeEach(() => {
     localStorage.clear();
+    mockStreamLayoutRef.value = "auto";
     vi.clearAllMocks();
     mockWorkspacesRef.value = [{ id: "ws-test", name: "Room" }];
     mockActiveWorkspaceIdRef.value = "ws-test";
@@ -71,6 +78,22 @@ describe("useStreams composable unit tests", () => {
     sut = scope.run(() => useStreams())!;
     sut.clearStreams();
     sut.resetTimerState();
+  });
+
+  it("expands Solo to Duo only after successfully adding a second stream", () => {
+    // Arrange
+    const preferences = scope.run(() => usePreferences());
+    if (!preferences) throw new Error("missing preferences scope");
+    preferences.streamLayout.value = "solo";
+    sut.addStream("first", "twitch");
+    // Act
+    sut.addStream("first", "twitch");
+    // Assert
+    expect(preferences.streamLayout.value).toBe("solo");
+    // Act
+    sut.addStream("second", "twitch");
+    // Assert
+    expect(preferences.streamLayout.value).toBe("duo");
   });
 
   it("should add a new stream correctly", () => {

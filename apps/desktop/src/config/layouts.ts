@@ -65,11 +65,33 @@ export function getLayoutDef(id: LayoutId): LayoutDef {
   );
 }
 
+export const MANUAL_ONLY_LAYOUT_IDS: readonly LayoutId[] = ["stack", "wide", "grid-2x3"];
+const GROWTH_LAYOUT_IDS: readonly LayoutId[] = [
+  "solo",
+  "duo",
+  "quad",
+  "wall",
+  "grid-4x2",
+  "grid-3x3",
+  "grid-5x2",
+  "grid-4x3",
+  "grid-4x4",
+];
+
+export function layoutForStreamAddition(current: string, count: number): string {
+  if (!isLayoutId(current) || current === "auto" || getLayoutDef(current).maxVisible >= count)
+    return current;
+  return (
+    GROWTH_LAYOUT_IDS.find(
+      (id) => !MANUAL_ONLY_LAYOUT_IDS.includes(id) && getLayoutDef(id).maxVisible >= count
+    ) ?? "auto"
+  );
+}
+
 export function autoGridDims(count: number): { cols: number; rows: number } {
   const grids = [
     [1, 1],
     [2, 1],
-    [3, 1],
     [2, 2],
     [3, 2],
     [4, 2],

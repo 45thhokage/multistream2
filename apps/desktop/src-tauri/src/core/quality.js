@@ -4,6 +4,7 @@
   const isTop = window === window.top;
   let requested = null;
   let serial = 0;
+  let ownsPlayer = false;
 
   function report(value) {
     if (isTop) window.dispatchEvent(new CustomEvent("multistream-quality-state", { detail: value }));
@@ -65,7 +66,7 @@
       const api = typeof p.getQualities === "function";
       const levels = Array.from(api ? p.getQualities() || [] : p.qualityLevels() || []);
       if (!levels.length) continue;
-      const key = (q, i) => String(q.group || q.name || q.id || `level-${i}`);
+      const key = (q, i) => typeof q === "string" ? q : String(q.group || q.name || q.id || `level-${i}`);
       const options = levels.map((q, i) => {
         const fps = Number(q.framerate || q.frameRate || q.fps || 0);
         const id = key(q, i);
@@ -86,7 +87,9 @@
             if (p.setAutoQualityMode) await p.setAutoQualityMode(id === "auto");
             if (id !== "auto" || !p.setAutoQualityMode) {
               const twitch = /(^|\.)twitch\.tv$/.test(location.hostname);
-              const result = await p.setQuality(id === "auto" ? "auto" : twitch ? (picked.group || picked.name) : picked, true);
+              // Twitch's core uses rendition groups; its IVS player uses rendition objects.
+              const rendition = typeof picked === "string" ? picked : twitch && picked?.group ? picked.group : picked;
+              const result = await p.setQuality(id === "auto" ? "auto" : rendition, true);
               if (result === false) throw new Error("quality rejected");
             }
           } else for (const q of levels) q.enabled = id === "auto" || q === picked;
@@ -97,7 +100,7 @@
   }
 
   function poll() {
-    try { const player = adapter(); if (player) report({ options: player.options.slice(0, 32), current: player.current }); } catch { /* Not ready yet. */ }
+    try { const player = adapter(); if (player) { ownsPlayer = true; report({ options: player.options.slice(0, 32), current: player.current }); } } catch { /* Not ready yet. */ }
   }
   window.addEventListener("message", (event) => {
     const data = event.data;
@@ -116,6 +119,7 @@
       try {
         const player = adapter();
         if (player?.options.some((option) => option.id === data.quality)) {
+          ownsPlayer = true;
           await player.set(data.quality);
           if (player.confirm) {
             const deadline = Date.now() + 5000;
@@ -134,7 +138,7 @@
         }
       } catch { /* Retry while the provider changes its current player. */ }
       if (Date.now() - started < 4000) setTimeout(attempt, 200);
-      else if (!isTop || document.querySelector("video")) {
+      else if (ownsPlayer) {
         const player = adapter();
         report({ options: player?.options.slice(0, 32) || [], current: player?.current || "auto", failed: true });
       }

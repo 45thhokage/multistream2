@@ -3,6 +3,8 @@ import {
   arrangeCustomStreams,
   arrangeStreams,
   autoGridDims,
+  layoutForStreamAddition,
+  MANUAL_ONLY_LAYOUT_IDS,
   clampGridSize,
   getLayoutDef,
   gridDimensionsFromContainer,
@@ -293,7 +295,7 @@ describe("layouts config unit tests", () => {
         [0, { cols: 1, rows: 1 }],
         [1, { cols: 1, rows: 1 }],
         [2, { cols: 2, rows: 1 }],
-        [3, { cols: 3, rows: 1 }],
+        [3, { cols: 2, rows: 2 }],
         [4, { cols: 2, rows: 2 }],
         [5, { cols: 3, rows: 2 }],
         [6, { cols: 3, rows: 2 }],
@@ -511,5 +513,49 @@ describe("layouts config unit tests", () => {
       // Assert
       expect(arranged.emptySlots).toBe(1);
     });
+  });
+});
+
+describe("automatic layout growth", () => {
+  it("grows through compact layouts when the selected preset is full", () => {
+    // Arrange
+    const cases = [
+      ["solo", 2],
+      ["duo", 3],
+      ["quad", 5],
+      ["wall", 7],
+    ] as const;
+    // Act
+    const results = cases.map(([id, count]) => layoutForStreamAddition(id, count));
+    // Assert
+    expect(results).toEqual(["duo", "quad", "wall", "grid-4x2"]);
+  });
+  it("never automatically selects the three manual-only layouts", () => {
+    // Arrange
+    const counts = Array.from({ length: 16 }, (_, i) => i + 1);
+    // Act
+    const layouts = counts.map((count) => layoutForStreamAddition("solo", count));
+    const automaticShapes = counts.map(autoGridDims);
+    // Assert
+    expect(MANUAL_ONLY_LAYOUT_IDS).toEqual(["stack", "wide", "grid-2x3"]);
+    expect(layouts.some((id) => MANUAL_ONLY_LAYOUT_IDS.includes(id as LayoutId))).toBe(false);
+    expect(automaticShapes).not.toContainEqual({ cols: 1, rows: 2 });
+    expect(automaticShapes).not.toContainEqual({ cols: 3, rows: 1 });
+    expect(automaticShapes).not.toContainEqual({ cols: 2, rows: 3 });
+  });
+  it("preserves manual selections that have room, automatic mode, and custom layouts", () => {
+    // Arrange
+    const cases = [
+      ["stack", 2],
+      ["wide", 3],
+      ["grid-2x3", 6],
+      ["quad", 3],
+      ["auto", 9],
+      ["custom-one", 2],
+    ] as const;
+    // Act
+    const results = cases.map(([id, count]) => layoutForStreamAddition(id, count));
+    // Assert
+    expect(results).toEqual(cases.map(([id]) => id));
   });
 });

@@ -1,13 +1,13 @@
 /// <reference types="node" />
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
-import { describe, it, expect, vi } from "vitest";
+import { afterEach, describe, it, expect, vi } from "vitest";
 
 const source = readFileSync(
   new URL("../../../src-tauri/src/core/quality.js", import.meta.url),
   "utf8"
 );
-function harness(player: object) {
+function harness(player?: object, embedded = false) {
   const listeners: Record<string, (event: unknown) => void> = {};
   const reports: { detail: { current: string; failed?: boolean; options: unknown[] } }[] = [];
   const root = {
@@ -22,7 +22,13 @@ function harness(player: object) {
     },
     dispatchEvent: (event: (typeof reports)[number]) => reports.push(event),
   };
-  win.top = win;
+  win.top = embedded ? {} : win;
+  Object.assign(win, {
+    parent: {
+      postMessage: (data: { report: (typeof reports)[number]["detail"] }) =>
+        reports.push({ detail: data.report }),
+    },
+  });
   runInNewContext(source, {
     window: win,
     document: {
@@ -75,5 +81,76 @@ describe("injected Twitch quality control", () => {
     expect(player.setQuality).toHaveBeenCalledWith("720p60", true);
     expect(bridge.reports.at(-1)?.detail.current).toBe("720p60");
     expect(bridge.reports.at(-1)?.detail.failed).toBeUndefined();
+  });
+});
+
+afterEach(() => vi.useRealTimers());
+describe("Twitch quality API variants", () => {
+  it("passes rendition objects to the IVS player even on a Twitch hostname", async () => {
+    // Arrange
+    const levels = [
+      { name: "1080p60", height: 1080 },
+      { name: "720p60", height: 720 },
+    ];
+    let current = levels[0];
+    const player = {
+      getQualities: () => levels,
+      getQuality: () => current,
+      setQuality: vi.fn((quality: typeof current) => {
+        current = quality;
+      }),
+    };
+    const bridge = harness(player);
+    // Act
+    bridge.request("720p60");
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    // Assert
+    expect(player.setQuality).toHaveBeenCalledWith(levels[1], true);
+    expect(bridge.reports.at(-1)?.detail.current).toBe("720p60");
+    expect(bridge.reports.at(-1)?.detail.failed).toBeUndefined();
+  });
+  it("supports players exposing string rendition IDs", async () => {
+    // Arrange
+    let current = "chunked";
+    const player = {
+      getQualities: () => ["chunked", "720p60"],
+      getQuality: () => current,
+      setQuality: vi.fn((quality: string) => {
+        current = quality;
+      }),
+    };
+    const bridge = harness(player);
+    // Act
+    bridge.request("720p60");
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    // Assert
+    expect(player.setQuality).toHaveBeenCalledWith("720p60", true);
+    expect(bridge.reports.at(-1)?.detail.current).toBe("720p60");
+  });
+  it("does not report failure from an embedded frame without a player", async () => {
+    // Arrange
+    vi.useFakeTimers();
+    const bridge = harness(undefined, true);
+    // Act
+    bridge.request("720p60");
+    await vi.advanceTimersByTimeAsync(6000);
+    // Assert
+    expect(bridge.reports).toEqual([]);
+  });
+  it("still reports failure when the owning player rejects a rendition", async () => {
+    // Arrange
+    vi.useFakeTimers();
+    const player = {
+      getQualities: () => ["chunked", "720p60"],
+      getQuality: () => "chunked",
+      setQuality: vi.fn(),
+    };
+    const bridge = harness(player);
+    // Act
+    bridge.request("720p60");
+    await vi.advanceTimersByTimeAsync(6000);
+    // Assert
+    expect(bridge.reports.at(-1)?.detail.failed).toBe(true);
+    expect(bridge.reports.at(-1)?.detail.current).toBe("chunked");
   });
 });
