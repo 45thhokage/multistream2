@@ -6,6 +6,11 @@ This document serves as the comprehensive, end-to-end architectural guide for **
 
 ---
 
+This guide describes the upstream architecture. The [launcher guide](../../README.md)
+documents local additions in this checkout, including media tiles, website filtering,
+saved accounts, and on-screen controls. Current check results are recorded in
+[the dated validation record](../../CLEANUP.md).
+
 ## 1. High-Level System Overview & Philosophy
 
 Multistream is a native, cross-platform desktop application built with **Tauri 2**, **Vue 3**, and **Rust**, allowing power users to watch multiple concurrent live streams (Twitch, Kick, YouTube, and Custom embeds) with unified real-time chat, stream recording, and local AI audio transcription.
@@ -110,7 +115,7 @@ multistream/
 │   │       ├── icons/            # Platform-specific application icon assets
 │   │       ├── src/              # Rust source code
 │   │       │   ├── audio/        # System audio loopback capture (CPAL) & Whisper pipeline
-│   │       │   ├── core/         # Injected Webview scripts (graveyard, shortcuts, screenshot)
+│   │       │   ├── core/         # Injected Webview scripts (graveyard, tile interaction, screenshot)
 │   │       │   ├── kick/         # Kick PKCE OAuth, Pusher WS chat, and REST API client
 │   │       │   ├── recording/    # Streamlink / FFmpeg sidecar management & orphan recovery
 │   │       │   ├── twitch/       # Twitch Device Flow, Helix REST, Usher HLS, & IRC client

@@ -105,15 +105,15 @@ Move `Multistream.app` to your `/Applications` folder, then run:
 xattr -dr com.apple.quarantine /Applications/Multistream.app
 ```
 
-## Keyboard Shortcuts
+## Controls in this checkout
 
-You can navigate the app quickly using these global hotkeys (they even work when you are interacting with a stream iframe):
+The local desktop build uses on-screen fullscreen, immersive-mode, Add Stream,
+and screenshot controls. Global hotkeys have been removed so keys inside players
+stay with the page. Dialogs and menus still close with Escape.
 
-| Shortcut                    | Action                                                    |
-| :-------------------------- | :-------------------------------------------------------- |
-| <kbd>1</kbd> - <kbd>9</kbd> | Switch active chat tab to the corresponding stream number |
-| <kbd>D</kbd>                | Open the "Add Stream" dialog                              |
-| <kbd>S</kbd>                | Take a screenshot of the focused stream                   |
+The [launcher guide](../README.md) documents the local media-player, website
+filtering, saved-account, recording, layout, and audio additions. See the
+[dated validation record](../CLEANUP.md) for checks run against this checkout.
 
 ## Local Development
 
