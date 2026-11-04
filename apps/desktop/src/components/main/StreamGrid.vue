@@ -70,7 +70,6 @@ useEventListener(window, "mouseup", onGlobalMouseUp);
 type DomStream = Stream & { _isDead?: boolean };
 const domStreams = ref<DomStream[]>([]);
 
-const layoutId = computed(() => streamLayout.value);
 const customDef = computed(() => customLayouts.value.find((c) => c.id === streamLayout.value));
 
 const streamsForWorkspace = (workspaceId: string) =>
@@ -164,62 +163,65 @@ watch(focusedStreamId, async (newId) => {
     setSelectedChat(`${stream.platform}:${stream.channel}`);
 });
 
-// FLIP animation: streams physically slide to their new layout positions.
-// Layout switches only change styles of stable keyed nodes, so iframes keep playing.
+const grid = ref<HTMLElement | null>(null);
+const moves = new Map<HTMLElement, Animation>();
+let layoutGeneration = 0;
+onBeforeUnmount(() => {
+  layoutGeneration++;
+  moves.forEach((animation) => animation.cancel());
+  moves.clear();
+});
+
 async function playFlipAnimation() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  // 1. FIRST: capture current bounding rect of every stream element
-  const elements = document.querySelectorAll<HTMLElement>("[data-stream-id]");
-  const prevRects = new Map<string, DOMRect>();
-  elements.forEach((el) => {
-    prevRects.set(el.dataset.streamId!, el.getBoundingClientRect());
-  });
-
-  // 2. Let Vue apply the new layout
+  const generation = ++layoutGeneration;
+  const elements = Array.from(grid.value?.querySelectorAll<HTMLElement>("[data-stream-id]") ?? []);
+  const previous = new Map(elements.map((element) => [element, element.getBoundingClientRect()]));
+  moves.forEach((animation) => animation.cancel());
+  moves.clear();
   await nextTick();
-
-  // 3. LAST + INVERT + PLAY
-  elements.forEach((el) => {
-    const id = el.dataset.streamId!;
-    const prev = prevRects.get(id);
-    if (!prev) return;
-
-    // Newly shown or newly hidden elements have no meaningful previous rect — skip
-    if (prev.width < 2 || prev.height < 2) return;
-
-    const next = el.getBoundingClientRect();
-    if (next.width < 2 || next.height < 2) return;
-
-    const dx = prev.left - next.left;
-    const dy = prev.top - next.top;
-    const scaleX = prev.width / (next.width || 1);
-    const scaleY = prev.height / (next.height || 1);
-
-    // Nothing moved — skip
+  if (disposed || generation !== layoutGeneration) return;
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  for (const element of elements) {
+    const before = previous.get(element);
+    const after = element.getBoundingClientRect();
     if (
-      Math.abs(dx) < 1 &&
-      Math.abs(dy) < 1 &&
-      Math.abs(scaleX - 1) < 0.01 &&
-      Math.abs(scaleY - 1) < 0.01
+      reduced ||
+      !before ||
+      before.width < 2 ||
+      before.height < 2 ||
+      after.width < 2 ||
+      after.height < 2
     )
-      return;
-
-    // Snap element back to its OLD position via inverse transform
-    el.style.transition = "none";
-    el.style.transformOrigin = "top left";
-    el.style.transform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
-
-    // Force paint, then animate to the new (real) position
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.style.transition = "transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)";
-        el.style.transform = "";
-      });
-    });
-  });
+      continue;
+    const dx = before.left - after.left;
+    const dy = before.top - after.top;
+    const sx = before.width / after.width;
+    const sy = before.height / after.height;
+    if (
+      Math.abs(dx) < 0.5 &&
+      Math.abs(dy) < 0.5 &&
+      Math.abs(sx - 1) < 0.005 &&
+      Math.abs(sy - 1) < 0.005
+    )
+      continue;
+    const animation = element.animate(
+      [
+        { transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, transformOrigin: "0 0" },
+        { transform: "none", transformOrigin: "0 0" },
+      ],
+      { duration: 300, easing: "cubic-bezier(0.22, 0.61, 0.36, 1)" }
+    );
+    moves.set(element, animation);
+    void animation.finished
+      .then(() => {
+        if (moves.get(element) === animation) moves.delete(element);
+      })
+      .catch(() => {});
+  }
+  window.dispatchEvent(new CustomEvent("multistream-layout-motion", { detail: reduced ? 0 : 300 }));
 }
 
-watch([focusedStreamId, layoutId], playFlipAnimation);
+watch([focusedStreamId, arrangedByWorkspace], playFlipAnimation, { flush: "pre" });
 
 const isHiddenByLayout = (workspaceId: string, streamId: string) =>
   arrangedByWorkspace.value[workspaceId]?.placedById[streamId]?.hidden ?? false;
@@ -245,7 +247,7 @@ const openAddDialog = () => {
   <!-- Every workspace stays mounted so switching rooms never pauses playback.
        Inactive rooms keep their layout boxes (visibility:hidden) instead of
        display:none so players never consider themselves hidden. -->
-  <div class="h-full overflow-hidden select-none relative">
+  <div ref="grid" class="h-full overflow-hidden select-none relative">
     <div
       v-for="ws in workspaces"
       :key="ws.id"
@@ -359,14 +361,6 @@ const openAddDialog = () => {
   </div>
 </template>
 <style scoped>
-/* Stream enter animation — plays once when the element is inserted */
-.stream-item {
-  animation: stream-enter 0.35s ease;
-  transition:
-    grid-column 0.45s cubic-bezier(0.25, 0.8, 0.25, 1),
-    grid-row 0.45s cubic-bezier(0.25, 0.8, 0.25, 1);
-}
-
 /* Stream leave animation — two-phase: fade out in place, then remove from DOM */
 .stream-leaving {
   opacity: 0;
@@ -375,12 +369,5 @@ const openAddDialog = () => {
   transition:
     opacity 0.25s ease,
     transform 0.25s ease;
-}
-
-@keyframes stream-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
 }
 </style>

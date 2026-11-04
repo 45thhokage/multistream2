@@ -109,6 +109,7 @@ pub async fn open_tile_webview(
         })
         .unwrap_or(false);
     let mut builder = tauri::WebviewBuilder::new(&label, tauri::WebviewUrl::External(parsed))
+        .initialization_script_for_all_frames(include_str!("core/graveyard.js"))
         .initialization_script_for_all_frames(include_str!("core/mixer.js"))
         .initialization_script_for_all_frames(include_str!("core/quality.js"))
         .user_agent(tile_user_agent(mobile))
@@ -198,6 +199,9 @@ pub async fn close_tile_webview(app: AppHandle, tile_id: String) -> Result<(), S
         let _ = popup.close();
     }
     if let Some(webview) = app.get_webview(&label) {
+        let _ = webview.hide();
+        let _ = webview.eval("window.postMessage({type:'MULTISTREAM_GRAVEYARD_SUSPEND'}, '*')");
+        tokio::time::sleep(std::time::Duration::from_millis(250)).await;
         webview
             .close()
             .map_err(|e| format!("failed to close tile webview: {e}"))?;

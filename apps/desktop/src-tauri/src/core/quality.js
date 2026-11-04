@@ -27,13 +27,18 @@
         for (const key of Object.keys(node)) if (/^__react(Fiber|InternalInstance|Props)/.test(key)) add(node[key], 0);
       }
     }
+    const root = document.querySelector("#root");
+    if (root) {
+      add(root._reactRootContainer?._internalRoot?.current, 0);
+      for (const key of Object.keys(root)) if (key.startsWith("__reactContainer")) add(root[key], 0);
+    }
     for (let i = 0; i < queue.length && i < 500; i++) {
       const { value: p, depth } = queue[i];
       try {
         if ((typeof p.getQualities === "function" && typeof p.setQuality === "function") || typeof p.qualityLevels === "function") found.push(p);
         if (typeof p.getIVSPlayer === "function") add(p.getIVSPlayer(), depth + 1);
         if (depth >= 12) continue;
-        for (const key of ["player", "playerInstance", "mediaPlayerInstance", "mediaPlayer", "core", "ivsPlayer", "videoPlayer", "current", "ref", "refs", "memoizedProps", "memoizedState", "stateNode", "state", "next", "return"]) add(p[key], depth + 1);
+        for (const key of ["player", "playerInstance", "mediaPlayerInstance", "mediaPlayer", "core", "ivsPlayer", "videoPlayer", "current", "ref", "refs", "props", "memoizedProps", "memoizedState", "stateNode", "state", "next", "return", "child", "sibling"]) add(p[key], depth + 1);
         if (Object.getPrototypeOf(p) === Object.prototype && Object.keys(p).length <= 24) Object.values(p).forEach((value) => add(value, depth + 1));
       } catch { /* Players can dispose while their framework is updating. */ }
     }
@@ -69,7 +74,12 @@
       const current = p.getQuality?.();
       return {
         options: [{ id: "auto", label: "auto" }, ...options],
-        current: requested || (typeof current === "string" ? current : current ? key(current, levels.indexOf(current)) : "auto"),
+        current: p.isAutoQualityMode?.() ? "auto" : (typeof current === "string" ? current : current ? key(current, levels.indexOf(current)) : "auto"),
+        confirm: api ? (id) => {
+          if (id === "auto") return !p.isAutoQualityMode || p.isAutoQualityMode();
+          const actual = p.getQuality?.();
+          return (typeof actual === "string" ? actual : actual ? key(actual, levels.indexOf(actual)) : null) === id;
+        } : undefined,
         set: async (id) => {
           const picked = levels.find((q, i) => key(q, i) === id);
           if (api) {

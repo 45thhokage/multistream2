@@ -356,6 +356,9 @@ const reloadStream = () => {
 
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 const unsubscribeReconnect = onReconnect(() => {
+  // Provider iframes reconnect themselves; reloading on a failed network probe
+  // interrupts healthy playback and tears down their active media connections.
+  if (containerRef.value?.querySelector("iframe")) return;
   const jitter = 50 + Math.floor(Math.random() * 250);
   if (reconnectTimer) {
     clearTimeout(reconnectTimer);

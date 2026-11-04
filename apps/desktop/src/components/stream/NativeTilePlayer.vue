@@ -38,6 +38,7 @@ watch(
   (value) => {
     const current = value.find((item) => item.id === id);
     if (current) stream.value = { ...current };
+    else if (stream.value) window.postMessage({ type: "MULTISTREAM_GRAVEYARD_SUSPEND" }, "*");
   },
   { immediate: true, deep: true }
 );

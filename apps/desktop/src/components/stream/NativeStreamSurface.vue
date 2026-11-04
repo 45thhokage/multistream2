@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, ref, watch } from "vue";
-import { useIntervalFn } from "@vueuse/core";
+import { useEventListener, useIntervalFn } from "@vueuse/core";
 import { invoke } from "@tauri-apps/api/core";
 import { useBrowserTiles } from "@/composables/useBrowserTiles";
 import { useStreams } from "@/composables/useStreams";
@@ -19,12 +19,17 @@ let opened = false;
 let opening = false;
 let disposed = false;
 let previousBounds = "";
+let suspended = false;
+let syncing = false;
+let motionFrame = 0;
 
 const sync = async () => {
-  if (props.dead || disposed) {
-    if (opened) {
-      opened = false;
-      await closeTile(props.streamId);
+  if (disposed) return;
+  if (props.dead) {
+    setTileVisible(props.streamId, false);
+    if (opened && !suspended) {
+      suspended = true;
+      await invoke("tile_set_audio", { tileId: props.streamId, volume: 0, muted: true });
     }
     return;
   }
@@ -39,7 +44,7 @@ const sync = async () => {
     try {
       opened = await openTile(props.streamId, "", rect, false, true);
       failed.value = !opened;
-      if (disposed || props.dead) {
+      if (disposed) {
         await closeTile(props.streamId);
         opened = false;
         return;
@@ -67,14 +72,30 @@ const sync = async () => {
   setTileVisible(props.streamId, props.visible);
 };
 const synchronize = () => {
-  void sync().catch(() => {
-    failed.value = true;
-  });
+  if (syncing || disposed) return;
+  syncing = true;
+  void sync()
+    .catch(() => {
+      failed.value = true;
+    })
+    .finally(() => {
+      syncing = false;
+    });
 };
+useEventListener(window, "multistream-layout-motion", (event: Event) => {
+  cancelAnimationFrame(motionFrame);
+  const end = performance.now() + Number((event as CustomEvent<number>).detail || 0);
+  const frame = () => {
+    synchronize();
+    if (!disposed && performance.now() <= end) motionFrame = requestAnimationFrame(frame);
+  };
+  frame();
+});
 watch(() => [props.visible, props.dead], synchronize, { flush: "post" });
 useIntervalFn(synchronize, 200, { immediateCallback: true });
 onBeforeUnmount(() => {
   disposed = true;
+  cancelAnimationFrame(motionFrame);
   if (opened) void closeTile(props.streamId);
 });
 </script>
