@@ -12,7 +12,7 @@ import { REFRESH_CONFIG } from "@/config/api";
 
 export interface FollowedChannel {
   id: string;
-  platform: "twitch" | "kick" | "youtube";
+  platform: "twitch" | "kick" | "youtube" | "custom";
   displayName: string;
   avatarUrl: string;
   isLive: boolean;
@@ -20,6 +20,7 @@ export interface FollowedChannel {
   game?: string;
   thumbnailUrl?: string;
   title?: string;
+  iframeUrl?: string;
   isFavorite?: boolean;
   isFollowed?: boolean;
   videoId?: string;
@@ -209,6 +210,24 @@ const _useFollowedChannels = () => {
       .filter((channel) => channel.isLive);
   });
 
+  const customChannels = computed<FollowedChannel[]>(() => {
+    return favorites.value
+      .filter((f) => f.platform === "custom")
+      .map((f) => {
+        const url = f.iframeUrl ?? f.siteUrl ?? "";
+        return {
+          id: f.channel,
+          platform: "custom" as const,
+          displayName: f.displayName ?? f.channel,
+          avatarUrl: f.faviconUrl ?? "",
+          isLive: true,
+          title: url || undefined,
+          iframeUrl: url || undefined,
+          isFavorite: true,
+        };
+      });
+  });
+
   const channels = computed<FollowedChannel[]>(() => {
     const twitchFollowed = twitchChannels.value.map((c) => {
       const isFav = favorites.value.some(
@@ -223,6 +242,7 @@ const _useFollowedChannels = () => {
       ...twitchFavChannels.value,
       ...kickChannels.value,
       ...youtubeChannels.value,
+      ...customChannels.value,
     ];
 
     combined.sort((a, b) => {

@@ -32,6 +32,19 @@ use youtube::commands::{
     youtube_search_channels,
 };
 
+mod site_windows;
+use site_windows::{close_site_window, list_site_windows, open_site_window};
+
+mod ui_overlay;
+use ui_overlay::{close_ui_overlay, open_ui_overlay};
+mod browser_tiles;
+mod tile_audio;
+use browser_tiles::{
+    close_tile_webview, open_player_webview, open_tile_webview, tile_current_url, tile_go_back,
+    tile_go_forward, tile_navigate, tile_reload, tile_set_audio, tile_set_bounds, tile_set_quality,
+    tile_set_visible,
+};
+
 mod recording;
 use recording::commands::{
     dismiss_orphan_recording, is_recording, is_recording_supported_cmd, list_recordings,
@@ -51,7 +64,19 @@ use network::check_network_connectivity;
 const LOCALHOST_PORT: u16 = 14831;
 
 // realistic Chrome user-agent to avoid Cloudflare WebView fingerprint detection
-const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+pub(crate) const USER_AGENT: &str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36";
+
+// mobile Chrome user-agent for per-tile mobile view emulation
+pub(crate) const MOBILE_USER_AGENT: &str = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Mobile Safari/537.36";
+
+// Windows WebView2 requires all windows in the same app to share identical
+// browser arguments and user agent, otherwise it crashes.
+pub(crate) const SITE_BROWSER_ARGS: &str =
+    "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection \
+                                --disable-background-timer-throttling \
+                                --disable-backgrounding-occluded-windows \
+                                --disable-renderer-backgrounding \
+                                --autoplay-policy=no-user-gesture-required";
 
 const SCREENSHOT_SCRIPT: &str = include_str!("core/screenshot_capture.js");
 const KEYBOARD_SCRIPT: &str = include_str!("core/keyboard_shortcuts.js");
@@ -77,12 +102,29 @@ async fn splashscreen_ready(app: tauri::AppHandle) -> Result<(), String> {
 async fn close_splashscreen(app: tauri::AppHandle) -> Result<(), String> {
     SPLASH_DISMISSED.store(true, Ordering::Relaxed);
     if let Some(splash) = app.get_webview_window("splashscreen") {
-        let _ = splash.close();
+        if let Err(e) = splash.close() {
+            log::warn!("failed to close splashscreen: {e}");
+        }
     }
-    if let Some(main) = app.get_webview_window("main") {
-        let _ = main.show();
-        let _ = main.unminimize();
-        let _ = main.set_focus();
+    match app.get_webview_window("main") {
+        Some(main) => {
+            if let Err(e) = main.show() {
+                log::warn!("failed to show main window: {e}");
+            }
+            let _ = main.unminimize();
+            let _ = main.set_focus();
+            match main.is_visible() {
+                Ok(true) => {}
+                Ok(false) => {
+                    log::warn!("main window still hidden after show, retrying");
+                    if let Err(e) = main.show() {
+                        log::warn!("main window show retry failed: {e}");
+                    }
+                }
+                Err(e) => log::warn!("failed to query main window visibility: {e}"),
+            }
+        }
+        None => log::warn!("close_splashscreen: main window not found"),
     }
     Ok(())
 }
@@ -180,6 +222,23 @@ pub fn run() {
             youtube_check_channels_status,
             youtube_search_channels,
             check_network_connectivity,
+            open_site_window,
+            close_site_window,
+            list_site_windows,
+            open_tile_webview,
+            open_player_webview,
+            close_tile_webview,
+            tile_navigate,
+            tile_set_audio,
+            tile_set_quality,
+            open_ui_overlay,
+            close_ui_overlay,
+            tile_reload,
+            tile_go_back,
+            tile_go_forward,
+            tile_set_bounds,
+            tile_set_visible,
+            tile_current_url,
         ])
         .setup(move |app| {
             network::start_network_monitor(app.handle().clone());
@@ -325,18 +384,14 @@ pub fn run() {
                 });
             "#;
 
-            // Windows WebView2 requires all windows in the same app to share identical 
-            // browser arguments and user agent, otherwise it crashes.
-            let browser_args = "--disable-features=msWebOOUI,msPdfOOUI,msSmartScreenProtection \
-                                --disable-background-timer-throttling \
-                                --disable-backgrounding-occluded-windows \
-                                --disable-renderer-backgrounding \
-                                --autoplay-policy=no-user-gesture-required";
+            // Windows WebView2 requires all windows in the same app to share identical
+            // browser arguments and user agent, otherwise it crashes (see SITE_BROWSER_ARGS).
+            let browser_args = SITE_BROWSER_ARGS;
 
 
             // resolve url for main window
             let url = if cfg!(debug_assertions) {
-                tauri::WebviewUrl::External("http://localhost:5173".parse().unwrap())
+                tauri::WebviewUrl::External("http://localhost:5174".parse().unwrap())
             } else {
                 tauri::WebviewUrl::External(
                     format!("http://localhost:{}", LOCALHOST_PORT)
@@ -356,6 +411,7 @@ pub fn run() {
                 .background_color(Color(31, 34, 39, 255))
                 .user_agent(USER_AGENT)
                 .additional_browser_args(browser_args)
+                .initialization_script_for_all_frames(include_str!("core/mixer.js"))
                 .initialization_script_for_all_frames(STREAM_FILTER_SCRIPT)
                 .initialization_script_for_all_frames(graveyard_script)
                 .initialization_script_for_all_frames(SCREENSHOT_SCRIPT)
@@ -368,10 +424,15 @@ pub fn run() {
             let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
             fn show_main_window(app: &tauri::AppHandle) {
-                if let Some(window) = app.get_webview_window("main") {
-                    let _ = window.show();
-                    let _ = window.unminimize();
-                    let _ = window.set_focus();
+                match app.get_webview_window("main") {
+                    Some(window) => {
+                        if let Err(e) = window.show() {
+                            log::warn!("tray show: failed to show main window: {e}");
+                        }
+                        let _ = window.unminimize();
+                        let _ = window.set_focus();
+                    }
+                    None => log::warn!("tray show: main window not found"),
                 }
             }
 

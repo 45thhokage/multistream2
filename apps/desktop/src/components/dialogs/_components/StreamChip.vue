@@ -11,6 +11,9 @@ const props = defineProps<{
   platform: Platform;
   displayName?: string;
   iframeUrl?: string;
+  faviconUrl?: string;
+  itemKey?: string;
+  tooltip?: string;
 }>();
 
 const emit = defineEmits<{
@@ -55,21 +58,31 @@ const chipTitle = computed(() => {
   >
     <button
       type="button"
-      :data-testid="`stream-chip-${props.channel}`"
+      :data-testid="`stream-chip-${props.itemKey ?? props.channel}`"
       class="flex items-center gap-1.5 px-2.5 py-1.5 w-full min-w-0 cursor-pointer text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 rounded-md"
-      :title="chipTitle"
+      :title="props.tooltip ?? chipTitle"
       @click="emit('click')"
     >
-      <component
-        :is="PLATFORMS[props.platform]?.icon"
-        :size="14"
-        :class="[
-          !status?.isLive
-            ? 'opacity-50 saturate-50 group-hover:opacity-100 group-hover:saturate-100 transition-all duration-200'
-            : '',
-        ]"
-        :style="{ color: PLATFORMS[props.platform]?.color }"
-      />
+      <span class="relative shrink-0 size-[14px]">
+        <component
+          :is="PLATFORMS[props.platform]?.icon"
+          :size="14"
+          :class="[
+            !status?.isLive
+              ? 'opacity-50 saturate-50 group-hover:opacity-100 group-hover:saturate-100 transition-all duration-200'
+              : '',
+          ]"
+          :style="{ color: PLATFORMS[props.platform]?.color }"
+        />
+        <img
+          v-if="props.faviconUrl"
+          :src="props.faviconUrl"
+          :alt="props.displayName ?? props.channel"
+          class="absolute inset-0 size-[14px] rounded-[3px] bg-[#14161a]"
+          loading="lazy"
+          @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
+        />
+      </span>
       <span class="truncate flex-1 min-w-0 text-left">{{
         props.displayName || status?.displayName || props.channel
       }}</span>

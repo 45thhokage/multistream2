@@ -180,4 +180,53 @@ describe("useRecents composable unit tests", () => {
     expect(recents.value.length).toBe(1);
     expect(recents.value[0]?.iframeUrl).toBe("https://site2.com/embed");
   });
+
+  it("should clear all recent channels", () => {
+    // Arrange
+    const { addRecent, clearRecents, recents } = sut;
+
+    addRecent("gaules", "twitch");
+    addRecent("alanzoka", "youtube");
+
+    expect(recents.value.length).toBe(2);
+
+    // Act
+    clearRecents();
+
+    // Assert
+    expect(recents.value.length).toBe(0);
+  });
+
+  it("should keep same-named customs with different urls as separate recents", () => {
+    // Arrange
+    const { addRecent, recents } = sut;
+
+    // Act
+    addRecent("github.com", "custom", "https://github.com/gorhill/ublock");
+    addRecent("github.com", "custom", "https://github.com/gorhill/");
+
+    // Assert
+    expect(recents.value.length).toBe(2);
+    expect(recents.value.map((r) => r.iframeUrl).toSorted()).toEqual([
+      "https://github.com/gorhill/",
+      "https://github.com/gorhill/ublock",
+    ]);
+  });
+
+  it("should remove only the matching custom url when removing a recent", () => {
+    // Arrange
+    const { addRecent, removeRecent, recents } = sut;
+
+    addRecent("github.com", "custom", "https://github.com/gorhill/ublock");
+    addRecent("github.com", "custom", "https://github.com/gorhill/");
+
+    expect(recents.value.length).toBe(2);
+
+    // Act
+    removeRecent("github.com", "custom", "https://github.com/gorhill/ublock");
+
+    // Assert
+    expect(recents.value.length).toBe(1);
+    expect(recents.value[0]?.iframeUrl).toBe("https://github.com/gorhill/");
+  });
 });

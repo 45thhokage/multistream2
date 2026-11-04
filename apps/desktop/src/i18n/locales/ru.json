@@ -27,27 +27,28 @@
     "suggestedLabel": "Рекомендуемые стримы",
     "suggestedDescription": "Популярные прямые трансляции сейчас",
     "noSuggestions": "Стримы не найдены",
-    "resolvingLive": "Проверка статуса прямой трансляции YouTube..."
+    "resolvingLive": "Проверка статуса прямой трансляции YouTube...",
+    "openInWindow": "Open in window"
   },
   "settings": {
     "tooltip": "Настройки",
     "title": "Настройки",
     "description": "Настройте ваши предпочтения.",
     "updates": {
-      "title": "Обновления",
-      "description": "Проверить наличие новых версий",
       "checkButton": "Проверить обновления",
-      "checking": "Проверка..."
+      "checking": "Проверка...",
+      "description": "Проверить наличие новых версий",
+      "title": "Обновления"
     },
     "language": {
-      "title": "Язык",
-      "description": "Выберите предпочитаемый язык"
+      "description": "Выберите предпочитаемый язык",
+      "title": "Язык"
     },
     "notifications": {
-      "title": "Уведомления",
       "description": "Получайте уведомления, когда избранные выходят в эфир",
+      "disabled": "Уведомления отключены",
       "enabled": "Уведомления включены",
-      "disabled": "Уведомления отключены"
+      "title": "Уведомления"
     },
     "auth": {
       "title": "Аккаунты",
@@ -62,9 +63,9 @@
       "disconnected": "Отключено",
       "logout": "Выйти",
       "features": {
+        "followedChannels": "Список отслеживаемых каналов",
         "readChat": "Читать сообщения чата",
-        "sendChat": "Отправлять сообщения в чат",
-        "followedChannels": "Список отслеживаемых каналов"
+        "sendChat": "Отправлять сообщения в чат"
       },
       "disclaimer": "Multistream — это независимый клиент с открытым исходным кодом, который не связан, не одобрен и не спонсируется Twitch, Kick, YouTube или Amazon.",
       "disconnectConfirmTitle": "Отключить аккаунт?",
@@ -72,17 +73,17 @@
       "disconnectConfirmButton": "Отключить"
     },
     "backup": {
-      "title": "Данные и бэкап",
       "description": "Экспорт или импорт полной конфигурации",
       "exportButton": "Экспорт данных",
+      "exportSuccess": "Конфигурация успешно экспортирована",
       "importButton": "Импорт данных",
-      "importConfirmTitle": "Перезаписать конфигурацию?",
-      "importConfirmDescription": "Вы уверены, что хотите импортировать эту конфигурацию? Это полностью заменит ваши текущие стримы, избранное, недавние и настройки.",
       "importConfirmButton": "Импортировать и перезаписать",
       "importConfirmCancel": "Отмена",
-      "importSuccess": "Конфигурация успешно импортирована",
+      "importConfirmDescription": "Вы уверены, что хотите импортировать эту конфигурацию? Это полностью заменит ваши текущие стримы, избранное, недавние и настройки.",
+      "importConfirmTitle": "Перезаписать конфигурацию?",
       "importError": "Неверный файл резервной копии",
-      "exportSuccess": "Конфигурация успешно экспортирована"
+      "importSuccess": "Конфигурация успешно импортирована",
+      "title": "Данные и бэкап"
     },
     "transcription": {
       "title": "Живая транскрипция",
@@ -128,17 +129,17 @@
       "modelInUse": "Используется"
     },
     "help": {
-      "title": "Помощь",
       "description": "Нужна помощь или хотите изучить функции?",
-      "showTourButton": "Показать тур по приложению"
+      "showTourButton": "Показать тур по приложению",
+      "title": "Помощь"
     },
     "tabs": {
-      "general": "Основные",
-      "data": "Данные",
+      "about": "О программе",
       "connections": "Соединения",
-      "resources": "Транскрипция",
+      "data": "Данные",
+      "general": "Основные",
       "recording": "Запись",
-      "about": "О программе"
+      "resources": "Транскрипция"
     },
     "about": {
       "title": "О программе Multistream",
@@ -155,82 +156,90 @@
       "extension": "Браузерное расширение"
     },
     "nativePlayer": {
-      "title": "Встроенный плеер Twitch (Экспериментальный)",
       "description": "Использовать встроенный движок вместо встроенных плееров. Может улучшить производительность и совместимость.",
       "loadError": "Не удалось загрузить трансляцию. Пользовательский плеер может быть временно недоступен.",
-      "videoRefError": "Ссылка на видеоэлемент не привязана",
-      "notSupportedError": "Воспроизведение медиа не поддерживается браузером"
+      "notSupportedError": "Воспроизведение медиа не поддерживается браузером",
+      "title": "Встроенный плеер Twitch (Экспериментальный)",
+      "videoRefError": "Ссылка на видеоэлемент не привязана"
     },
     "adblock": {
-      "title": "Встроенный блокировщик рекламы",
       "description": "Блокировка видеорекламы и баннеров в стримах Twitch и YouTube",
-      "toastEnabled": "Блокировщик рекламы включен",
-      "toastDisabled": "Блокировщик рекламы выключен"
+      "title": "Встроенный блокировщик рекламы",
+      "toastDisabled": "Блокировщик рекламы выключен",
+      "toastEnabled": "Блокировщик рекламы включен"
     },
     "recording": {
-      "tabLabel": "Запись",
-      "enableTitle": "Локальная запись",
-      "enableFeatureToggle": "Включить функцию локальной записи",
-      "downloadDependencies": "Загрузить зависимости",
-      "installSuccess": "Зависимости успешно установлены",
-      "installError": "Ошибка установки: {error}",
-      "uninstallDependencies": "Удалить функцию",
-      "uninstallSuccess": "Функция успешно удалена",
-      "uninstallError": "Ошибка при удалении: {error}",
-      "uninstallConfirmTitle": "Удалить функцию?",
-      "uninstallConfirmDescription": "Это удалит изолированную среду записи и освободит место. Вы сможете установить ее снова позже.",
-      "uninstallConfirmButton": "Удалить",
-      "enableDescription": "Записывайте стримы напрямую из источника с помощью Streamlink. Файлы сохраняются в папку Видео.",
-      "unavailableOS": "Запись не поддерживается на вашей архитектуре.",
-      "qualityTitle": "Качество по умолчанию",
-      "qualityPrefix": "Качество: ",
-      "qualityDescription": "Предпочтительное качество стрима. Переключается на лучшее доступное, если выбранное недоступно.",
-      "qualityBest": "Лучшее",
-      "quality1080p": "1080p",
-      "quality720p": "720p",
-      "quality480p": "480p",
-      "qualityWorst": "Наименьшее",
-      "pathTitle": "Каталог",
-      "pathDescription": "Выберите, где сохранять записи. Оставьте пустым для папки Видео по умолчанию.",
-      "selectFolder": "Выбрать папку",
+      "customNotSupported": "Запись не поддерживается для пользовательских стримов.",
       "defaultPath": "По умолчанию (Видео)",
-      "resetFolder": "Сброс",
-      "orphanTitle": "Незавершённые записи",
-      "orphanDescription": "Эти записи были прерваны. Вы можете конвертировать их в MP4 или удалить.",
+      "downloadDependencies": "Загрузить зависимости",
+      "enableDescription": "Записывайте стримы напрямую из источника с помощью Streamlink. Файлы сохраняются в папку Видео.",
+      "enableFeatureToggle": "Включить функцию локальной записи",
+      "enableTitle": "Локальная запись",
+      "installError": "Ошибка установки: {error}",
+      "installSuccess": "Зависимости успешно установлены",
+      "openFolder": "Открыть папку",
       "orphanConvert": "Конвертировать в MP4",
+      "orphanDescription": "Эти записи были прерваны. Вы можете конвертировать их в MP4 или удалить.",
       "orphanDismiss": "Отклонить",
-      "starting": "Начало записи...",
-      "stopping": "Остановка записи...",
+      "orphanFound": "Найдено {count} незавершённых записей",
+      "orphanTitle": "Незавершённые записи",
+      "pathDescription": "Выберите, где сохранять записи. Оставьте пустым для папки Видео по умолчанию.",
+      "pathTitle": "Каталог",
+      "quality1080p": "1080p",
+      "quality480p": "480p",
+      "quality720p": "720p",
+      "qualityBest": "Лучшее",
+      "qualityDescription": "Предпочтительное качество стрима. Переключается на лучшее доступное, если выбранное недоступно.",
+      "qualityPrefix": "Качество: ",
+      "qualityTitle": "Качество по умолчанию",
+      "qualityWorst": "Наименьшее",
+      "remuxFailed": "Конвертация не удалась. Необработанная запись сохранена.",
       "remuxing": "Конвертация в MP4...",
       "remuxingDescription": "Это может занять некоторое время в зависимости от размера файла.",
+      "resetFolder": "Сброс",
       "saved": "Запись сохранена",
-      "openFolder": "Открыть папку",
-      "remuxFailed": "Конвертация не удалась. Необработанная запись сохранена.",
+      "selectFolder": "Выбрать папку",
+      "starting": "Начало записи...",
+      "stopping": "Остановка записи...",
       "streamEnded": "Стрим завершён. Сохранение записи...",
       "streamError": "Ошибка записи: {error}",
-      "customNotSupported": "Запись не поддерживается для пользовательских стримов.",
-      "orphanFound": "Найдено {count} незавершённых записей"
+      "tabLabel": "Запись",
+      "unavailableOS": "Запись не поддерживается на вашей архитектуре.",
+      "uninstallConfirmButton": "Удалить",
+      "uninstallConfirmDescription": "Это удалит изолированную среду записи и освободит место. Вы сможете установить ее снова позже.",
+      "uninstallConfirmTitle": "Удалить функцию?",
+      "uninstallDependencies": "Удалить функцию",
+      "uninstallError": "Ошибка при удалении: {error}",
+      "uninstallSuccess": "Функция успешно удалена"
+    },
+    "sites": {
+      "description": "Sites opened in their own window. Sign-ins stay saved in the app browser.",
+      "empty": "No site windows open.",
+      "openInWindow": "Open in window",
+      "title": "Site windows",
+      "youtubeHint": "Sign in on youtube.com once — streams and chat reuse it.",
+      "youtubeLogin": "Open YouTube to sign in"
     }
   },
   "share": {
-    "tooltip": "Поделиться",
-    "title": "Поделиться трансляциями",
-    "description": "Поделитесь трансляциями с друзьями.",
-    "noStreams": "Нет трансляций для публикации",
     "cancelButton": "Отмена",
     "copyButton": "Копировать ссылку",
-    "toast": "Ссылка скопирована в буфер обмена"
+    "description": "Поделитесь трансляциями с друзьями.",
+    "noStreams": "Нет трансляций для публикации",
+    "title": "Поделиться трансляциями",
+    "toast": "Ссылка скопирована в буфер обмена",
+    "tooltip": "Поделиться"
   },
   "import": {
-    "tooltip": "Импорт",
-    "title": "Импортировать трансляции",
+    "deepLinkSuccess": "Стримы успешно импортированы через Deep Link!",
     "description": "Вставьте ссылку для импорта трансляций.",
-    "placeholder": "Вставьте ссылку здесь...",
     "importButton": "Импорт",
-    "invalidLink": "Недействительная ссылка",
     "invalidCustom": "Не удалось обработать пользовательские трансляции",
+    "invalidLink": "Недействительная ссылка",
+    "placeholder": "Вставьте ссылку здесь...",
     "success": "Трансляции успешно импортированы",
-    "deepLinkSuccess": "Стримы успешно импортированы через Deep Link!"
+    "title": "Импортировать трансляции",
+    "tooltip": "Импорт"
   },
   "hide": {
     "tooltip": "Скрыть"
@@ -248,16 +257,17 @@
       "focus": "Фокусировать стрим",
       "unfocus": "Снять фокус",
       "copyUrl": "Копировать URL стрима",
-      "reload": "Перезагрузить стрим"
+      "reload": "Перезагрузить стрим",
+      "openInWindow": "Open in window"
     }
   },
   "empty": {
-    "title": "Нет выбранных трансляций",
-    "description": "Начните с добавления ваших любимых каналов для одновременного просмотра.",
     "addButton": "Добавить трансляцию",
-    "tourLink": "Нужна помощь? Пройти тур по приложению",
+    "description": "Начните с добавления ваших любимых каналов для одновременного просмотра.",
+    "loading": "Загрузка...",
     "refresh": "Обновить",
-    "loading": "Загрузка..."
+    "title": "Нет выбранных трансляций",
+    "tourLink": "Нужна помощь? Пройти тур по приложению"
   },
   "chat": {
     "controlTitle": "Управление",
@@ -284,41 +294,41 @@
       }
     },
     "unified": {
-      "selectorLabel": "Единый чат",
-      "connectTitle": "Подключиться к Twitch",
-      "connectHint": "Войдите, чтобы видеть сообщения из всех каналов Twitch в вашей сетке в едином ленте.",
-      "connectButton": "Подключиться",
-      "reconnecting": "Переподключение…",
-      "noStreams": "Нет потоков Twitch в вашей сетке.",
-      "noStreamsHint": "Добавьте поток Twitch, чтобы видеть сообщения здесь.",
-      "disconnected": "Чат отключён.",
       "auth": {
-        "expired": "Срок действия кода авторизации истек. Пожалуйста, попробуйте еще раз.",
+        "cancel": "Отмена",
+        "defaultUser": "Пользователь",
         "error": "Во время аутентификации произошла ошибка: ",
-        "tryAgain": "Попробовать снова",
+        "expired": "Срок действия кода авторизации истек. Пожалуйста, попробуйте еще раз.",
+        "initFailed": "Не удалось инициализировать процесс входа.",
         "step1": "1. Откройте ссылку для верификации ниже",
         "step2": "2. Введите этот код, чтобы привязать ваш аккаунт",
-        "waiting": "Ожидание авторизации...",
-        "cancel": "Отмена",
-        "successTitle": "Успешная аутентификация на {platform}",
         "successDesc": "Вошли как {username}",
-        "initFailed": "Не удалось инициализировать процесс входа.",
-        "defaultUser": "Пользователь"
+        "successTitle": "Успешная аутентификация на {platform}",
+        "tryAgain": "Попробовать снова",
+        "waiting": "Ожидание авторизации..."
       },
-      "warningTwitchLoginToMerge": "Подключите аккаунт Twitch, чтобы добавить чаты Twitch в Единый чат.",
-      "warningTwitchLogin": "Подключите аккаунт Twitch, чтобы включить Единый чат."
+      "connectButton": "Подключиться",
+      "connectHint": "Войдите, чтобы видеть сообщения из всех каналов Twitch в вашей сетке в едином ленте.",
+      "connectTitle": "Подключиться к Twitch",
+      "disconnected": "Чат отключён.",
+      "noStreams": "Нет потоков Twitch в вашей сетке.",
+      "noStreamsHint": "Добавьте поток Twitch, чтобы видеть сообщения здесь.",
+      "reconnecting": "Переподключение…",
+      "selectorLabel": "Единый чат",
+      "warningTwitchLogin": "Подключите аккаунт Twitch, чтобы включить Единый чат.",
+      "warningTwitchLoginToMerge": "Подключите аккаунт Twitch, чтобы добавить чаты Twitch в Единый чат."
     },
     "loginPrompt": "Войдите, чтобы взаимодействовать",
     "loginPromptTwitch": "Подключите свою учетную запись Twitch, чтобы отправлять сообщения в этом канале.",
     "loginPromptKick": "Подключите свою учетную запись Kick, чтобы отправлять сообщения в этом канале.",
     "connectAction": "Подключить",
     "emotes": {
-      "searchEmote": "Поиск эмоута...",
       "noEmotesFound": "Эмоуты не найдены",
+      "searchEmote": "Поиск эмоута...",
       "tabs": {
-        "recent": "Недавние",
+        "channel": "Канал",
         "global": "Глобальные",
-        "channel": "Канал"
+        "recent": "Недавние"
       }
     },
     "you": "Вы",
@@ -326,8 +336,8 @@
     "badges": {
       "broadcaster": "Стример",
       "moderator": "Модератор",
-      "vip": "VIP",
-      "subscriber": "Подписчик"
+      "subscriber": "Подписчик",
+      "vip": "VIP"
     },
     "sendError": "Не удалось отправить сообщение",
     "reply": "Ответить",
@@ -339,9 +349,9 @@
   },
   "confirm": {
     "deleteOrphan": {
-      "title": "Удалить запись",
+      "confirm": "Удалить",
       "description": "Этот файл записи будет безвозвратно удалён с диска. Это действие нельзя отменить.",
-      "confirm": "Удалить"
+      "title": "Удалить запись"
     },
     "deleteModel": {
       "title": "Удалить модель ИИ",
@@ -350,24 +360,24 @@
     }
   },
   "common": {
+    "cancel": "Отмена",
     "close": "Закрыть",
     "comingSoon": "Скоро",
-    "play": "Воспроизвести",
-    "pause": "Пауза",
-    "mute": "Без звука",
-    "unmute": "Включить звук",
-    "fullscreen": "На весь экран",
-    "exitFullscreen": "Выйти из полноэкранного режима",
-    "settings": "Настройки",
-    "volume": "Громкость",
     "confirm": "Подтвердить",
-    "cancel": "Отмена"
+    "exitFullscreen": "Выйти из полноэкранного режима",
+    "fullscreen": "На весь экран",
+    "mute": "Без звука",
+    "pause": "Пауза",
+    "play": "Воспроизвести",
+    "settings": "Настройки",
+    "unmute": "Включить звук",
+    "volume": "Громкость"
   },
   "toasts": {
     "add": {
       "added": "добавлено",
       "alreadyAdded": "Трансляция уже добавлена",
-      "maxStreams": "Достигнут лимит в 12 трансляций"
+      "maxStreams": "Достигнут лимит в 16 трансляций"
     },
     "favorite": {
       "added": "добавлено в избранное",
@@ -375,18 +385,18 @@
     },
     "remove": "удалено",
     "update": {
-      "newVersion": "Доступна новая версия",
-      "latestVersion": "У вас последняя версия!",
+      "downloading": "Загрузка обновления...",
       "failedCheck": "Не удалось проверить обновления",
       "failedUpdate": "Не удалось загрузить обновление",
-      "downloading": "Загрузка обновления...",
+      "latestVersion": "У вас последняя версия!",
+      "newVersion": "Доступна новая версия",
       "success": "Обновление завершено! Перезапуск..."
     },
     "screenshot": {
-      "saved": "Скриншот сохранён!",
+      "blocked": "Скриншот заблокирован DRM платформы",
       "failed": "Не удалось сделать скриншот",
       "noStream": "Видеострим не найден",
-      "blocked": "Скриншот заблокирован DRM платформы",
+      "saved": "Скриншот сохранён!",
       "timeout": "Время ожидания скриншота истекло"
     },
     "codecs": {
@@ -403,16 +413,16 @@
     "streamDiagnostics": "диагностика_стрима"
   },
   "notifications": {
+    "actionIgnore": "Игнорировать",
+    "actionWatch": "Смотреть стрим",
+    "live": "{channel} начал трансляцию!",
+    "liveBody": "[{category}] {title}",
+    "liveBodyFallback": "{channel} на {platform}",
+    "liveBodyTitleOnly": "{title}",
     "welcome": "Избранные стримеры онлайн",
     "welcomeBody": "{channels} сейчас в эфире!",
     "welcomeBodyMore": "{channels} и еще {count} избранных в эфире!",
-    "welcomeBodySingle": "{channel} сейчас в эфире!",
-    "live": "{channel} начал трансляцию!",
-    "liveBody": "[{category}] {title}",
-    "liveBodyTitleOnly": "{title}",
-    "liveBodyFallback": "{channel} на {platform}",
-    "actionWatch": "Смотреть стрим",
-    "actionIgnore": "Игнорировать"
+    "welcomeBodySingle": "{channel} сейчас в эфире!"
   },
   "onboarding": {
     "title": "Добро пожаловать в Multistream",
@@ -482,8 +492,8 @@
     "hintLabel": "Совет"
   },
   "webBanner": {
-    "title": "Multistream работает лучше в десктопном приложении.",
-    "button": "Скачать"
+    "button": "Скачать",
+    "title": "Multistream работает лучше в десктопном приложении."
   },
   "sidebar": {
     "openSidebar": "Открыть боковую панель",
@@ -492,22 +502,23 @@
     "loginTitle": "Подключите аккаунт",
     "loginSubtitle": "Смотрите каналы, на которые вы подписаны",
     "noChannels": "Нет каналов онлайн",
-    "noChannelsSubtitle": "Добавьте каналы в избранное или подключите Twitch."
+    "noChannelsSubtitle": "Добавьте каналы в избранное или подключите Twitch.",
+    "previewUnavailable": "Предпросмотр недоступен"
   },
   "nativePlayer": {
     "live": "LIVE",
     "quality": {
-      "auto": "Авто",
-      "audio": "Аудио"
+      "audio": "Аудио",
+      "auto": "Авто"
     },
     "offline": {
-      "title": "Трансляция завершена",
-      "description": "Стример завершил эту трансляцию."
+      "description": "Стример завершил эту трансляцию.",
+      "title": "Трансляция завершена"
     },
     "errors": {
-      "tokenExpired": "Доступ запрещен (403). Токен трансляции истек.",
       "hlsError": "Ошибка HLS ({type}: {details})",
-      "playbackError": "Ошибка воспроизведения"
+      "playbackError": "Ошибка воспроизведения",
+      "tokenExpired": "Доступ запрещен (403). Токен трансляции истек."
     },
     "retry": "Повторить"
   },
@@ -537,5 +548,118 @@
     "immersive": {
       "toastEnabled": "Иммерсивный режим включен — наведите курсор на края экрана или нажмите Esc для выхода (F11 для полноэкранного режима)"
     }
+  },
+  "app": {
+    "forceReload": "Force reload app",
+    "reload": "Reload app"
+  },
+  "browser": {
+    "address": "Address bar",
+    "addressPlaceholder": "Enter URL...",
+    "back": "Go back",
+    "desktopView": "Switch to desktop view",
+    "dragTile": "Drag tile",
+    "forward": "Go forward",
+    "loading": "Loading {title}...",
+    "mobileView": "Switch to mobile view",
+    "reload": "Reload page"
+  },
+  "layouts": {
+    "addToSlot": "Add stream",
+    "auto": "Auto",
+    "deleteCustom": "Delete custom layout",
+    "duo": "Duo",
+    "focus": "Focus",
+    "focusPlus": "Focus+",
+    "pip": "PiP",
+    "pip2": "2x PiP",
+    "quad": "Quad",
+    "saveCurrent": "Save current grid",
+    "sidebar": "Sidebar",
+    "solo": "Solo",
+    "stack": "Stack",
+    "tall": "Tall",
+    "theater": "Theater",
+    "title": "Layout",
+    "wall": "Wall",
+    "wide": "Wide",
+    "groups": {
+      "grid": "Сетки",
+      "focus": "Фокус",
+      "pip": "Картинка в картинке",
+      "saved": "Сохранённые макеты"
+    },
+    "autoHint": "Минимальная сетка для всех трансляций",
+    "expandedHint": "Расширено для всех {count} трансляций. Выбранный макет вернётся после удаления лишних трансляций.",
+    "slotCount": "Области: {count}",
+    "savedName": "Копия {name}",
+    "gridSize": "{cols} × {rows}",
+    "tallTwo": "Высокий + 2",
+    "duoFour": "2 больших + 4",
+    "lShape": "Г-образный",
+    "mosaic": "Мозаика",
+    "golden": "Золотая спираль",
+    "pipTopLeft": "PiP сверху слева",
+    "pipTopRight": "PiP сверху справа",
+    "pipBottomLeft": "PiP снизу слева",
+    "pipWide": "2 PiP рядом",
+    "pipCorners": "2 PiP по углам",
+    "pipThree": "3 PiP друг над другом",
+    "pipFour": "4 PiP по углам",
+    "pipSix": "Сетка из 6 PiP",
+    "stripThree": "Полоса из 3 PiP",
+    "stripFour": "Полоса из 4 PiP"
+  },
+  "workspaces": {
+    "add": "Add workspace",
+    "cannotDeleteLast": "Cannot delete the last workspace",
+    "delete": "Delete workspace",
+    "deleted": "deleted",
+    "maxReached": "Maximum of 5 workspaces reached",
+    "roomName": "Room {n}",
+    "title": "Workspaces"
+  },
+  "mixer": {
+    "title": "Звук трансляций",
+    "master": "Общая громкость",
+    "muteAll": "Выключить весь звук",
+    "mute": "Без звука",
+    "solo": "Соло",
+    "empty": "Добавьте трансляции для управления звуком.",
+    "channelVolume": "Громкость {channel}",
+    "nativeRequired": "Отключение звука на выходе доступно в приложении для Windows.",
+    "dragTile": "Перетащите плитку для изменения порядка",
+    "outputFailed": "Ошибка управления нативным плеером. Перезапустите приложение.",
+    "audioMode": "Режим звука",
+    "modes": {
+      "click": "Фокус по нажатию",
+      "hover": "Звук следует за курсором",
+      "manual": "Ручной фокус",
+      "all-muted": "Без звука",
+      "multi": "Несколько источников"
+    },
+    "focus": "Фокус",
+    "unmute": "Включить звук",
+    "closeStream": "Закрыть {channel}",
+    "quality": "Качество",
+    "qualityFor": "Качество {channel}",
+    "qualityUnavailable": "Этот плеер не поддерживает управление качеством.",
+    "qualityFailed": "Не удалось изменить качество. Попробуйте в плеере."
+  },
+  "liveNow": {
+    "title": "Сейчас в эфире",
+    "description": "Находите трансляции и добавляйте их в текущее пространство.",
+    "search": "Поиск каналов, названий или категорий…",
+    "platforms": "Платформы",
+    "category": "Категория",
+    "allCategories": "Все категории",
+    "offline": "Нет сети. Подключитесь для обновления трансляций.",
+    "failed": "Не удалось обновить. Попробуйте ещё раз.",
+    "empty": "Трансляции не найдены. Измените поиск или обновите.",
+    "openStream": "Открыть {channel}",
+    "favorite": "В избранное: {channel}",
+    "added": "Добавлено",
+    "add": "Добавить в пространство",
+    "more": "Показать ещё"
   }
 }

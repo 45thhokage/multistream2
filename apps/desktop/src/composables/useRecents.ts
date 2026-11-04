@@ -21,7 +21,7 @@ const isMatchingRecent = (
 ): boolean => {
   if (recent.platform !== platform) return false;
   if (platform === "custom" && (iframeUrl || recent.iframeUrl)) {
-    return recent.iframeUrl?.toLowerCase() === (iframeUrl || "").toLowerCase();
+    return recent.iframeUrl === (iframeUrl || "");
   }
   const cleanTarget = targetChannel.toLowerCase();
   const cleanHandle = handle?.toLowerCase();

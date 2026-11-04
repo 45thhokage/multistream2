@@ -6,7 +6,10 @@ import { useRecents } from "./useRecents";
 import { useFocusedStream } from "./useFocusedStream";
 import { useMediaCodecs } from "./useMediaCodecs";
 import { useRecording } from "./useRecording";
+import { useWorkspaces } from "./useWorkspaces";
+import { nativePlayerId } from "@/lib/nativePlayer";
 import { WATCH_TIME_CONFIG } from "@/config/watchTime";
+import { channelIdentityKey } from "@/lib/channelIdentity";
 
 export type Platform = "kick" | "twitch" | "youtube" | "custom";
 
@@ -19,20 +22,10 @@ export interface Stream {
   iframeUrl?: string;
   displayName?: string;
   handle?: string;
+  workspaceId?: string;
 }
 
-const isMatchingStream = (
-  stream: Stream,
-  channel: string,
-  platform: Platform,
-  iframeUrl?: string
-): boolean => {
-  if (stream.platform !== platform) return false;
-  if (platform === "custom" && (iframeUrl || stream.iframeUrl)) {
-    return stream.iframeUrl?.toLowerCase() === (iframeUrl || "").toLowerCase();
-  }
-  return stream.channel.toLowerCase() === channel.toLowerCase();
-};
+const MAX_STREAMS_PER_WORKSPACE = 16;
 
 const _useStreams = () => {
   const { t } = useI18n();
@@ -40,6 +33,32 @@ const _useStreams = () => {
   const { addRecent } = useRecents();
   const { clearFocus, focusedStreamId } = useFocusedStream();
   const { checkVideoCodecs } = useMediaCodecs();
+  const { activeWorkspaceId, workspaceIdOf, workspaces } = useWorkspaces();
+
+  const activeStreams = computed(() =>
+    streams.value.filter((s) => workspaceIdOf(s.workspaceId) === activeWorkspaceId.value)
+  );
+
+  // Prune streams whose workspace was deleted. Silent on purpose:
+  // the workspace delete action already toasts, and switching rooms
+  // never touches this list so playback is never interrupted.
+  watch(
+    workspaces,
+    (list) => {
+      const valid = new Set(list.map((w) => w.id));
+      const orphaned = streams.value.filter((s) => s.workspaceId && !valid.has(s.workspaceId));
+      if (orphaned.length === 0) return;
+      const { isRecording, stopRecording } = useRecording();
+      for (const s of orphaned) {
+        if (isRecording(s.id)) stopRecording(s.id);
+        flushStreamWatchTime(s);
+        if (focusedStreamId.value === s.id) clearFocus();
+      }
+      const orphanedIds = new Set(orphaned.map((s) => s.id));
+      streams.value = streams.value.filter((s) => !orphanedIds.has(s.id));
+    },
+    { deep: true }
+  );
 
   // tracks streams currently animating out (two-phase removal)
   // prevents iframe destruction caused by immediate DOM removal/reflow
@@ -76,7 +95,7 @@ const _useStreams = () => {
   let lastSyncTime = Date.now();
 
   const flushStreamWatchTime = (stream: Stream) => {
-    const key = `${stream.platform}:${stream.channel.toLowerCase()}`;
+    const key = channelIdentityKey(stream.channel, stream.platform, stream.iframeUrl);
     const val = memoryAccumulator[key];
     const history = watchHistory.value;
     if (val !== undefined && history) {
@@ -99,6 +118,12 @@ const _useStreams = () => {
 
   const tick = (currentNow: number) => {
     now.value = currentNow;
+    // The main app owns watch-history accumulation across all player WebViews.
+    if (
+      nativePlayerId() ||
+      (typeof location !== "undefined" && new URLSearchParams(location.search).has("nativeOverlay"))
+    )
+      return;
 
     if (streams.value.length === 0) {
       lastSyncTime = currentNow;
@@ -111,7 +136,7 @@ const _useStreams = () => {
     streams.value.forEach((s) => {
       // Only accumulate for streams that are not currently animating out/leaving
       if (!leavingIds.has(s.id)) {
-        const key = `${s.platform}:${s.channel.toLowerCase()}`;
+        const key = channelIdentityKey(s.channel, s.platform, s.iframeUrl);
         memoryAccumulator[key] = (memoryAccumulator[key] || 0) + delta;
       }
     });
@@ -150,14 +175,32 @@ const _useStreams = () => {
     platform: Platform,
     iframeUrl?: string,
     displayName?: string,
-    handle?: string
+    handle?: string,
+    replacingId?: string
   ) => {
-    if (streams.value.some((s) => isMatchingStream(s, channel, platform, iframeUrl))) {
+    const identityKey =
+      platform === "custom"
+        ? `custom:${iframeUrl || channel.toLowerCase()}`
+        : channelIdentityKey(channel, platform, iframeUrl);
+    const workspaceId = activeWorkspaceId.value;
+    const inWorkspace = (s: Stream) => workspaceIdOf(s.workspaceId) === workspaceId;
+    if (
+      streams.value.some(
+        (s) =>
+          inWorkspace(s) &&
+          (s.platform === "custom"
+            ? `custom:${s.iframeUrl || s.channel.toLowerCase()}`
+            : channelIdentityKey(s.channel, s.platform, s.iframeUrl)) === identityKey
+      )
+    ) {
       toast.warning(t("toasts.add.alreadyAdded"));
       return;
     }
 
-    if (streams.value.length >= 12) {
+    if (
+      streams.value.filter((s) => inWorkspace(s) && s.id !== replacingId).length >=
+      MAX_STREAMS_PER_WORKSPACE
+    ) {
       toast.warning(t("toasts.add.maxStreams"));
       return;
     }
@@ -176,6 +219,7 @@ const _useStreams = () => {
         ...(iframeUrl && { iframeUrl }),
         ...(displayName && { displayName }),
         ...(cleanHandle && { handle: cleanHandle }),
+        workspaceId,
       },
     ];
 
@@ -184,6 +228,7 @@ const _useStreams = () => {
     const streamName = displayName || cleanHandle || channel;
     toast.success(`${streamName} ${t("toasts.add.added")}`);
     addRecent(channel, platform, iframeUrl, displayName, cleanHandle);
+    return newId;
   };
 
   /**
@@ -292,6 +337,7 @@ const _useStreams = () => {
 
   return {
     streams,
+    activeStreams,
     addStream,
     removeStream,
     requestRemoveStream,

@@ -1,12 +1,19 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
 import { PLATFORMS } from "@/config/platforms";
 import { useTwitchAuth } from "@/composables/useTwitchAuth";
 import { useKickAuth } from "@/composables/useKickAuth";
-import { Users, LogOut, Check, Minus, ShieldCheck } from "@lucide/vue";
+import { Users, LogOut, Check, Minus, ShieldCheck, Globe, X } from "@lucide/vue";
+
+import { useSiteWindows } from "@/composables/useSiteWindows";
+const { sessions: siteSessions, openSite, closeSite, reconcile } = useSiteWindows();
+onMounted(() => {
+  reconcile();
+});
+const openYoutubeLogin = () => openSite("https://www.youtube.com", "YouTube");
 
 const emit = defineEmits<{
   (e: "close"): void;
@@ -120,7 +127,7 @@ const handleConnect = (platformId: string) => {
               v-else-if="platform.id === 'youtube'"
               class="text-xs px-2 py-0.5 rounded-full text-gray-400 bg-[#1e2127] border border-[#2a2d33] font-medium shrink-0 whitespace-nowrap"
             >
-              {{ $t("common.comingSoon") }}
+              {{ $t("settings.sites.youtubeLogin") }}
             </span>
             <span
               v-else
@@ -246,16 +253,16 @@ const handleConnect = (platformId: string) => {
               {{ $t("settings.auth.connect") }}
             </Button>
 
-            <!-- YouTube (Coming Soon) -->
+            <!-- YouTube site login -->
             <Button
               v-else
               type="button"
               variant="outline"
               size="sm"
-              disabled
-              class="w-full border-[#2a2d33]/50 bg-[#1e2127]/40 text-gray-500 text-xs h-8 font-medium cursor-not-allowed opacity-50"
+              class="w-full border-[#2a2d33]/50 bg-[#1e2127]/40 text-gray-500 text-xs h-8 font-medium cursor-pointer hover:bg-[#2a2d33]"
+              @click="openYoutubeLogin"
             >
-              {{ $t("common.comingSoon") }}
+              {{ $t("settings.sites.youtubeLogin") }}
             </Button>
           </div>
         </div>
@@ -267,6 +274,50 @@ const handleConnect = (platformId: string) => {
       >
         <ShieldCheck class="size-4 text-gray-500 shrink-0 mt-0.5" aria-hidden="true" />
         <p>{{ $t("settings.auth.disclaimer") }}</p>
+      </div>
+    </div>
+    <!-- Site windows Section -->
+    <div class="space-y-2 relative">
+      <div class="flex items-center gap-2 px-1">
+        <Globe class="size-4 text-gray-400 shrink-0" />
+        <div>
+          <div class="flex items-center gap-2">
+            <h3 class="text-white text-sm font-medium">{{ $t("settings.sites.title") }}</h3>
+          </div>
+          <p class="text-gray-400 text-xs mt-0.5">{{ $t("settings.sites.description") }}</p>
+        </div>
+      </div>
+      <div class="border border-[#2a2d33]/60 bg-[#14161a] p-4 rounded-xl">
+        <div v-if="siteSessions.length === 0" class="text-xs text-gray-400 px-1 py-2">
+          {{ $t("settings.sites.empty") }}
+        </div>
+        <ul v-else class="space-y-1.5">
+          <li
+            v-for="session in siteSessions"
+            :key="session.label"
+            class="flex items-center gap-2.5 px-3 py-2 rounded-lg border border-[#2a2d33] bg-[#1e2127]"
+          >
+            <span class="relative shrink-0 size-4">
+              <Globe class="absolute inset-0 size-4 text-gray-500" />
+              <img
+                :src="session.faviconUrl"
+                :alt="session.title"
+                class="absolute inset-0 size-4 rounded-[3px] bg-[#1e2127]"
+                loading="lazy"
+                @error="(e) => ((e.target as HTMLImageElement).style.display = 'none')"
+              />
+            </span>
+            <span class="text-xs text-white font-medium truncate">{{ session.title }}</span>
+            <span class="text-[10px] text-gray-500 truncate">{{ session.url }}</span>
+            <button
+              class="ml-auto text-gray-400 hover:text-red-400 p-1 rounded transition-colors shrink-0"
+              :title="$t('common.close')"
+              @click="closeSite(session.label)"
+            >
+              <X class="w-3.5 h-3.5" />
+            </button>
+          </li>
+        </ul>
       </div>
     </div>
   </TabsContent>

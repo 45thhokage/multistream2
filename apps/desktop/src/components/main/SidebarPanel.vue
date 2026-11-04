@@ -40,7 +40,10 @@ import {
   Loader2,
   Maximize2,
   Minimize2,
+  RotateCw,
+  RefreshCcw,
 } from "@lucide/vue";
+import { reloadApp, forceReloadApp } from "@/lib/reloadApp";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import {
   Select,
@@ -96,8 +99,8 @@ const sidebarMode = ref<"chat" | "transcript">("chat");
 const hasLoadedUnifiedChat = ref(false);
 const hasLoadedTranscript = ref(false);
 
-const { streams } = useStreams();
-const chatableStreams = computed(() => streams.value.filter((s) => s.platform !== "custom"));
+const { streams, activeStreams } = useStreams();
+const chatableStreams = computed(() => activeStreams.value.filter((s) => s.platform !== "custom"));
 const { unifiedChatState } = useUnifiedChatState();
 const { selectedChat, sidebarOpen } = usePreferences();
 
@@ -188,7 +191,7 @@ const {
 } = useTranscription();
 
 const selectedStreamObj = computed(() =>
-  streams.value.find(
+  activeStreams.value.find(
     (s) => `${s.platform}:${s.channel}`.toLowerCase() === selectedChat.value.toLowerCase()
   )
 );
@@ -560,6 +563,30 @@ onUnmounted(() => {
             v{{ appVersion }}
           </button>
           <div class="h-px flex-1 bg-linear-to-l from-transparent to-[#2a2d33]" />
+        </div>
+
+        <!-- app reload -->
+        <div class="mt-3 flex items-center justify-center gap-2">
+          <button
+            data-testid="reload-app-btn"
+            type="button"
+            :aria-label="$t('app.reload')"
+            :title="$t('app.reload')"
+            class="flex items-center justify-center size-8 rounded-lg border border-[#2a2d33] bg-[#14161a] text-gray-400 hover:text-white hover:bg-[#1c1f24] hover:border-[#3a3f4b] active:scale-95 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            @click="reloadApp"
+          >
+            <RotateCw class="size-4" aria-hidden="true" />
+          </button>
+          <button
+            data-testid="force-reload-app-btn"
+            type="button"
+            :aria-label="$t('app.forceReload')"
+            :title="$t('app.forceReload')"
+            class="flex items-center justify-center size-8 rounded-lg border border-[#2a2d33] bg-[#14161a] text-gray-400 hover:text-white hover:bg-[#1c1f24] hover:border-[#3a3f4b] active:scale-95 transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            @click="forceReloadApp"
+          >
+            <RefreshCcw class="size-4" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </div>

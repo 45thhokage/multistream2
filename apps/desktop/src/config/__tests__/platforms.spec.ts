@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from "vitest";
-import { PLATFORMS, getParentHost } from "../platforms";
+import { PLATFORMS, getParentHost, getTwitchParentHosts } from "../platforms";
 
 describe("platforms config unit tests", () => {
   afterEach(() => {
@@ -53,6 +53,27 @@ describe("platforms config unit tests", () => {
     });
   });
 
+  describe("getTwitchParentHosts()", () => {
+    it("should always include localhost and 127.0.0.1 alongside the primary host", () => {
+      // Arrange
+      const primary = "192.168.40.35";
+
+      // Act
+      const hosts = getTwitchParentHosts(primary);
+
+      // Assert
+      expect(hosts).toEqual([primary, "localhost", "127.0.0.1"]);
+    });
+
+    it("should deduplicate when the primary host is already a loopback", () => {
+      // Act
+      const hosts = getTwitchParentHosts("localhost");
+
+      // Assert
+      expect(hosts).toEqual(["localhost", "127.0.0.1"]);
+    });
+  });
+
   describe("Twitch platform config", () => {
     it("should generate embed URL with autoplay, muted and specified parent host", () => {
       // Arrange
@@ -64,7 +85,7 @@ describe("platforms config unit tests", () => {
 
       // Assert
       expect(embedUrl).toBe(
-        "https://player.twitch.tv/?channel=gaules&parent=localhost&autoplay=true&muted=true"
+        "https://player.twitch.tv/?channel=gaules&parent=localhost&parent=127.0.0.1&autoplay=true&muted=true"
       );
     });
 
@@ -78,7 +99,17 @@ describe("platforms config unit tests", () => {
 
       // Assert
       expect(chatUrl).toBe(
-        "https://www.twitch.tv/embed/gaules/chat?parent=localhost&darkpopout=true"
+        "https://www.twitch.tv/embed/gaules/chat?parent=localhost&parent=127.0.0.1&darkpopout=true"
+      );
+    });
+
+    it("should include a custom primary host before the loopback fallbacks", () => {
+      // Act
+      const embedUrl = PLATFORMS.twitch.getEmbedUrl("gaules", "5173.localhost");
+
+      // Assert
+      expect(embedUrl).toBe(
+        "https://player.twitch.tv/?channel=gaules&parent=5173.localhost&parent=localhost&parent=127.0.0.1&autoplay=true&muted=true"
       );
     });
   });

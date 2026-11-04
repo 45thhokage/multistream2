@@ -35,6 +35,19 @@ test.describe("Settings & i18n Preferences E2E Test", () => {
     expect(storedLocale).toMatch(/^pt/);
   });
 
+  test("connections retains YouTube login and custom site windows", async ({ page }) => {
+    // Arrange
+    await page.getByTestId("settings-btn").click();
+    const dialog = page.getByRole("dialog");
+
+    // Act
+    await dialog.getByRole("tab", { name: "Connections" }).click();
+
+    // Assert
+    await expect(dialog.getByRole("button", { name: "Open YouTube to sign in" })).toBeEnabled();
+    await expect(dialog.getByRole("heading", { name: "Site windows" })).toBeVisible();
+  });
+
   test("settings dialog renders tabs and switches between them correctly", async ({ page }) => {
     // Act: open settings dialog
     await page.getByTestId("settings-btn").click();

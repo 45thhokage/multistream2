@@ -1,4 +1,5 @@
 import { createSharedComposable, useStorage } from "@vueuse/core";
+import { DEFAULT_LAYOUT } from "@/config/layouts";
 
 export interface Preferences {
   selectedChat: string;
@@ -13,6 +14,7 @@ export interface Preferences {
   nativePlayerEnabled: boolean;
   adblockEnabled: boolean;
   immersiveModeEnabled: boolean;
+  streamLayout: string;
 }
 
 const defaultPreferences: Preferences = {
@@ -28,6 +30,7 @@ const defaultPreferences: Preferences = {
   nativePlayerEnabled: false,
   adblockEnabled: true,
   immersiveModeEnabled: false,
+  streamLayout: DEFAULT_LAYOUT,
 };
 
 const _usePreferences = () => {
@@ -99,6 +102,10 @@ const _usePreferences = () => {
   const immersiveModeEnabled = useStorage<boolean>(
     "preferences.immersiveModeEnabled",
     defaultPreferences.immersiveModeEnabled
+  );
+  const streamLayout = useStorage<string>(
+    "preferences.streamLayout",
+    defaultPreferences.streamLayout
   );
 
   /**
@@ -201,6 +208,7 @@ const _usePreferences = () => {
     nativePlayerEnabled.value = defaultPreferences.nativePlayerEnabled;
     adblockEnabled.value = defaultPreferences.adblockEnabled;
     immersiveModeEnabled.value = defaultPreferences.immersiveModeEnabled;
+    streamLayout.value = defaultPreferences.streamLayout;
   };
 
   return {
@@ -217,6 +225,7 @@ const _usePreferences = () => {
     nativePlayerEnabled,
     adblockEnabled,
     immersiveModeEnabled,
+    streamLayout,
 
     // actions
     setSelectedChat,

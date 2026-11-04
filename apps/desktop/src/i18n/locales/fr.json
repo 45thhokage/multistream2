@@ -27,27 +27,28 @@
     "suggestedLabel": "Streams suggérés",
     "suggestedDescription": "Diffusions en direct populaires en ce moment",
     "noSuggestions": "Aucun stream trouvé",
-    "resolvingLive": "Vérification du direct YouTube..."
+    "resolvingLive": "Vérification du direct YouTube...",
+    "openInWindow": "Open in window"
   },
   "settings": {
     "tooltip": "Paramètres",
     "title": "Paramètres",
     "description": "Ajustez vos préférences.",
     "updates": {
-      "title": "Mises à jour",
-      "description": "Rechercher de nouvelles versions",
       "checkButton": "Vérifier les mises à jour",
-      "checking": "Vérification en cours..."
+      "checking": "Vérification en cours...",
+      "description": "Rechercher de nouvelles versions",
+      "title": "Mises à jour"
     },
     "language": {
-      "title": "Langue",
-      "description": "Sélectionnez votre langue préférée"
+      "description": "Sélectionnez votre langue préférée",
+      "title": "Langue"
     },
     "notifications": {
-      "title": "Notifications",
       "description": "Recevez des alertes lorsque vos favoris sont en direct",
+      "disabled": "Notifications désactivées",
       "enabled": "Notifications activées",
-      "disabled": "Notifications désactivées"
+      "title": "Notifications"
     },
     "auth": {
       "title": "Comptes",
@@ -62,9 +63,9 @@
       "disconnected": "Déconnecté",
       "logout": "Déconnexion",
       "features": {
+        "followedChannels": "Liste des chaînes suivies",
         "readChat": "Lire les messages du chat",
-        "sendChat": "Envoyer des messages dans le chat",
-        "followedChannels": "Liste des chaînes suivies"
+        "sendChat": "Envoyer des messages dans le chat"
       },
       "disclaimer": "Multistream est un client open source indépendant et n'est ni affilié à, ni approuvé, ni sponsorisé par Twitch, Kick, YouTube ou Amazon.",
       "disconnectConfirmTitle": "Déconnecter le compte ?",
@@ -72,22 +73,22 @@
       "disconnectConfirmButton": "Déconnecter"
     },
     "help": {
-      "title": "Aide",
       "description": "Besoin d'aide ou envie de revoir les fonctionnalités ?",
-      "showTourButton": "Afficher la visite guidée"
+      "showTourButton": "Afficher la visite guidée",
+      "title": "Aide"
     },
     "backup": {
-      "title": "Données & Sauvegarde",
       "description": "Exportez ou importez votre configuration complète",
       "exportButton": "Exporter les données",
+      "exportSuccess": "Configuration exportée avec succès",
       "importButton": "Importer les données",
-      "importConfirmTitle": "Écraser la configuration ?",
-      "importConfirmDescription": "Êtes-vous sûr de vouloir importer cette configuration ? Cela remplacera complètement vos flux, favoris, récents et préférences actuels.",
       "importConfirmButton": "Importer et écraser",
       "importConfirmCancel": "Annuler",
-      "importSuccess": "Configuration importée avec succès",
+      "importConfirmDescription": "Êtes-vous sûr de vouloir importer cette configuration ? Cela remplacera complètement vos flux, favoris, récents et préférences actuels.",
+      "importConfirmTitle": "Écraser la configuration ?",
       "importError": "Fichier de sauvegarde de configuration invalide",
-      "exportSuccess": "Configuration exportée avec succès"
+      "importSuccess": "Configuration importée avec succès",
+      "title": "Données & Sauvegarde"
     },
     "transcription": {
       "title": "Transcription en direct",
@@ -133,12 +134,12 @@
       "modelInUse": "En cours d'utilisation"
     },
     "tabs": {
-      "general": "Général",
-      "data": "Données",
+      "about": "À propos",
       "connections": "Connexions",
-      "resources": "Transcription",
+      "data": "Données",
+      "general": "Général",
       "recording": "Enregistrement",
-      "about": "À propos"
+      "resources": "Transcription"
     },
     "about": {
       "title": "À propos de Multistream",
@@ -155,82 +156,90 @@
       "extension": "Extension de Navigateur"
     },
     "nativePlayer": {
-      "title": "Lecteur intégré pour Twitch (Expérimental)",
       "description": "Utilisez le moteur de flux intégré au lieu des lecteurs intégrés. Peut améliorer les performances et la compatibilité.",
       "loadError": "Échec du chargement du flux. Le lecteur personnalisé peut être temporairement indisponible.",
-      "videoRefError": "Référence de l'élément vidéo non liée",
-      "notSupportedError": "La lecture multimédia n'est pas prise en charge par votre navigateur"
+      "notSupportedError": "La lecture multimédia n'est pas prise en charge par votre navigateur",
+      "title": "Lecteur intégré pour Twitch (Expérimental)",
+      "videoRefError": "Référence de l'élément vidéo non liée"
     },
     "adblock": {
-      "title": "Bloqueur de publicités intégré",
       "description": "Bloquer les publicités vidéo et bannières sur les streams Twitch et YouTube",
-      "toastEnabled": "Bloqueur de publicités activé",
-      "toastDisabled": "Bloqueur de publicités désactivé"
+      "title": "Bloqueur de publicités intégré",
+      "toastDisabled": "Bloqueur de publicités désactivé",
+      "toastEnabled": "Bloqueur de publicités activé"
     },
     "recording": {
-      "tabLabel": "Enregistrement",
-      "enableTitle": "Enregistrement local",
-      "enableFeatureToggle": "Activer la fonction d'enregistrement local",
-      "downloadDependencies": "Télécharger les dépendances",
-      "installSuccess": "Dépendances installées avec succès",
-      "installError": "Erreur d'installation : {error}",
-      "uninstallDependencies": "Désinstaller la fonctionnalité",
-      "uninstallSuccess": "Fonctionnalité désinstallée avec succès",
-      "uninstallError": "Erreur lors de la désinstallation : {error}",
-      "uninstallConfirmTitle": "Désinstaller la fonctionnalité ?",
-      "uninstallConfirmDescription": "Cela supprimera l'environnement d'enregistrement isolé et libérera de l'espace. Vous pourrez le réinstaller plus tard.",
-      "uninstallConfirmButton": "Désinstaller",
-      "enableDescription": "Enregistrez des flux directement depuis la source en utilisant Streamlink. Les fichiers sont enregistrés dans votre dossier Vidéos.",
-      "unavailableOS": "L'enregistrement n'est pas pris en charge sur votre architecture.",
-      "qualityTitle": "Qualité par défaut",
-      "qualityPrefix": "Qualité : ",
-      "qualityDescription": "Qualité de flux préférée. Se rabat sur la meilleure disponible si non trouvée.",
-      "qualityBest": "Meilleure",
-      "quality1080p": "1080p",
-      "quality720p": "720p",
-      "quality480p": "480p",
-      "qualityWorst": "Plus basse",
-      "pathTitle": "Répertoire",
-      "pathDescription": "Choisissez où les enregistrements doivent être sauvegardés. Laissez vide pour utiliser le dossier Vidéos par défaut.",
-      "selectFolder": "Sélectionner un dossier",
+      "customNotSupported": "L'enregistrement n'est pas pris en charge pour les flux personnalisés.",
       "defaultPath": "Défaut (Vidéos)",
-      "resetFolder": "Réinitialiser",
-      "orphanTitle": "Enregistrements incomplets",
-      "orphanDescription": "Ces enregistrements ont été interrompus. Vous pouvez les convertir en MP4 ou les supprimer.",
+      "downloadDependencies": "Télécharger les dépendances",
+      "enableDescription": "Enregistrez des flux directement depuis la source en utilisant Streamlink. Les fichiers sont enregistrés dans votre dossier Vidéos.",
+      "enableFeatureToggle": "Activer la fonction d'enregistrement local",
+      "enableTitle": "Enregistrement local",
+      "installError": "Erreur d'installation : {error}",
+      "installSuccess": "Dépendances installées avec succès",
+      "openFolder": "Ouvrir le dossier",
       "orphanConvert": "Convertir en MP4",
+      "orphanDescription": "Ces enregistrements ont été interrompus. Vous pouvez les convertir en MP4 ou les supprimer.",
       "orphanDismiss": "Supprimer",
-      "starting": "Démarrage de l'enregistrement...",
-      "stopping": "Arrêt de l'enregistrement...",
+      "orphanFound": "{count} enregistrement(s) incomplet(s) trouvé(s)",
+      "orphanTitle": "Enregistrements incomplets",
+      "pathDescription": "Choisissez où les enregistrements doivent être sauvegardés. Laissez vide pour utiliser le dossier Vidéos par défaut.",
+      "pathTitle": "Répertoire",
+      "quality1080p": "1080p",
+      "quality480p": "480p",
+      "quality720p": "720p",
+      "qualityBest": "Meilleure",
+      "qualityDescription": "Qualité de flux préférée. Se rabat sur la meilleure disponible si non trouvée.",
+      "qualityPrefix": "Qualité : ",
+      "qualityTitle": "Qualité par défaut",
+      "qualityWorst": "Plus basse",
+      "remuxFailed": "Échec de la conversion. L'enregistrement brut est préservé.",
       "remuxing": "Conversion en MP4...",
       "remuxingDescription": "Cela peut prendre un certain temps selon la taille du fichier.",
+      "resetFolder": "Réinitialiser",
       "saved": "Enregistrement sauvegardé",
-      "openFolder": "Ouvrir le dossier",
-      "remuxFailed": "Échec de la conversion. L'enregistrement brut est préservé.",
+      "selectFolder": "Sélectionner un dossier",
+      "starting": "Démarrage de l'enregistrement...",
+      "stopping": "Arrêt de l'enregistrement...",
       "streamEnded": "Le flux est terminé. Sauvegarde de l'enregistrement...",
       "streamError": "Erreur d'enregistrement : {error}",
-      "customNotSupported": "L'enregistrement n'est pas pris en charge pour les flux personnalisés.",
-      "orphanFound": "{count} enregistrement(s) incomplet(s) trouvé(s)"
+      "tabLabel": "Enregistrement",
+      "unavailableOS": "L'enregistrement n'est pas pris en charge sur votre architecture.",
+      "uninstallConfirmButton": "Désinstaller",
+      "uninstallConfirmDescription": "Cela supprimera l'environnement d'enregistrement isolé et libérera de l'espace. Vous pourrez le réinstaller plus tard.",
+      "uninstallConfirmTitle": "Désinstaller la fonctionnalité ?",
+      "uninstallDependencies": "Désinstaller la fonctionnalité",
+      "uninstallError": "Erreur lors de la désinstallation : {error}",
+      "uninstallSuccess": "Fonctionnalité désinstallée avec succès"
+    },
+    "sites": {
+      "description": "Sites opened in their own window. Sign-ins stay saved in the app browser.",
+      "empty": "No site windows open.",
+      "openInWindow": "Open in window",
+      "title": "Site windows",
+      "youtubeHint": "Sign in on youtube.com once — streams and chat reuse it.",
+      "youtubeLogin": "Open YouTube to sign in"
     }
   },
   "share": {
-    "tooltip": "Partager",
-    "title": "Partager des flux",
-    "description": "Partagez vos flux avec vos amis.",
-    "noStreams": "Aucun flux à partager",
     "cancelButton": "Annuler",
     "copyButton": "Copier le lien",
-    "toast": "Lien copié dans le presse-papiers"
+    "description": "Partagez vos flux avec vos amis.",
+    "noStreams": "Aucun flux à partager",
+    "title": "Partager des flux",
+    "toast": "Lien copié dans le presse-papiers",
+    "tooltip": "Partager"
   },
   "import": {
-    "tooltip": "Importer",
-    "title": "Importer des flux",
+    "deepLinkSuccess": "Flux importés avec succès via un lien profond !",
     "description": "Collez un lien de partage pour importer des flux.",
-    "placeholder": "Collez le lien de partage ici...",
     "importButton": "Importer",
-    "invalidLink": "Lien de partage invalide",
     "invalidCustom": "Échec de l'analyse des flux personnalisés",
+    "invalidLink": "Lien de partage invalide",
+    "placeholder": "Collez le lien de partage ici...",
     "success": "Flux importés avec succès",
-    "deepLinkSuccess": "Flux importés avec succès via un lien profond !"
+    "title": "Importer des flux",
+    "tooltip": "Importer"
   },
   "hide": {
     "tooltip": "Masquer"
@@ -248,16 +257,17 @@
       "focus": "Centrer le stream",
       "unfocus": "Quitter le centrage",
       "copyUrl": "Copier l'URL du stream",
-      "reload": "Recharger le stream"
+      "reload": "Recharger le stream",
+      "openInWindow": "Open in window"
     }
   },
   "empty": {
-    "title": "Aucun flux sélectionné",
-    "description": "Commencez par ajouter vos chaînes favorites pour les regarder simultanément.",
     "addButton": "Ajouter un flux",
-    "tourLink": "Besoin d'aide ? Suivez la visite guidée",
+    "description": "Commencez par ajouter vos chaînes favorites pour les regarder simultanément.",
+    "loading": "Chargement...",
     "refresh": "Actualiser",
-    "loading": "Chargement..."
+    "title": "Aucun flux sélectionné",
+    "tourLink": "Besoin d'aide ? Suivez la visite guidée"
   },
   "chat": {
     "controlTitle": "Contrôles",
@@ -284,41 +294,41 @@
       }
     },
     "unified": {
-      "selectorLabel": "Chat unifié",
-      "connectTitle": "Se connecter avec Twitch",
-      "connectHint": "Connectez-vous pour voir les messages de toutes les chaînes Twitch de votre grille dans un seul flux.",
-      "connectButton": "Se connecter",
-      "reconnecting": "Reconnexion…",
-      "noStreams": "Aucun flux dans votre grille.",
-      "noStreamsHint": "Ajoutez un flux pour voir les messages ici.",
-      "disconnected": "Chat déconnecté.",
       "auth": {
-        "expired": "Le code d'autorisation a expiré. Veuillez réessayer.",
+        "cancel": "Annuler",
+        "defaultUser": "Utilisateur",
         "error": "Une erreur s'est produite lors de l'authentification : ",
-        "tryAgain": "Réessayer",
+        "expired": "Le code d'autorisation a expiré. Veuillez réessayer.",
+        "initFailed": "Échec de l'initialisation du flux de connexion.",
         "step1": "1. Ouvrez le lien de vérification ci-dessous",
         "step2": "2. Entrez ce code pour lier votre compte",
-        "waiting": "En attente d'autorisation...",
-        "cancel": "Annuler",
-        "successTitle": "Authentifié avec succès sur {platform}",
         "successDesc": "Connecté en tant que {username}",
-        "initFailed": "Échec de l'initialisation du flux de connexion.",
-        "defaultUser": "Utilisateur"
+        "successTitle": "Authentifié avec succès sur {platform}",
+        "tryAgain": "Réessayer",
+        "waiting": "En attente d'autorisation..."
       },
-      "warningTwitchLoginToMerge": "Connectez votre compte Twitch pour inclure les chats Twitch dans le chat unifié.",
-      "warningTwitchLogin": "Connectez votre compte Twitch pour activer le chat unifié."
+      "connectButton": "Se connecter",
+      "connectHint": "Connectez-vous pour voir les messages de toutes les chaînes Twitch de votre grille dans un seul flux.",
+      "connectTitle": "Se connecter avec Twitch",
+      "disconnected": "Chat déconnecté.",
+      "noStreams": "Aucun flux dans votre grille.",
+      "noStreamsHint": "Ajoutez un flux pour voir les messages ici.",
+      "reconnecting": "Reconnexion…",
+      "selectorLabel": "Chat unifié",
+      "warningTwitchLogin": "Connectez votre compte Twitch pour activer le chat unifié.",
+      "warningTwitchLoginToMerge": "Connectez votre compte Twitch pour inclure les chats Twitch dans le chat unifié."
     },
     "loginPrompt": "Connectez-vous pour interagir",
     "loginPromptTwitch": "Connectez votre compte Twitch pour envoyer des messages sur cette chaîne.",
     "loginPromptKick": "Connectez votre compte Kick pour envoyer des messages sur cette chaîne.",
     "connectAction": "Se connecter",
     "emotes": {
-      "searchEmote": "Rechercher une émoticône...",
       "noEmotesFound": "Aucune émoticône trouvée",
+      "searchEmote": "Rechercher une émoticône...",
       "tabs": {
-        "recent": "Récentes",
+        "channel": "Chaîne",
         "global": "Globales",
-        "channel": "Chaîne"
+        "recent": "Récentes"
       }
     },
     "you": "Vous",
@@ -326,8 +336,8 @@
     "badges": {
       "broadcaster": "Diffuseur",
       "moderator": "Modérateur",
-      "vip": "VIP",
-      "subscriber": "Abonné"
+      "subscriber": "Abonné",
+      "vip": "VIP"
     },
     "sendError": "Échec de l'envoi du message",
     "reply": "Répondre",
@@ -339,9 +349,9 @@
   },
   "confirm": {
     "deleteOrphan": {
-      "title": "Supprimer l'enregistrement",
+      "confirm": "Supprimer",
       "description": "Ce fichier d'enregistrement sera définitivement supprimé du disque. Cette action est irréversible.",
-      "confirm": "Supprimer"
+      "title": "Supprimer l'enregistrement"
     },
     "deleteModel": {
       "title": "Supprimer le modèle IA",
@@ -350,24 +360,24 @@
     }
   },
   "common": {
+    "cancel": "Annuler",
     "close": "Fermer",
     "comingSoon": "Bientôt disponible",
-    "play": "Lecture",
-    "pause": "Pause",
-    "mute": "Mettre en sourdine",
-    "unmute": "Rétablir le son",
-    "fullscreen": "Plein écran",
-    "exitFullscreen": "Quitter le plein écran",
-    "settings": "Paramètres",
-    "volume": "Volume",
     "confirm": "Confirmer",
-    "cancel": "Annuler"
+    "exitFullscreen": "Quitter le plein écran",
+    "fullscreen": "Plein écran",
+    "mute": "Mettre en sourdine",
+    "pause": "Pause",
+    "play": "Lecture",
+    "settings": "Paramètres",
+    "unmute": "Rétablir le son",
+    "volume": "Volume"
   },
   "toasts": {
     "add": {
       "added": "ajouté",
       "alreadyAdded": "Le flux est déjà ajouté",
-      "maxStreams": "Maximum de 12 flux atteint"
+      "maxStreams": "Maximum de 16 flux atteint"
     },
     "favorite": {
       "added": "ajouté aux favoris",
@@ -375,18 +385,18 @@
     },
     "remove": "supprimé",
     "update": {
-      "newVersion": "Nouvelle version disponible",
-      "latestVersion": "Vous utilisez la dernière version !",
+      "downloading": "Téléchargement de la mise à jour...",
       "failedCheck": "Échec de la recherche de mises à jour",
       "failedUpdate": "Échec du téléchargement de la mise à jour",
-      "downloading": "Téléchargement de la mise à jour...",
+      "latestVersion": "Vous utilisez la dernière version !",
+      "newVersion": "Nouvelle version disponible",
       "success": "Mise à jour terminée ! Redémarrage..."
     },
     "screenshot": {
-      "saved": "Capture d'écran sauvegardée !",
+      "blocked": "Capture d'écran bloquée par le DRM de la plateforme",
       "failed": "Échec de la capture d'écran",
       "noStream": "Aucun flux vidéo trouvé",
-      "blocked": "Capture d'écran bloquée par le DRM de la plateforme",
+      "saved": "Capture d'écran sauvegardée !",
       "timeout": "Délai d'attente de la capture d'écran dépassé"
     },
     "codecs": {
@@ -403,16 +413,16 @@
     "streamDiagnostics": "diagnostics_du_stream"
   },
   "notifications": {
+    "actionIgnore": "Ignorer",
+    "actionWatch": "Regarder le flux",
+    "live": "{channel} est en direct !",
+    "liveBody": "[{category}] {title}",
+    "liveBodyFallback": "{channel} sur {platform}",
+    "liveBodyTitleOnly": "{title}",
     "welcome": "Les favoris sont en direct",
     "welcomeBody": "{channels} sont en direct maintenant !",
     "welcomeBodyMore": "{channels} et {count} autres favoris sont en direct !",
-    "welcomeBodySingle": "{channel} est en direct maintenant !",
-    "live": "{channel} est en direct !",
-    "liveBody": "[{category}] {title}",
-    "liveBodyTitleOnly": "{title}",
-    "liveBodyFallback": "{channel} sur {platform}",
-    "actionWatch": "Regarder le flux",
-    "actionIgnore": "Ignorer"
+    "welcomeBodySingle": "{channel} est en direct maintenant !"
   },
   "onboarding": {
     "title": "Bienvenue sur Multistream",
@@ -482,8 +492,8 @@
     "hintLabel": "Astuce"
   },
   "webBanner": {
-    "title": "Multistream fonctionne mieux sur l'application de bureau.",
-    "button": "Télécharger"
+    "button": "Télécharger",
+    "title": "Multistream fonctionne mieux sur l'application de bureau."
   },
   "sidebar": {
     "openSidebar": "Ouvrir la barre latérale",
@@ -492,22 +502,23 @@
     "loginTitle": "Connectez votre compte",
     "loginSubtitle": "Voir les chaînes que vous suivez",
     "noChannels": "Aucune chaîne en ligne",
-    "noChannelsSubtitle": "Ajoutez des chaînes aux favoris ou connectez votre compte Twitch."
+    "noChannelsSubtitle": "Ajoutez des chaînes aux favoris ou connectez votre compte Twitch.",
+    "previewUnavailable": "Aperçu indisponible"
   },
   "nativePlayer": {
     "live": "EN DIRECT",
     "quality": {
-      "auto": "Auto",
-      "audio": "Audio"
+      "audio": "Audio",
+      "auto": "Auto"
     },
     "offline": {
-      "title": "Flux terminé",
-      "description": "Le diffuseur a mis fin à ce flux."
+      "description": "Le diffuseur a mis fin à ce flux.",
+      "title": "Flux terminé"
     },
     "errors": {
-      "tokenExpired": "Accès refusé (403). Jeton de diffusion expiré.",
       "hlsError": "Erreur HLS ({type}: {details})",
-      "playbackError": "Erreur de lecture native"
+      "playbackError": "Erreur de lecture native",
+      "tokenExpired": "Accès refusé (403). Jeton de diffusion expiré."
     },
     "retry": "Réessayer"
   },
@@ -537,5 +548,118 @@
     "immersive": {
       "toastEnabled": "Mode immersif activé — survolez les bords de l'écran ou appuyez sur Échap pour quitter (F11 pour Plein écran)"
     }
+  },
+  "app": {
+    "forceReload": "Force reload app",
+    "reload": "Reload app"
+  },
+  "browser": {
+    "address": "Address bar",
+    "addressPlaceholder": "Enter URL...",
+    "back": "Go back",
+    "desktopView": "Switch to desktop view",
+    "dragTile": "Drag tile",
+    "forward": "Go forward",
+    "loading": "Loading {title}...",
+    "mobileView": "Switch to mobile view",
+    "reload": "Reload page"
+  },
+  "layouts": {
+    "addToSlot": "Add stream",
+    "auto": "Auto",
+    "deleteCustom": "Delete custom layout",
+    "duo": "Duo",
+    "focus": "Focus",
+    "focusPlus": "Focus+",
+    "pip": "PiP",
+    "pip2": "2x PiP",
+    "quad": "Quad",
+    "saveCurrent": "Save current grid",
+    "sidebar": "Sidebar",
+    "solo": "Solo",
+    "stack": "Stack",
+    "tall": "Tall",
+    "theater": "Theater",
+    "title": "Layout",
+    "wall": "Wall",
+    "wide": "Wide",
+    "groups": {
+      "grid": "Grilles",
+      "focus": "Focus",
+      "pip": "Image dans l’image",
+      "saved": "Dispositions enregistrées"
+    },
+    "autoHint": "La plus petite grille pour tous vos flux",
+    "expandedHint": "Agrandie pour afficher les {count} flux. La disposition choisie revient après avoir retiré des flux.",
+    "slotCount": "Volets : {count}",
+    "savedName": "Copie de {name}",
+    "gridSize": "{cols} × {rows}",
+    "tallTwo": "Vertical + 2",
+    "duoFour": "2 grands + 4",
+    "lShape": "Forme en L",
+    "mosaic": "Mosaïque",
+    "golden": "Spirale dorée",
+    "pipTopLeft": "PiP en haut à gauche",
+    "pipTopRight": "PiP en haut à droite",
+    "pipBottomLeft": "PiP en bas à gauche",
+    "pipWide": "2 PiP côte à côte",
+    "pipCorners": "2 PiP dans les coins",
+    "pipThree": "3 PiP empilées",
+    "pipFour": "4 PiP dans les coins",
+    "pipSix": "Grille de 6 PiP",
+    "stripThree": "Bande de 3 PiP",
+    "stripFour": "Bande de 4 PiP"
+  },
+  "workspaces": {
+    "add": "Add workspace",
+    "cannotDeleteLast": "Cannot delete the last workspace",
+    "delete": "Delete workspace",
+    "deleted": "deleted",
+    "maxReached": "Maximum of 5 workspaces reached",
+    "roomName": "Room {n}",
+    "title": "Workspaces"
+  },
+  "mixer": {
+    "title": "Audio des streams",
+    "master": "Volume général",
+    "muteAll": "Tout couper",
+    "mute": "Muet",
+    "solo": "Solo",
+    "empty": "Ajoutez des streams pour régler leur audio.",
+    "channelVolume": "Volume de {channel}",
+    "nativeRequired": "La coupure de sortie nécessite l’application Windows.",
+    "dragTile": "Faire glisser pour réorganiser",
+    "outputFailed": "Échec du contrôle du lecteur natif. Redémarrez l’application.",
+    "audioMode": "Mode audio",
+    "modes": {
+      "click": "Cliquer pour cibler",
+      "hover": "Le son suit le survol",
+      "manual": "Ciblage manuel",
+      "all-muted": "Tout en sourdine",
+      "multi": "Plusieurs sources"
+    },
+    "focus": "Cibler",
+    "unmute": "Activer le son",
+    "closeStream": "Fermer {channel}",
+    "quality": "Qualité",
+    "qualityFor": "Qualité de {channel}",
+    "qualityUnavailable": "Ce lecteur ne permet pas de régler la qualité.",
+    "qualityFailed": "Impossible de changer la qualité. Réessayez dans le lecteur."
+  },
+  "liveNow": {
+    "title": "En direct",
+    "description": "Découvrez des streams et ajoutez-les à votre espace actuel.",
+    "search": "Rechercher des chaînes, titres ou catégories…",
+    "platforms": "Plateformes",
+    "category": "Catégorie",
+    "allCategories": "Toutes les catégories",
+    "offline": "Hors ligne. Reconnectez-vous pour actualiser.",
+    "failed": "Actualisation impossible. Réessayez.",
+    "empty": "Aucun direct trouvé. Modifiez la recherche ou actualisez.",
+    "openStream": "Ouvrir {channel}",
+    "favorite": "Ajouter {channel} aux favoris",
+    "added": "Ajouté",
+    "add": "Ajouter à l’espace",
+    "more": "Afficher plus"
   }
 }

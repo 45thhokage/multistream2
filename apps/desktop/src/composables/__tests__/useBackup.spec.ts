@@ -1,4 +1,5 @@
 import { effectScope, EffectScope } from "vue";
+import { ref } from "vue";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { useBackup, validateBackupData } from "../useBackup";
 import type { BackupData } from "../useBackup";
@@ -21,6 +22,16 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
 vi.mock("@tauri-apps/api/path", () => ({
   downloadDir: vi.fn(),
   join: vi.fn(),
+}));
+
+const mockBackupWorkspacesRef = ref([{ id: "ws-test", name: "Room" }]);
+const mockBackupActiveIdRef = ref("ws-test");
+vi.mock("../useWorkspaces", () => ({
+  useWorkspaces: () => ({
+    workspaces: mockBackupWorkspacesRef,
+    activeWorkspaceId: mockBackupActiveIdRef,
+    workspaceIdOf: (workspaceId?: string) => workspaceId ?? "ws-test",
+  }),
 }));
 
 describe("useBackup composable unit tests", () => {
@@ -51,6 +62,8 @@ describe("useBackup composable unit tests", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    mockBackupWorkspacesRef.value = [{ id: "ws-test", name: "Room" }];
+    mockBackupActiveIdRef.value = "ws-test";
     scope = effectScope();
     backupComposable = scope.run(() => useBackup())!;
   });
@@ -150,6 +163,19 @@ describe("useBackup composable unit tests", () => {
         favorites: [{ channel: "test", platform: "kick", addedAt: 123, iframeUrl: 123 }] as any,
       };
 
+      const invalidFavoriteMeta = {
+        ...validBackup,
+        favorites: [
+          {
+            channel: "GitHub",
+            platform: "custom",
+            addedAt: 123,
+            iframeUrl: "https://github.com/a",
+            faviconUrl: 123,
+          },
+        ] as any,
+      };
+
       const invalidRecentPlatform = {
         ...validBackup,
         recents: [{ channel: "test", platform: "invalid", addedAt: 123 }] as any,
@@ -161,7 +187,49 @@ describe("useBackup composable unit tests", () => {
       expect(validateBackupData(invalidStreamIframe)).toBe(false);
       expect(validateBackupData(invalidFavoritePlatform)).toBe(false);
       expect(validateBackupData(invalidFavoriteIframe)).toBe(false);
+      expect(validateBackupData(invalidFavoriteMeta)).toBe(false);
       expect(validateBackupData(invalidRecentPlatform)).toBe(false);
+    });
+
+    it("should accept favorites with custom site meta fields", () => {
+      // Arrange
+      const withMeta = {
+        ...validBackup,
+        favorites: [
+          {
+            channel: "GitHub",
+            platform: "custom",
+            addedAt: 123,
+            iframeUrl: "https://github.com/a",
+            displayName: "GitHub",
+            faviconUrl: "https://github.com/favicon.ico",
+            siteUrl: "https://github.com/a",
+          },
+        ],
+      };
+
+      // Act & Assert
+      expect(validateBackupData(withMeta)).toBe(true);
+    });
+
+    it("should accept v1 backups without workspaces and v2 backups with workspaces", () => {
+      // Arrange
+      const v2 = {
+        ...validBackup,
+        workspaces: [
+          { id: "a", name: "Room 1" },
+          { id: "b", name: "Room 2" },
+        ],
+        activeWorkspaceId: "b",
+      };
+      const badWorkspaces = { ...validBackup, workspaces: [{ id: 1 }] as any };
+      const badActive = { ...validBackup, activeWorkspaceId: 42 as any };
+
+      // Act & Assert
+      expect(validateBackupData(validBackup)).toBe(true);
+      expect(validateBackupData(v2)).toBe(true);
+      expect(validateBackupData(badWorkspaces)).toBe(false);
+      expect(validateBackupData(badActive)).toBe(false);
     });
   });
 
@@ -349,6 +417,69 @@ describe("useBackup composable unit tests", () => {
       // Assert
       expect(favorites.value.length).toBe(1);
       expect(favorites.value[0]?.iframeUrl).toBe("https://site.com");
+    });
+
+    it("should keep same-domain custom urls as separate favorites on import", () => {
+      // Arrange
+      const { importConfig, favorites } = backupComposable;
+
+      favorites.value = [];
+      const backupWithCustoms: BackupData = {
+        ...validBackup,
+        favorites: [
+          {
+            channel: "github.com",
+            platform: "custom",
+            iframeUrl: "https://github.com/gorhill/ublock",
+            displayName: "uBlock Origin",
+            faviconUrl: "https://github.com/favicon.ico",
+            siteUrl: "https://github.com/gorhill/ublock",
+            addedAt: 1600000000000,
+          },
+          {
+            channel: "github.com",
+            platform: "custom",
+            iframeUrl: "https://github.com/gorhill/",
+            displayName: "gorhill",
+            faviconUrl: "https://github.com/favicon.ico",
+            siteUrl: "https://github.com/gorhill/",
+            addedAt: 1600000000001,
+          },
+        ],
+      };
+
+      // Act
+      importConfig(backupWithCustoms);
+
+      // Assert
+      expect(favorites.value.length).toBe(2);
+      expect(favorites.value.map((f) => f.iframeUrl).toSorted()).toEqual([
+        "https://github.com/gorhill/",
+        "https://github.com/gorhill/ublock",
+      ]);
+    });
+
+    it("should merge workspaces additively and restore the active room", () => {
+      // Arrange
+      const { importConfig } = backupComposable;
+      const initialCount = mockBackupWorkspacesRef.value.length;
+
+      // Act
+      importConfig({
+        ...validBackup,
+        workspaces: [
+          { id: "room-a", name: "Room A" },
+          { id: "room-b", name: "Room B" },
+        ],
+        activeWorkspaceId: "room-b",
+      });
+
+      // Assert
+      const ids = mockBackupWorkspacesRef.value.map((w) => w.id);
+      expect(ids).toContain("room-a");
+      expect(ids).toContain("room-b");
+      expect(mockBackupWorkspacesRef.value).toHaveLength(initialCount + 2);
+      expect(mockBackupActiveIdRef.value).toBe("room-b");
     });
   });
 
@@ -634,6 +765,44 @@ describe("useBackup composable unit tests", () => {
 
       // Assert
       expect(isValid).toBe(false);
+    });
+
+    it("should fall back to legacy download if showSaveFilePicker throws non-AbortError", async () => {
+      // Arrange
+      const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const { exportConfig } = backupComposable;
+
+      const genericError = new Error("Some Error");
+      genericError.name = "SomeError";
+
+      (globalThis as any).window = {
+        showSaveFilePicker: vi.fn().mockRejectedValue(genericError),
+      };
+
+      const clickMock = vi.fn();
+      const mockLink = {
+        setAttribute: vi.fn(),
+        click: clickMock,
+        remove: vi.fn(),
+        href: "",
+        download: "",
+      };
+      globalThis.document = {
+        createElement: vi.fn().mockReturnValue(mockLink),
+        body: { appendChild: vi.fn(), removeChild: vi.fn() },
+      } as any;
+      globalThis.URL.createObjectURL = vi.fn(() => "blob:url");
+      globalThis.URL.revokeObjectURL = vi.fn();
+
+      // Act
+      const result = await exportConfig();
+
+      // Assert
+      expect(result).toBe(true);
+      expect(clickMock).toHaveBeenCalled();
+      consoleSpy.mockRestore();
+
+      delete (globalThis as any).window;
     });
   });
 });

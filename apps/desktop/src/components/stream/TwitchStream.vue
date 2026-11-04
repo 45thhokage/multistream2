@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { nativePlayerId } from "@/lib/nativePlayer";
 import BaseStream from "./BaseStream.vue";
 import TwitchNativePlayer from "./TwitchNativePlayer.vue";
 import { PLATFORMS } from "@/config/platforms";
+import { isTauri } from "@/composables/useUpdater";
 import { usePreferences } from "@/composables/usePreferences";
 import { useLiveStatus } from "@/composables/useLiveStatus";
 import { useProfilePicture } from "@/composables/useProfilePicture";
@@ -18,8 +20,11 @@ const { isFocused } = useFocusedStream();
 const liveStatus = computed(() => getStatus(props.channel, "twitch"));
 const profilePicture = getProfilePicture(props.channel, "twitch");
 const isStreamFocused = computed(() => isFocused(props.channelid));
+const canUseNativePlayer = computed(() => nativePlayerEnabled.value && isTauri());
 const embedUrl = computed(() => {
-  const base = PLATFORMS.twitch.getEmbedUrl(props.channel);
+  const base = PLATFORMS.twitch
+    .getEmbedUrl(props.channel)
+    .replace("muted=true", nativePlayerId() ? "muted=false" : "muted=true");
   return `${base}#ms-adblock=${adblockEnabled.value ? "1" : "0"}`;
 });
 </script>
@@ -27,7 +32,7 @@ const embedUrl = computed(() => {
 <template>
   <BaseStream :channelid="channelid" :channel="channel" platform="twitch">
     <TwitchNativePlayer
-      v-if="nativePlayerEnabled"
+      v-if="canUseNativePlayer"
       :key="channel"
       :channel="channel"
       :channelid="channelid"

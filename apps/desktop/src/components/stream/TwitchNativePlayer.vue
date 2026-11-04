@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
+import { useEventListener } from "@vueuse/core";
 import { onClickOutside } from "@vueuse/core";
 import Hls from "hls.js";
 import { invoke } from "@tauri-apps/api/core";
@@ -58,8 +59,8 @@ function retryLoad() {
 }
 
 const isPlaying = ref(true);
-const isMuted = ref(true);
-const volume = ref([50]);
+const isMuted = ref(false);
+const volume = ref([100]);
 const isFullscreen = ref(false);
 const showControls = ref(true);
 const qualityMenuOpen = ref(false);
@@ -155,6 +156,32 @@ function setQuality(index: number) {
   currentLevelIndex.value = index;
   qualityMenuOpen.value = false;
 }
+
+function publishQuality() {
+  window.dispatchEvent(
+    new CustomEvent("multistream-quality-state", {
+      detail: {
+        options: [
+          { id: "auto", label: "auto" },
+          ...availableLevels.value.map((level, index) => ({
+            id: `native-${index}`,
+            label: level.label,
+          })),
+        ],
+        current: currentLevelIndex.value < 0 ? "auto" : `native-${currentLevelIndex.value}`,
+      },
+    })
+  );
+}
+watch([availableLevels, currentLevelIndex], publishQuality, { deep: true, flush: "post" });
+useEventListener(window, "multistream-quality-request", (event: Event) => {
+  const quality = (event as CustomEvent<string>).detail;
+  if (quality === "auto") setQuality(-1);
+  else if (/^native-[0-9]+$/.test(quality)) {
+    const index = Number(quality.slice(7));
+    if (index < availableLevels.value.length) setQuality(index);
+  }
+});
 
 function toggleQualityMenu() {
   qualityMenuOpen.value = !qualityMenuOpen.value;
@@ -550,6 +577,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="containerRef"
+    data-native-hls-player
     class="relative w-full h-full bg-black group select-none"
     @mousemove="onMouseMove"
     @mouseleave="onMouseLeave"

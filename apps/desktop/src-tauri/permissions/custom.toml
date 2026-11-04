@@ -50,5 +50,22 @@ commands.allow = [
     "youtube_resolve_live_id",
     "youtube_check_channels_status",
     "youtube_search_channels",
-    "check_network_connectivity"
+    "check_network_connectivity",
+    "open_site_window",
+    "close_site_window",
+    "list_site_windows",
+    "open_tile_webview",
+    "open_player_webview",
+    "close_tile_webview",
+    "tile_navigate",
+    "tile_set_audio",
+    "tile_set_quality",
+    "open_ui_overlay",
+    "close_ui_overlay",
+    "tile_reload",
+    "tile_go_back",
+    "tile_go_forward",
+    "tile_set_bounds",
+    "tile_set_visible",
+    "tile_current_url"
 ]

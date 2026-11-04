@@ -7,6 +7,8 @@ export interface FavoriteChannel {
   lastVideoId?: string;
   displayName?: string;
   iframeUrl?: string;
+  faviconUrl?: string;
+  siteUrl?: string;
   addedAt: number;
 }
 
@@ -18,7 +20,7 @@ const isMatchingFavorite = (
 ): boolean => {
   if (favorite.platform !== platform) return false;
   if (platform === "custom" && (iframeUrl || favorite.iframeUrl)) {
-    return favorite.iframeUrl?.toLowerCase() === (iframeUrl || "").toLowerCase();
+    return favorite.iframeUrl === (iframeUrl || "");
   }
   if (platform === "youtube") {
     const cleanFav = favorite.channel.replace(/^@+/, "").toLowerCase();
@@ -27,6 +29,11 @@ const isMatchingFavorite = (
   }
   return favorite.channel.toLowerCase() === channel.toLowerCase();
 };
+export interface FavoriteMeta {
+  displayName?: string;
+  faviconUrl?: string;
+  siteUrl?: string;
+}
 
 const _useFavorites = () => {
   const favorites = useStorage<FavoriteChannel[]>("favorites", []);
@@ -46,8 +53,11 @@ const _useFavorites = () => {
     channel: string,
     platform: Platform,
     iframeUrl?: string,
-    displayName?: string
+    displayNameOrMeta?: string | FavoriteMeta
   ) => {
+    const meta = typeof displayNameOrMeta === "object" ? displayNameOrMeta : undefined;
+    const displayName =
+      typeof displayNameOrMeta === "string" ? displayNameOrMeta : meta?.displayName;
     if (favorites.value.some((f) => isMatchingFavorite(f, channel, platform, iframeUrl))) {
       return;
     }
@@ -68,6 +78,8 @@ const _useFavorites = () => {
       {
         channel,
         platform,
+        ...(meta?.faviconUrl && { faviconUrl: meta.faviconUrl }),
+        ...(meta?.siteUrl && { siteUrl: meta.siteUrl }),
         addedAt: Date.now(),
         displayName,
         iframeUrl,

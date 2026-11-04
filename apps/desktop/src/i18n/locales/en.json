@@ -27,27 +27,28 @@
     "suggestedLabel": "Suggested Streams",
     "suggestedDescription": "Popular live streams right now",
     "noSuggestions": "No streams found",
-    "resolvingLive": "Checking YouTube live status..."
+    "resolvingLive": "Checking YouTube live status...",
+    "openInWindow": "Open in window"
   },
   "settings": {
     "tooltip": "Settings",
     "title": "Settings",
     "description": "Adjust your preferences.",
     "updates": {
-      "title": "Updates",
-      "description": "Check for new versions",
       "checkButton": "Check for Updates",
-      "checking": "Checking..."
+      "checking": "Checking...",
+      "description": "Check for new versions",
+      "title": "Updates"
     },
     "language": {
-      "title": "Language",
-      "description": "Select your preferred language"
+      "description": "Select your preferred language",
+      "title": "Language"
     },
     "notifications": {
-      "title": "Notifications",
       "description": "Get alerts when favorites go live",
+      "disabled": "Notifications disabled",
       "enabled": "Notifications enabled",
-      "disabled": "Notifications disabled"
+      "title": "Notifications"
     },
     "auth": {
       "title": "Accounts",
@@ -62,9 +63,9 @@
       "disconnected": "Disconnected",
       "logout": "Logout",
       "features": {
+        "followedChannels": "Followed channels list",
         "readChat": "Read chat messages",
-        "sendChat": "Send chat messages",
-        "followedChannels": "Followed channels list"
+        "sendChat": "Send chat messages"
       },
       "disclaimer": "Multistream is an independent open-source client and is not affiliated with, endorsed by, or sponsored by Twitch, Kick, YouTube, or Amazon.",
       "disconnectConfirmTitle": "Disconnect account?",
@@ -72,22 +73,22 @@
       "disconnectConfirmButton": "Disconnect"
     },
     "help": {
-      "title": "Help",
       "description": "Need assistance or want to review features?",
-      "showTourButton": "Show Onboarding Tour"
+      "showTourButton": "Show Onboarding Tour",
+      "title": "Help"
     },
     "backup": {
-      "title": "Data & Backup",
       "description": "Export or import your complete configuration",
       "exportButton": "Export Data",
+      "exportSuccess": "Configuration exported successfully",
       "importButton": "Import Data",
-      "importConfirmTitle": "Overwrite Configuration?",
-      "importConfirmDescription": "Are you sure you want to import this configuration? This will completely replace your current streams, favorites, recents, and preferences.",
       "importConfirmButton": "Import and Overwrite",
       "importConfirmCancel": "Cancel",
-      "importSuccess": "Configuration imported successfully",
+      "importConfirmDescription": "Are you sure you want to import this configuration? This will completely replace your current streams, favorites, recents, and preferences.",
+      "importConfirmTitle": "Overwrite Configuration?",
       "importError": "Invalid configuration backup file",
-      "exportSuccess": "Configuration exported successfully"
+      "importSuccess": "Configuration imported successfully",
+      "title": "Data & Backup"
     },
     "transcription": {
       "title": "Live Transcription",
@@ -133,12 +134,12 @@
       "modelInUse": "In Use"
     },
     "tabs": {
-      "general": "General",
-      "data": "Data",
+      "about": "About",
       "connections": "Connections",
-      "resources": "Transcription",
+      "data": "Data",
+      "general": "General",
       "recording": "Recording",
-      "about": "About"
+      "resources": "Transcription"
     },
     "about": {
       "title": "About Multistream",
@@ -155,82 +156,90 @@
       "extension": "Browser Extension"
     },
     "nativePlayer": {
-      "title": "Built-in Player for Twitch (Experimental)",
       "description": "Use the built-in stream engine instead of embedded players. May improve performance and compatibility.",
       "loadError": "Failed to load stream. The custom player may be temporarily unavailable.",
-      "videoRefError": "Video element reference not bound",
-      "notSupportedError": "Media playback is not supported by your browser"
+      "notSupportedError": "Media playback is not supported by your browser",
+      "title": "Built-in Player for Twitch (Experimental)",
+      "videoRefError": "Video element reference not bound"
     },
     "adblock": {
-      "title": "Built-in Ad Blocker",
       "description": "Block video and banner ads on Twitch and YouTube streams",
-      "toastEnabled": "Ad blocker enabled",
-      "toastDisabled": "Ad blocker disabled"
+      "title": "Built-in Ad Blocker",
+      "toastDisabled": "Ad blocker disabled",
+      "toastEnabled": "Ad blocker enabled"
     },
     "recording": {
-      "tabLabel": "Recording",
-      "enableTitle": "Local Recording",
-      "enableFeatureToggle": "Enable local recording feature",
-      "downloadDependencies": "Download dependencies",
-      "installSuccess": "Dependencies installed successfully",
-      "installError": "Installation error: {error}",
-      "uninstallDependencies": "Uninstall feature",
-      "uninstallSuccess": "Feature uninstalled successfully",
-      "uninstallError": "Error uninstalling: {error}",
-      "uninstallConfirmTitle": "Uninstall feature?",
-      "uninstallConfirmDescription": "This will remove the isolated recorder environment and free up space. You can reinstall it later.",
-      "uninstallConfirmButton": "Uninstall",
-      "enableDescription": "Record streams directly from the source using Streamlink. Files are saved to your Videos folder.",
-      "unavailableOS": "Recording is not supported on your architecture.",
-      "qualityTitle": "Default Quality",
-      "qualityPrefix": "Quality: ",
-      "qualityDescription": "Preferred stream quality. Falls back to best available if not found.",
-      "qualityBest": "Best",
-      "quality1080p": "1080p",
-      "quality720p": "720p",
-      "quality480p": "480p",
-      "qualityWorst": "Lowest",
-      "pathTitle": "Directory",
-      "pathDescription": "Choose where recordings should be saved. Leave empty to use the default Videos folder.",
-      "selectFolder": "Select Folder",
+      "customNotSupported": "Recording is not supported for custom streams.",
       "defaultPath": "Default (Videos)",
-      "resetFolder": "Reset",
-      "orphanTitle": "Incomplete Recordings",
-      "orphanDescription": "These recordings were interrupted. You can convert them to MP4 or discard them.",
+      "downloadDependencies": "Download dependencies",
+      "enableDescription": "Record streams directly from the source using Streamlink. Files are saved to your Videos folder.",
+      "enableFeatureToggle": "Enable local recording feature",
+      "enableTitle": "Local Recording",
+      "installError": "Installation error: {error}",
+      "installSuccess": "Dependencies installed successfully",
+      "openFolder": "Open Folder",
       "orphanConvert": "Convert to MP4",
+      "orphanDescription": "These recordings were interrupted. You can convert them to MP4 or discard them.",
       "orphanDismiss": "Discard",
-      "starting": "Starting recording...",
-      "stopping": "Stopping recording...",
+      "orphanFound": "Found {count} incomplete recording(s)",
+      "orphanTitle": "Incomplete Recordings",
+      "pathDescription": "Choose where recordings should be saved. Leave empty to use the default Videos folder.",
+      "pathTitle": "Directory",
+      "quality1080p": "1080p",
+      "quality480p": "480p",
+      "quality720p": "720p",
+      "qualityBest": "Best",
+      "qualityDescription": "Preferred stream quality. Falls back to best available if not found.",
+      "qualityPrefix": "Quality: ",
+      "qualityTitle": "Default Quality",
+      "qualityWorst": "Lowest",
+      "remuxFailed": "Conversion failed. Raw recording preserved.",
       "remuxing": "Converting to MP4...",
       "remuxingDescription": "This may take a while depending on the file size.",
+      "resetFolder": "Reset",
       "saved": "Recording saved",
-      "openFolder": "Open Folder",
-      "remuxFailed": "Conversion failed. Raw recording preserved.",
+      "selectFolder": "Select Folder",
+      "starting": "Starting recording...",
+      "stopping": "Stopping recording...",
       "streamEnded": "Stream ended. Saving recording...",
       "streamError": "Recording error: {error}",
-      "customNotSupported": "Recording is not supported for custom streams.",
-      "orphanFound": "Found {count} incomplete recording(s)"
+      "tabLabel": "Recording",
+      "unavailableOS": "Recording is not supported on your architecture.",
+      "uninstallConfirmButton": "Uninstall",
+      "uninstallConfirmDescription": "This will remove the isolated recorder environment and free up space. You can reinstall it later.",
+      "uninstallConfirmTitle": "Uninstall feature?",
+      "uninstallDependencies": "Uninstall feature",
+      "uninstallError": "Error uninstalling: {error}",
+      "uninstallSuccess": "Feature uninstalled successfully"
+    },
+    "sites": {
+      "description": "Sites opened in their own window. Sign-ins stay saved in the app browser.",
+      "empty": "No site windows open.",
+      "openInWindow": "Open in window",
+      "title": "Site windows",
+      "youtubeHint": "Sign in on youtube.com once — streams and chat reuse it.",
+      "youtubeLogin": "Open YouTube to sign in"
     }
   },
   "share": {
-    "tooltip": "Share",
-    "title": "Share Streams",
-    "description": "Share your streams with your friends.",
-    "noStreams": "No streams to share",
     "cancelButton": "Cancel",
     "copyButton": "Copy Link",
-    "toast": "Link copied to clipboard"
+    "description": "Share your streams with your friends.",
+    "noStreams": "No streams to share",
+    "title": "Share Streams",
+    "toast": "Link copied to clipboard",
+    "tooltip": "Share"
   },
   "import": {
-    "tooltip": "Import",
-    "title": "Import Streams",
+    "deepLinkSuccess": "Streams successfully imported via Deep Link!",
     "description": "Paste a share link to import streams.",
-    "placeholder": "Paste the share link here...",
     "importButton": "Import",
-    "invalidLink": "Invalid share link",
     "invalidCustom": "Failed to parse custom streams",
+    "invalidLink": "Invalid share link",
+    "placeholder": "Paste the share link here...",
     "success": "Streams imported successfully",
-    "deepLinkSuccess": "Streams successfully imported via Deep Link!"
+    "title": "Import Streams",
+    "tooltip": "Import"
   },
   "hide": {
     "tooltip": "Hide"
@@ -248,16 +257,17 @@
       "focus": "Focus stream",
       "unfocus": "Unfocus stream",
       "copyUrl": "Copy stream URL",
-      "reload": "Reload stream"
+      "reload": "Reload stream",
+      "openInWindow": "Open in window"
     }
   },
   "empty": {
-    "title": "No streams selected",
-    "description": "Start by adding your favorite channels to watch simultaneously.",
     "addButton": "Add Stream",
-    "tourLink": "Need help? Take the tour",
+    "description": "Start by adding your favorite channels to watch simultaneously.",
+    "loading": "Loading...",
     "refresh": "Refresh",
-    "loading": "Loading..."
+    "title": "No streams selected",
+    "tourLink": "Need help? Take the tour"
   },
   "chat": {
     "controlTitle": "Controls",
@@ -284,41 +294,41 @@
       }
     },
     "unified": {
-      "selectorLabel": "Unified Chat",
-      "connectTitle": "Connect with Twitch",
-      "connectHint": "Sign in to see messages from all Twitch channels in your grid in a single feed.",
-      "connectButton": "Connect",
-      "reconnecting": "Reconnecting…",
-      "noStreams": "No streams in your grid.",
-      "noStreamsHint": "Add a stream to see messages here.",
-      "disconnected": "Chat disconnected.",
       "auth": {
-        "expired": "The authorization code has expired. Please try again.",
+        "cancel": "Cancel",
+        "defaultUser": "User",
         "error": "An error occurred during authentication: ",
-        "tryAgain": "Try Again",
+        "expired": "The authorization code has expired. Please try again.",
+        "initFailed": "Failed to initialize login flow.",
         "step1": "1. Open the verification link below",
         "step2": "2. Enter this code to link your account",
-        "waiting": "Waiting for authorization...",
-        "cancel": "Cancel",
-        "successTitle": "Successfully authenticated on {platform}",
         "successDesc": "Logged in as {username}",
-        "initFailed": "Failed to initialize login flow.",
-        "defaultUser": "User"
+        "successTitle": "Successfully authenticated on {platform}",
+        "tryAgain": "Try Again",
+        "waiting": "Waiting for authorization..."
       },
-      "warningTwitchLoginToMerge": "Connect your Twitch account to include Twitch chats in Unified Chat.",
-      "warningTwitchLogin": "Connect your Twitch account to enable Unified Chat."
+      "connectButton": "Connect",
+      "connectHint": "Sign in to see messages from all Twitch channels in your grid in a single feed.",
+      "connectTitle": "Connect with Twitch",
+      "disconnected": "Chat disconnected.",
+      "noStreams": "No streams in your grid.",
+      "noStreamsHint": "Add a stream to see messages here.",
+      "reconnecting": "Reconnecting…",
+      "selectorLabel": "Unified Chat",
+      "warningTwitchLogin": "Connect your Twitch account to enable Unified Chat.",
+      "warningTwitchLoginToMerge": "Connect your Twitch account to include Twitch chats in Unified Chat."
     },
     "loginPrompt": "Log in to interact",
     "loginPromptTwitch": "Connect your Twitch account to send messages in this channel.",
     "loginPromptKick": "Connect your Kick account to send messages in this channel.",
     "connectAction": "Connect",
     "emotes": {
-      "searchEmote": "Search emote...",
       "noEmotesFound": "No emotes found",
+      "searchEmote": "Search emote...",
       "tabs": {
-        "recent": "Recent",
+        "channel": "Channel",
         "global": "Global",
-        "channel": "Channel"
+        "recent": "Recent"
       }
     },
     "you": "You",
@@ -326,8 +336,8 @@
     "badges": {
       "broadcaster": "Broadcaster",
       "moderator": "Moderator",
-      "vip": "VIP",
-      "subscriber": "Subscriber"
+      "subscriber": "Subscriber",
+      "vip": "VIP"
     },
     "sendError": "Failed to send message",
     "reply": "Reply",
@@ -339,9 +349,9 @@
   },
   "confirm": {
     "deleteOrphan": {
-      "title": "Delete Recording",
+      "confirm": "Delete",
       "description": "This recording file will be permanently deleted from disk. This action cannot be undone.",
-      "confirm": "Delete"
+      "title": "Delete Recording"
     },
     "deleteModel": {
       "title": "Delete AI Model",
@@ -350,24 +360,24 @@
     }
   },
   "common": {
+    "cancel": "Cancel",
     "close": "Close",
     "comingSoon": "Coming soon",
-    "play": "Play",
-    "pause": "Pause",
-    "mute": "Mute",
-    "unmute": "Unmute",
-    "fullscreen": "Fullscreen",
-    "exitFullscreen": "Exit Fullscreen",
-    "settings": "Settings",
-    "volume": "Volume",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "exitFullscreen": "Exit Fullscreen",
+    "fullscreen": "Fullscreen",
+    "mute": "Mute",
+    "pause": "Pause",
+    "play": "Play",
+    "settings": "Settings",
+    "unmute": "Unmute",
+    "volume": "Volume"
   },
   "toasts": {
     "add": {
       "added": "added",
       "alreadyAdded": "Stream already added",
-      "maxStreams": "Maximum of 12 streams reached"
+      "maxStreams": "Maximum of 16 streams reached"
     },
     "favorite": {
       "added": "added to favorites",
@@ -375,18 +385,18 @@
     },
     "remove": "removed",
     "update": {
-      "newVersion": "New version available",
-      "latestVersion": "You're on the latest version!",
+      "downloading": "Downloading update...",
       "failedCheck": "Failed to check for updates",
       "failedUpdate": "Failed to download update",
-      "downloading": "Downloading update...",
+      "latestVersion": "You're on the latest version!",
+      "newVersion": "New version available",
       "success": "Update complete! Restarting..."
     },
     "screenshot": {
-      "saved": "Screenshot saved!",
+      "blocked": "Screenshot blocked by platform DRM",
       "failed": "Failed to capture screenshot",
       "noStream": "No video stream found",
-      "blocked": "Screenshot blocked by platform DRM",
+      "saved": "Screenshot saved!",
       "timeout": "Screenshot timed out"
     },
     "codecs": {
@@ -403,16 +413,16 @@
     "streamDiagnostics": "stream_diagnostics"
   },
   "notifications": {
+    "actionIgnore": "Ignore",
+    "actionWatch": "Watch Stream",
+    "live": "{channel} is live!",
+    "liveBody": "[{category}] {title}",
+    "liveBodyFallback": "{channel} on {platform}",
+    "liveBodyTitleOnly": "{title}",
     "welcome": "Favorites are live",
     "welcomeBody": "{channels} are live now!",
     "welcomeBodyMore": "{channels} and {count} more favorites are live!",
-    "welcomeBodySingle": "{channel} is live now!",
-    "live": "{channel} is live!",
-    "liveBody": "[{category}] {title}",
-    "liveBodyTitleOnly": "{title}",
-    "liveBodyFallback": "{channel} on {platform}",
-    "actionWatch": "Watch Stream",
-    "actionIgnore": "Ignore"
+    "welcomeBodySingle": "{channel} is live now!"
   },
   "onboarding": {
     "title": "Welcome to Multistream",
@@ -482,8 +492,8 @@
     "hintLabel": "Tip"
   },
   "webBanner": {
-    "title": "Multistream runs better on the desktop app.",
-    "button": "Download"
+    "button": "Download",
+    "title": "Multistream runs better on the desktop app."
   },
   "sidebar": {
     "openSidebar": "Open sidebar",
@@ -492,22 +502,23 @@
     "loginTitle": "Connect your account",
     "loginSubtitle": "See the channels you follow",
     "noChannels": "No channels online",
-    "noChannelsSubtitle": "Favorite channels or connect your Twitch account."
+    "noChannelsSubtitle": "Favorite channels or connect your Twitch account.",
+    "previewUnavailable": "Preview unavailable"
   },
   "nativePlayer": {
     "live": "LIVE",
     "quality": {
-      "auto": "Auto",
-      "audio": "Audio"
+      "audio": "Audio",
+      "auto": "Auto"
     },
     "offline": {
-      "title": "Stream Ended",
-      "description": "The broadcaster has ended this stream."
+      "description": "The broadcaster has ended this stream.",
+      "title": "Stream Ended"
     },
     "errors": {
-      "tokenExpired": "Access Denied (403). Stream token expired.",
       "hlsError": "HLS Error ({type}: {details})",
-      "playbackError": "Native playback error"
+      "playbackError": "Native playback error",
+      "tokenExpired": "Access Denied (403). Stream token expired."
     },
     "retry": "Retry"
   },
@@ -537,5 +548,118 @@
     "immersive": {
       "toastEnabled": "Immersive mode enabled — hover screen edges or press Esc to exit (F11 for Fullscreen)"
     }
+  },
+  "app": {
+    "forceReload": "Force reload app",
+    "reload": "Reload app"
+  },
+  "browser": {
+    "address": "Address bar",
+    "addressPlaceholder": "Enter URL...",
+    "back": "Go back",
+    "desktopView": "Switch to desktop view",
+    "dragTile": "Drag tile",
+    "forward": "Go forward",
+    "loading": "Loading {title}...",
+    "mobileView": "Switch to mobile view",
+    "reload": "Reload page"
+  },
+  "layouts": {
+    "addToSlot": "Add stream",
+    "auto": "Auto",
+    "deleteCustom": "Delete custom layout",
+    "duo": "Duo",
+    "focus": "Focus",
+    "focusPlus": "Focus+",
+    "pip": "PiP",
+    "pip2": "2x PiP",
+    "quad": "Quad",
+    "saveCurrent": "Save current grid",
+    "sidebar": "Sidebar",
+    "solo": "Solo",
+    "stack": "Stack",
+    "tall": "Tall",
+    "theater": "Theater",
+    "title": "Layout",
+    "wall": "Wall",
+    "wide": "Wide",
+    "groups": {
+      "grid": "Grids",
+      "focus": "Focus",
+      "pip": "Picture in picture",
+      "saved": "Saved layouts"
+    },
+    "autoHint": "The smallest grid that fits all your streams",
+    "expandedHint": "Expanded to fit all {count} streams. The selected layout returns when enough streams are removed.",
+    "slotCount": "Panes: {count}",
+    "savedName": "{name} copy",
+    "gridSize": "{cols} × {rows}",
+    "tallTwo": "Tall + 2",
+    "duoFour": "2 large + 4",
+    "lShape": "L-shape",
+    "mosaic": "Mosaic",
+    "golden": "Golden spiral",
+    "pipTopLeft": "PiP top left",
+    "pipTopRight": "PiP top right",
+    "pipBottomLeft": "PiP bottom left",
+    "pipWide": "2 PiP side by side",
+    "pipCorners": "2 PiP corners",
+    "pipThree": "3 PiP stacked",
+    "pipFour": "4 PiP corners",
+    "pipSix": "6 PiP grid",
+    "stripThree": "3 PiP strip",
+    "stripFour": "4 PiP strip"
+  },
+  "workspaces": {
+    "add": "Add workspace",
+    "cannotDeleteLast": "Cannot delete the last workspace",
+    "delete": "Delete workspace",
+    "deleted": "deleted",
+    "maxReached": "Maximum of 5 workspaces reached",
+    "roomName": "Room {n}",
+    "title": "Workspaces"
+  },
+  "mixer": {
+    "title": "Stream audio",
+    "master": "Master volume",
+    "muteAll": "Mute all",
+    "mute": "Mute",
+    "solo": "Solo",
+    "empty": "Add streams to mix their audio.",
+    "channelVolume": "Volume for {channel}",
+    "nativeRequired": "Output mute requires the Windows desktop app.",
+    "dragTile": "Drag tile to reorder",
+    "outputFailed": "Native player control failed. Restart the desktop app.",
+    "audioMode": "Audio mode",
+    "modes": {
+      "click": "Click to focus",
+      "hover": "Audio follows hover",
+      "manual": "Manual focus",
+      "all-muted": "All muted",
+      "multi": "Multiple sources"
+    },
+    "focus": "Focus",
+    "unmute": "Unmute",
+    "closeStream": "Close {channel}",
+    "quality": "Quality",
+    "qualityFor": "Quality for {channel}",
+    "qualityUnavailable": "Quality control is not available from this player.",
+    "qualityFailed": "Could not change quality. Try again in the player."
+  },
+  "liveNow": {
+    "title": "Live now",
+    "description": "Browse live streams and add them to your current workspace.",
+    "search": "Search channels, titles or categories…",
+    "platforms": "Platforms",
+    "category": "Category",
+    "allCategories": "All categories",
+    "offline": "You are offline. Reconnect to refresh live streams.",
+    "failed": "Could not refresh streams. Try Refresh again.",
+    "empty": "No live streams found. Try another search or refresh.",
+    "openStream": "Open {channel}",
+    "favorite": "Favorite {channel}",
+    "added": "Added",
+    "add": "Add to workspace",
+    "more": "Show more"
   }
 }

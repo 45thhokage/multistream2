@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useQualityBridge } from "@/composables/useStreamQuality";
 import { ref, watch, onMounted, onUnmounted } from "vue";
 import { Menu, X, WifiOff } from "@lucide/vue";
 import { invoke } from "@tauri-apps/api/core";
@@ -13,9 +14,16 @@ import { useDeepLink } from "./composables/useDeepLink";
 import { useNetworkStatus } from "./composables/useNetworkStatus";
 import { useImmersiveMode } from "./composables/useImmersiveMode";
 import ToastProvider from "./components/ui/toast/ToastProvider.vue";
+import { useNativePlayerBridge } from "./composables/useNativePlayerBridge";
+import { useMixerPlayback } from "./composables/useMixerPlayback";
+import { useLinkDrop } from "./composables/useLinkDrop";
 import FollowedChannelsSidebar from "./components/main/FollowedChannelsSidebar.vue";
 import SidebarPanel from "./components/main/SidebarPanel.vue";
 import StreamGrid from "./components/main/StreamGrid.vue";
+import LiveNow from "./components/main/LiveNow.vue";
+import LayoutPicker from "./components/main/LayoutPicker.vue";
+import AudioModePicker from "./components/main/AudioModePicker.vue";
+import WorkspaceTabs from "./components/main/WorkspaceTabs.vue";
 import EmptyState from "./components/main/EmptyState.vue";
 import OnboardingTour from "./components/dialogs/OnboardingTour.vue";
 import TwitchAuthDialog from "./components/dialogs/TwitchAuthDialog.vue";
@@ -27,6 +35,22 @@ import { useI18n } from "vue-i18n";
 import { parseUrlOptions } from "./lib/parseUrlOptions";
 import { resolveStream } from "./lib/streamResolver";
 import { APP_LINKS } from "./config/links";
+
+useQualityBridge();
+useMixerPlayback();
+useNativePlayerBridge(
+  (key) => handleFrameShortcuts(new MessageEvent("message", { data: { type: "SHORTCUT", key } })),
+  (tileId, side) => {
+    if (!immersiveModeEnabled.value) return;
+    const element = document.querySelector(`[data-stream-id="${CSS.escape(tileId)}"]`);
+    const rect = element?.getBoundingClientRect();
+    if (!rect) return;
+    if (side === "left" && rect.left < 14) revealLeftPanel();
+    if (side === "right" && rect.right > window.innerWidth - 14) revealRightPanel();
+  }
+);
+
+const { onLinkDrop, onLinkDragOver } = useLinkDrop();
 
 const sidebarRef = ref<InstanceType<typeof SidebarPanel> | null>(null);
 const showOnboarding = ref(false);
@@ -69,9 +93,10 @@ watch(
   { immediate: true }
 );
 
-const { streams, addStream, clearStreams } = useStreams();
+const { streams, activeStreams, addStream, clearStreams } = useStreams();
 const {
   sidebarOpen,
+  streamLayout,
   setSelectedChat,
   onboardingCompleted,
   setOnboardingCompleted,
@@ -135,7 +160,7 @@ function handleGlobalKeyDown(e: KeyboardEvent) {
 
   const num = parseInt(e.key, 10);
   if (num >= 1 && num <= 9) {
-    const stream = streams.value[num - 1];
+    const stream = activeStreams.value[num - 1];
     if (stream) {
       setSelectedChat(`${stream.platform}:${stream.channel}`);
     }
@@ -176,7 +201,7 @@ function handleFrameShortcuts(e: MessageEvent) {
   // 1-9: quick select chat
   const num = parseInt(e.data.key, 10);
   if (num >= 1 && num <= 9) {
-    const stream = streams.value[num - 1];
+    const stream = activeStreams.value[num - 1];
     if (stream) {
       setSelectedChat(`${stream.platform}:${stream.channel}`);
     }
@@ -355,6 +380,12 @@ onUnmounted(() => {
       </div>
     </Transition>
 
+    <span
+      v-if="immersiveModeEnabled && (isLeftPanelRevealed || isRightPanelRevealed)"
+      data-native-overlay
+      class="hidden"
+      aria-hidden="true"
+    />
     <!-- left sidebar -->
     <FollowedChannelsSidebar />
 
@@ -384,11 +415,29 @@ onUnmounted(() => {
       </div>
 
       <!-- main -->
-      <main class="flex-1 overflow-y-auto bg-[#1f2227]">
-        <!-- stream grid -->
-        <StreamGrid v-if="streams.length > 0" />
+      <main
+        class="flex-1 min-h-0 flex flex-col overflow-hidden bg-[#1f2227]"
+        @dragover="onLinkDragOver"
+        @drop="onLinkDrop($event)"
+      >
+        <!-- layout toolbar -->
+        <div
+          v-if="!immersiveModeEnabled"
+          class="shrink-0 h-11 flex items-center px-3 border-b border-[#2a2d33] bg-[#14161a] gap-2"
+        >
+          <WorkspaceTabs />
+          <div class="flex-1" />
+          <AudioModePicker />
+          <LayoutPicker />
+          <LiveNow />
+        </div>
 
-        <EmptyState v-else @add="sidebarRef?.openAddDialog()" @tour="showOnboarding = true" />
+        <div class="flex-1 min-h-0 overflow-y-auto">
+          <!-- stream grid (all rooms stay mounted so switching never pauses) -->
+          <StreamGrid v-if="streams.length > 0 || streamLayout !== 'auto'" />
+
+          <EmptyState v-else @add="sidebarRef?.openAddDialog()" @tour="showOnboarding = true" />
+        </div>
       </main>
     </div>
 

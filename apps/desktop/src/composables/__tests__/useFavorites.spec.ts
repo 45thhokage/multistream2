@@ -195,4 +195,74 @@ describe("useFavorites composable unit tests", () => {
     // Assert
     expect(favorites.value.length).toBe(0);
   });
+
+  it("should store site meta for custom favorites", () => {
+    // Arrange
+    const { addFavorite, favorites } = sut;
+
+    // Act
+    addFavorite("GitHub", "custom", "https://github.com/ilanzgx", {
+      displayName: "GitHub",
+      faviconUrl: "https://github.com/favicon.ico",
+      siteUrl: "https://github.com/ilanzgx",
+    });
+
+    // Assert
+    expect(favorites.value.length).toBe(1);
+    expect(favorites.value[0]).toMatchObject({
+      channel: "GitHub",
+      platform: "custom",
+      iframeUrl: "https://github.com/ilanzgx",
+      displayName: "GitHub",
+      faviconUrl: "https://github.com/favicon.ico",
+      siteUrl: "https://github.com/ilanzgx",
+    });
+  });
+
+  it("should treat same-named customs with different urls as distinct", () => {
+    // Arrange
+    const { addFavorite, removeFavorite, favorites } = sut;
+
+    // Act
+    addFavorite("GitHub", "custom", "https://github.com/a");
+    addFavorite("GitHub", "custom", "https://github.com/b");
+
+    // Assert
+    expect(favorites.value.length).toBe(2);
+
+    // Act
+    removeFavorite("GitHub", "custom", "https://github.com/a");
+
+    // Assert
+    expect(favorites.value.length).toBe(1);
+    expect(favorites.value[0]?.iframeUrl).toBe("https://github.com/b");
+  });
+
+  it("should keep same-domain custom urls as separate favorites with their own favicons", () => {
+    // Arrange
+    const { addFavorite, favorites } = sut;
+
+    // Act
+    addFavorite("github.com", "custom", "https://github.com/gorhill/ublock", {
+      displayName: "uBlock Origin",
+      faviconUrl: "https://github.com/favicon.ico",
+      siteUrl: "https://github.com/gorhill/ublock",
+    });
+    addFavorite("github.com", "custom", "https://github.com/gorhill/", {
+      displayName: "gorhill",
+      faviconUrl: "https://github.com/favicon.ico",
+      siteUrl: "https://github.com/gorhill/",
+    });
+
+    // Assert
+    expect(favorites.value.length).toBe(2);
+    const urls = favorites.value.map((f) => f.iframeUrl).toSorted();
+    expect(urls).toEqual(["https://github.com/gorhill/", "https://github.com/gorhill/ublock"]);
+    expect(
+      favorites.value.find((f) => f.iframeUrl === "https://github.com/gorhill/ublock")
+    ).toMatchObject({ displayName: "uBlock Origin" });
+    expect(
+      favorites.value.find((f) => f.iframeUrl === "https://github.com/gorhill/")
+    ).toMatchObject({ displayName: "gorhill" });
+  });
 });

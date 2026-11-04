@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import StreamMixer from "./StreamMixer.vue";
+import ChannelPreview from "./ChannelPreview.vue";
+import { useNativeOverlay } from "@/composables/useNativeOverlay";
+import { channelThumbnail } from "@/lib/channelThumbnail";
 import { computed } from "vue";
 import {
   Tooltip,
@@ -11,6 +15,7 @@ import { Radio, ChevronLeft, ChevronRight, RefreshCw, WifiOff } from "@lucide/vu
 import TwitchIcon from "../../components/icons/TwitchIcon.vue";
 import KickIcon from "../../components/icons/KickIcon.vue";
 import YoutubeIcon from "../../components/icons/YoutubeIcon.vue";
+import CustomIcon from "../../components/icons/CustomIcon.vue";
 import LoginPrompt from "../../components/chat/LoginPrompt.vue";
 import { useI18n } from "vue-i18n";
 import { useFollowedChannels, type FollowedChannel } from "../../composables/useFollowedChannels";
@@ -21,6 +26,7 @@ import { useNetworkStatus } from "../../composables/useNetworkStatus";
 import { useImmersiveMode } from "@/composables/useImmersiveMode";
 import { CDN_CONFIG } from "@/config/cdn";
 
+const preview = useNativeOverlay("preview");
 const { channels, isLoading, isInitialLoading, platformFilter, refresh } = useFollowedChannels();
 const { isOnline } = useNetworkStatus();
 const { addStream } = useStreams();
@@ -56,7 +62,9 @@ const toggleSidebar = () => {
 };
 
 const onAddClick = (channel: FollowedChannel) => {
-  if (channel.platform === "youtube") {
+  if (channel.platform === "custom") {
+    addStream(channel.id, "custom", channel.iframeUrl);
+  } else if (channel.platform === "youtube") {
     addStream(
       channel.videoId || channel.id,
       channel.platform,
@@ -76,11 +84,24 @@ const formatViewers = (count: number) => {
   }).format(count);
 };
 
-const getThumbnailUrl = (url?: string) => {
-  if (!url) return "";
-  const separator = url.includes("?") ? "&" : "?";
-  const cacheBuster = Math.floor(Date.now() / 300000); // 5 min cache
-  return `${url}${separator}t=${cacheBuster}`;
+const showPreview = (channel: FollowedChannel, event: Event) => {
+  if (!preview.available) return;
+  const box = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const width = Math.min(256, window.innerWidth - 16);
+  const height = (width * 9) / 16 + 66;
+  preview.show(
+    {
+      x: Math.min(box.right + 10, window.innerWidth - width - 8),
+      y: Math.max(8, Math.min(box.top, window.innerHeight - height - 8)),
+      width,
+      height,
+    },
+    {
+      thumbnail: channelThumbnail(channel),
+      title: channel.title || channel.displayName,
+      category: channel.game || "",
+    }
+  );
 };
 
 const handleAvatarError = (event: Event, displayName: string) => {
@@ -167,6 +188,8 @@ const handleAvatarError = (event: Event, displayName: string) => {
       </button>
     </div>
 
+    <StreamMixer v-if="isOpen" />
+
     <div
       v-if="isOpen"
       class="px-2 py-1.5 border-b border-[#1f2227] flex items-center justify-between"
@@ -233,7 +256,10 @@ const handleAvatarError = (event: Event, displayName: string) => {
     </div>
 
     <TooltipProvider :delay-duration="0" :disable-hoverable-content="true">
-      <div class="flex-1 overflow-y-auto py-1 flex flex-col gap-0.5 px-1.5 custom-scrollbar">
+      <div
+        class="flex-1 overflow-y-auto py-1 flex flex-col gap-0.5 px-1.5 custom-scrollbar"
+        @scroll.passive="preview.close"
+      >
         <template v-if="isInitialLoading">
           <div class="px-2 py-2">
             <div v-for="i in 15" :key="i" class="flex items-center gap-2 mb-3">
@@ -260,10 +286,21 @@ const handleAvatarError = (event: Event, displayName: string) => {
         </template>
 
         <template v-else-if="liveChannels.length > 0">
-          <Tooltip v-for="channel in liveChannels" :key="channel.platform + '-' + channel.id">
+          <Tooltip
+            v-for="channel in liveChannels"
+            :key="channel.platform + '-' + (channel.iframeUrl ?? channel.id)"
+          >
             <TooltipTrigger as-child>
               <div
                 class="flex items-center gap-2 p-1 rounded-md cursor-pointer group transition-colors"
+                role="button"
+                tabindex="0"
+                @mouseenter="showPreview(channel, $event)"
+                @mouseleave="preview.close"
+                @focus="showPreview(channel, $event)"
+                @blur="preview.close"
+                @keydown.enter.prevent="onAddClick(channel)"
+                @keydown.space.prevent="onAddClick(channel)"
                 @click.stop="onAddClick(channel)"
               >
                 <div class="relative shrink-0">
@@ -290,6 +327,10 @@ const handleAvatarError = (event: Event, displayName: string) => {
                       v-if="channel.platform === 'youtube'"
                       class="w-2.5 h-2.5 text-[#FF0000]"
                     />
+                    <CustomIcon
+                      v-if="channel.platform === 'custom'"
+                      class="w-2.5 h-2.5 text-[#6366F1]"
+                    />
                   </div>
                 </div>
 
@@ -298,7 +339,10 @@ const handleAvatarError = (event: Event, displayName: string) => {
                     <span class="text-sm font-medium text-gray-200 truncate">{{
                       channel.displayName
                     }}</span>
-                    <div class="flex items-center gap-1 text-rose-400 shrink-0">
+                    <div
+                      v-if="channel.platform !== 'custom'"
+                      class="flex items-center gap-1 text-rose-400 shrink-0"
+                    >
                       <div class="w-1.5 h-1.5 rounded-full bg-rose-500"></div>
                       <span class="text-xs font-semibold">{{
                         formatViewers(channel.viewerCount || 0)
@@ -315,24 +359,17 @@ const handleAvatarError = (event: Event, displayName: string) => {
             </TooltipTrigger>
 
             <TooltipContent
+              v-if="!preview.available"
               side="right"
               :side-offset="10"
-              class="w-64 p-0 bg-[#0f1115] border-[#2a2d33] rounded-lg shadow-xl shadow-black/50 overflow-hidden"
+              class="w-64 p-0 bg-[#0f1115] border-0 rounded-lg overflow-hidden"
               hide-arrow
             >
-              <img
-                v-if="channel.thumbnailUrl"
-                loading="lazy"
-                :src="getThumbnailUrl(channel.thumbnailUrl)"
-                referrerpolicy="no-referrer"
-                class="w-full aspect-video object-cover"
-                @error="(e: any) => ((e.target as HTMLImageElement).style.display = 'none')"
+              <ChannelPreview
+                :thumbnail="channelThumbnail(channel)"
+                :title="channel.title || channel.displayName"
+                :category="channel.game"
               />
-              <div v-else class="w-full aspect-video bg-[#14161a] border-b border-[#2a2d33]"></div>
-              <div class="p-2">
-                <h4 class="text-sm font-medium text-white line-clamp-1">{{ channel.title }}</h4>
-                <p class="text-xs text-gray-400 mt-0.5 truncate">{{ channel.game }}</p>
-              </div>
             </TooltipContent>
           </Tooltip>
         </template>

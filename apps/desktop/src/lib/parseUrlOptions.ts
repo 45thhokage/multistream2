@@ -1,5 +1,6 @@
 import type { Platform } from "../composables/useStreams";
 import { decodeBase64 } from "./base64";
+import { normalizeCustomEmbedUrl } from "./customEmbed";
 
 export interface ParsedStream {
   channel: string;
@@ -69,7 +70,7 @@ export function parseUrlOptions(queryString: string): ParsedStream[] | null {
       results.push({
         channel: createCustomStreamName(typeof s.n === "string" ? s.n : undefined),
         platform: "custom",
-        iframeUrl: s.u,
+        iframeUrl: normalizeCustomEmbedUrl(s.u),
       });
     }
   }

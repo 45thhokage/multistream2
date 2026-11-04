@@ -25,6 +25,24 @@ export function getParentHost(): string {
   return hostname;
 }
 
+export function getTwitchParentHosts(primaryHost = getParentHost()): string[] {
+  const hosts: string[] = [];
+  const push = (h: string) => {
+    const host = h.trim();
+    if (host && !hosts.includes(host)) hosts.push(host);
+  };
+  push(primaryHost);
+  push("localhost");
+  push("127.0.0.1");
+  return hosts;
+}
+
+function twitchParentParams(primaryHost = getParentHost()): string {
+  return getTwitchParentHosts(primaryHost)
+    .map((h) => `parent=${encodeURIComponent(h)}`)
+    .join("&");
+}
+
 export const PLATFORMS: Record<Platform, PlatformConfig> = {
   twitch: {
     id: "twitch",
@@ -36,9 +54,9 @@ export const PLATFORMS: Record<Platform, PlatformConfig> = {
     chatUrl: "https://www.twitch.tv/embed",
     domains: ["twitch.tv", "twitch.com"],
     getEmbedUrl: (channel: string, parentHost = getParentHost()) =>
-      `https://player.twitch.tv/?channel=${channel}&parent=${parentHost}&autoplay=true&muted=true`,
+      `https://player.twitch.tv/?channel=${channel}&${twitchParentParams(parentHost)}&autoplay=true&muted=true`,
     getChatUrl: (channel: string, parentHost = getParentHost()) =>
-      `https://www.twitch.tv/embed/${channel}/chat?parent=${parentHost}&darkpopout=true`,
+      `https://www.twitch.tv/embed/${channel}/chat?${twitchParentParams(parentHost)}&darkpopout=true`,
   },
   kick: {
     id: "kick",

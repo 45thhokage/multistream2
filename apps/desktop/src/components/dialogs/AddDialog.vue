@@ -22,9 +22,11 @@ import { PLATFORMS } from "@/config/platforms";
 import { REFRESH_CONFIG } from "@/config/api";
 import { History, Heart, Flame, RotateCw, Loader2 } from "@lucide/vue";
 import { parseStreamUrl } from "@/lib/platformParser";
-import { createCustomStreamName } from "@/lib/parseUrlOptions";
 import { toast } from "@/composables/useToast";
 import { invoke } from "@tauri-apps/api/core";
+import { normalizeCustomEmbedUrl } from "@/lib/customEmbed";
+import { displayHostname } from "@/lib/siteMeta";
+import { useSiteWindows } from "@/composables/useSiteWindows";
 
 // props
 const props = defineProps<{
@@ -140,6 +142,17 @@ const iframeUrl = ref("");
 const selectedPlatform = ref<Platform>(PLATFORMS.twitch!.id as Platform);
 
 const isCustom = computed(() => selectedPlatform.value === "custom");
+
+const { openSite } = useSiteWindows();
+
+const handleOpenInWindow = () => {
+  const raw = iframeUrl.value.trim();
+  if (!raw) return;
+  openSite(raw, channelName.value.trim() || undefined);
+  channelName.value = "";
+  iframeUrl.value = "";
+  emit("update:open", false);
+};
 
 const customNameInput = ref<HTMLInputElement | null>(null);
 
@@ -272,12 +285,8 @@ const handleAddStream = async () => {
   activeSearchIndex.value = -1;
 
   if (isCustom.value) {
-    let url = iframeUrl.value.trim();
-    const name = createCustomStreamName(channelName.value);
-
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      url = `https://${url}`;
-    }
+    const url = normalizeCustomEmbedUrl(iframeUrl.value);
+    const name = channelName.value.trim() || displayHostname(url);
 
     addStream(name, "custom", url);
 
@@ -305,8 +314,8 @@ const handleAddStream = async () => {
   if (parsedResult) {
     selectedPlatform.value = parsedResult.platform;
     if (parsedResult.platform === "custom") {
-      const url = parsedResult.iframeUrl || "";
-      const name = createCustomStreamName();
+      const url = normalizeCustomEmbedUrl(parsedResult.iframeUrl || "");
+      const name = displayHostname(url);
       addStream(name, "custom", url);
       channelName.value = "";
       iframeUrl.value = "";
@@ -548,6 +557,7 @@ watch(
                 </span>
                 <input
                   v-model="iframeUrl"
+                  data-testid="custom-url-input"
                   type="text"
                   :placeholder="$t('add.iframeUrlPlaceholder')"
                   class="w-full pl-10 pr-3.5 py-2.5 rounded-lg bg-[#0f1115] text-white border border-[#262930] text-sm transition-colors duration-150 focus:outline-none focus:border-white/30 focus:ring-1 focus:ring-white/20 hover:border-[#353943] placeholder:text-gray-400"
@@ -645,6 +655,8 @@ watch(
                     :display-name="recent.displayName"
                     :platform="recent.platform"
                     :iframe-url="recent.iframeUrl"
+                    :item-key="`${recent.platform}:${recent.channel}:${recent.iframeUrl ?? ''}`"
+                    :tooltip="recent.iframeUrl"
                     class="w-full"
                     @click="
                       handleQuickAdd(
@@ -686,6 +698,9 @@ watch(
                     :display-name="favorite.displayName"
                     :platform="favorite.platform"
                     :iframe-url="favorite.iframeUrl"
+                    :favicon-url="favorite.faviconUrl"
+                    :item-key="`${favorite.platform}:${favorite.channel}:${favorite.iframeUrl ?? ''}`"
+                    :tooltip="favorite.iframeUrl ?? favorite.siteUrl"
                     class="w-full"
                     @click="
                       handleQuickAdd(
@@ -901,6 +916,15 @@ watch(
             {{ $t("common.close") }}
           </Button>
         </DialogClose>
+        <Button
+          v-if="isCustom"
+          variant="outline"
+          :disabled="!iframeUrl.trim()"
+          class="border-[#262930] bg-transparent text-gray-300 hover:text-white hover:bg-white/5 hover:border-[#353943] transition-colors duration-150 disabled:opacity-35 disabled:cursor-not-allowed"
+          @click="handleOpenInWindow"
+        >
+          {{ $t("add.openInWindow") }}
+        </Button>
         <Button
           :disabled="!canSubmit || isResolvingLive"
           data-testid="add-submit-btn"

@@ -1,4 +1,5 @@
 import { PLATFORMS, type Platform } from "../config/platforms";
+import { normalizeCustomEmbedUrl } from "./customEmbed";
 
 export interface ParseResult {
   platform: Platform;
@@ -105,11 +106,13 @@ export function parseStreamUrl(input: string): ParseResult | null {
         };
       }
     } else {
-      // Valid URL but not matching Twitch/Kick/YouTube -> custom stream
+      // Valid URL but not matching Twitch/Kick/YouTube -> custom stream.
+      // Identity is the normalized URL so distinct sites never collide.
+      const iframeUrl = normalizeCustomEmbedUrl(url.toString());
       return {
         platform: "custom",
-        channel: "",
-        iframeUrl: url.toString(),
+        channel: iframeUrl,
+        iframeUrl,
       };
     }
   } catch {

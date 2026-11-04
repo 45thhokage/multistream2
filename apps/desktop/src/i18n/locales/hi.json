@@ -27,27 +27,28 @@
     "suggestedLabel": "सुझाए गए स्ट्रीम",
     "suggestedDescription": "इस समय के लोकप्रिय लाइव स्ट्रीम",
     "noSuggestions": "कोई स्ट्रीम नहीं मिला",
-    "resolvingLive": "YouTube लाइव स्थिति जांची जा रही है..."
+    "resolvingLive": "YouTube लाइव स्थिति जांची जा रही है...",
+    "openInWindow": "Open in window"
   },
   "settings": {
     "tooltip": "सेटिंग्स",
     "title": "सेटिंग्स",
     "description": "अपनी प्राथमिकताएं समायोजित करें।",
     "updates": {
-      "title": "अपडेट",
-      "description": "नए संस्करणों की जांच करें",
       "checkButton": "अपडेट के लिए जांचें",
-      "checking": "जांच रहा है..."
+      "checking": "जांच रहा है...",
+      "description": "नए संस्करणों की जांच करें",
+      "title": "अपडेट"
     },
     "language": {
-      "title": "भाषा",
-      "description": "अपनी पसंदीदा भाषा चुनें"
+      "description": "अपनी पसंदीदा भाषा चुनें",
+      "title": "भाषा"
     },
     "notifications": {
-      "title": "सूचनाएं",
       "description": "जब पसंदीदा लाइव हों तो अलर्ट प्राप्त करें",
+      "disabled": "सूचनाएं अक्षम",
       "enabled": "सूचनाएं सक्षम",
-      "disabled": "सूचनाएं अक्षम"
+      "title": "सूचनाएं"
     },
     "auth": {
       "title": "खाते",
@@ -62,9 +63,9 @@
       "disconnected": "डिस्कनेक्टेड",
       "logout": "लॉग आउट",
       "features": {
+        "followedChannels": "अनुसरण किए गए चैनल सूची",
         "readChat": "चैट संदेश पढ़ें",
-        "sendChat": "चैट संदेश भेजें",
-        "followedChannels": "अनुसरण किए गए चैनल सूची"
+        "sendChat": "चैट संदेश भेजें"
       },
       "disclaimer": "Multistream एक स्वतंत्र ओपन-सोर्स क्लाइंट है और Twitch, Kick, YouTube या Amazon से संबद्ध, समर्थित या प्रायोजित नहीं है।",
       "disconnectConfirmTitle": "खाता डिस्कनेक्ट करें?",
@@ -72,22 +73,22 @@
       "disconnectConfirmButton": "डिस्कनेक्ट करें"
     },
     "help": {
-      "title": "मदद",
       "description": "क्या आपको सहायता चाहिए या सुविधाओं की समीक्षा करना चाहते हैं?",
-      "showTourButton": "ऑनबोर्डिंग टूर दिखाएं"
+      "showTourButton": "ऑनबोर्डिंग टूर दिखाएं",
+      "title": "मदद"
     },
     "backup": {
-      "title": "डेटा और बैकअप",
       "description": "अपना संपूर्ण कॉन्फ़िगरेशन निर्यात या आयात करें",
       "exportButton": "डेटा निर्यात करें",
+      "exportSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक निर्यात किया गया",
       "importButton": "डेटा आयात करें",
-      "importConfirmTitle": "कॉन्फ़िगरेशन ओवरराइट करें?",
-      "importConfirmDescription": "क्या आप वाकई इस कॉन्फ़िगरेशन को आयात करना चाहते हैं? यह आपके वर्तमान स्ट्रीम, पसंदीदा, हाल के, और प्राथमिकताओं को पूरी तरह से बदल देगा।",
       "importConfirmButton": "आयात करें और ओवरराइट करें",
       "importConfirmCancel": "रद्द करें",
-      "importSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक आयात किया गया",
+      "importConfirmDescription": "क्या आप वाकई इस कॉन्फ़िगरेशन को आयात करना चाहते हैं? यह आपके वर्तमान स्ट्रीम, पसंदीदा, हाल के, और प्राथमिकताओं को पूरी तरह से बदल देगा।",
+      "importConfirmTitle": "कॉन्फ़िगरेशन ओवरराइट करें?",
       "importError": "अमान्य कॉन्फ़िगरेशन बैकअप फ़ाइल",
-      "exportSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक निर्यात किया गया"
+      "importSuccess": "कॉन्फ़िगरेशन सफलतापूर्वक आयात किया गया",
+      "title": "डेटा और बैकअप"
     },
     "transcription": {
       "title": "लाइव ट्रांसक्रिप्शन",
@@ -133,12 +134,12 @@
       "modelInUse": "उपयोग में"
     },
     "tabs": {
-      "general": "सामान्य",
-      "data": "डेटा",
+      "about": "परिचय",
       "connections": "कनेक्शन",
-      "resources": "ट्रांसक्रिप्शन",
+      "data": "डेटा",
+      "general": "सामान्य",
       "recording": "रिकॉर्डिंग",
-      "about": "परिचय"
+      "resources": "ट्रांसक्रिप्शन"
     },
     "about": {
       "title": "Multistream के बारे में",
@@ -155,82 +156,90 @@
       "extension": "ब्राउज़र एक्सटेंशन"
     },
     "nativePlayer": {
-      "title": "Twitch के लिए अंतर्निहित प्लेयर (प्रायोगिक)",
       "description": "एम्बेडेड प्लेयर के बजाय अंतर्निहित स्ट्रीम इंजन का उपयोग करें। प्रदर्शन और संगतता में सुधार हो सकता है।",
       "loadError": "स्ट्रीम लोड करने में विफल। कस्टम प्लेयर अस्थायी रूप से अनुपलब्ध हो सकता है।",
-      "videoRefError": "वीडियो तत्व संदर्भ बाध्य नहीं है",
-      "notSupportedError": "मीडिया प्लेबैक आपके ब्राउज़र द्वारा समर्थित नहीं है"
+      "notSupportedError": "मीडिया प्लेबैक आपके ब्राउज़र द्वारा समर्थित नहीं है",
+      "title": "Twitch के लिए अंतर्निहित प्लेयर (प्रायोगिक)",
+      "videoRefError": "वीडियो तत्व संदर्भ बाध्य नहीं है"
     },
     "adblock": {
-      "title": "अंतर्निहित विज्ञापन अवरोधक",
       "description": "Twitch और YouTube स्ट्रीम पर वीडियो और बैनर विज्ञापनों को ब्लॉक करें",
-      "toastEnabled": "विज्ञापन अवरोधक सक्षम",
-      "toastDisabled": "विज्ञापन अवरोधक अक्षम"
+      "title": "अंतर्निहित विज्ञापन अवरोधक",
+      "toastDisabled": "विज्ञापन अवरोधक अक्षम",
+      "toastEnabled": "विज्ञापन अवरोधक सक्षम"
     },
     "recording": {
-      "tabLabel": "रिकॉर्डिंग",
-      "enableTitle": "स्थानीय रिकॉर्डिंग",
-      "enableFeatureToggle": "स्थानीय रिकॉर्डिंग सुविधा सक्षम करें",
-      "downloadDependencies": "निर्भरताएँ डाउनलोड करें",
-      "installSuccess": "निर्भरताएँ सफलतापूर्वक स्थापित हुईं",
-      "installError": "स्थापना त्रुटि: {error}",
-      "uninstallDependencies": "सुविधा अनइंस्टॉल करें",
-      "uninstallSuccess": "सुविधा सफलतापूर्वक अनइंस्टॉल की गई",
-      "uninstallError": "अनइंस्टॉल करने में त्रुटि: {error}",
-      "uninstallConfirmTitle": "सुविधा अनइंस्टॉल करें?",
-      "uninstallConfirmDescription": "यह अलग रिकॉर्डर वातावरण को हटा देगा और स्थान खाली कर देगा। आप इसे बाद में फिर से स्थापित कर सकते हैं।",
-      "uninstallConfirmButton": "अनइंस्टॉल करें",
-      "enableDescription": "स्ट्रीमलिंक का उपयोग करके सीधे स्रोत से स्ट्रीम रिकॉर्ड करें। फ़ाइलें आपके वीडियो फ़ोल्डर में सहेजी जाती हैं।",
-      "unavailableOS": "रिकॉर्डिंग आपके आर्किटेक्चर पर समर्थित नहीं है।",
-      "qualityTitle": "डिफ़ॉल्ट गुणवत्ता",
-      "qualityPrefix": "गुणवत्ता: ",
-      "qualityDescription": "पसंदीदा स्ट्रीम गुणवत्ता। यदि नहीं मिलता है तो सर्वोत्तम उपलब्ध पर वापस आता है।",
-      "qualityBest": "सर्वोत्तम",
-      "quality1080p": "1080p",
-      "quality720p": "720p",
-      "quality480p": "480p",
-      "qualityWorst": "सबसे कम",
-      "pathTitle": "निर्देशिका",
-      "pathDescription": "चुनें कि रिकॉर्डिंग कहाँ सहेजी जानी चाहिए। डिफ़ॉल्ट वीडियो फ़ोल्डर का उपयोग करने के लिए खाली छोड़ दें।",
-      "selectFolder": "फ़ोल्डर चुनें",
+      "customNotSupported": "कस्टम स्ट्रीम के लिए रिकॉर्डिंग समर्थित नहीं है।",
       "defaultPath": "डिफ़ॉल्ट (वीडियो)",
-      "resetFolder": "रीसेट करें",
-      "orphanTitle": "अपूर्ण रिकॉर्डिंग",
-      "orphanDescription": "ये रिकॉर्डिंग बाधित हो गई थीं। आप उन्हें MP4 में बदल सकते हैं या उन्हें छोड़ सकते हैं।",
+      "downloadDependencies": "निर्भरताएँ डाउनलोड करें",
+      "enableDescription": "स्ट्रीमलिंक का उपयोग करके सीधे स्रोत से स्ट्रीम रिकॉर्ड करें। फ़ाइलें आपके वीडियो फ़ोल्डर में सहेजी जाती हैं।",
+      "enableFeatureToggle": "स्थानीय रिकॉर्डिंग सुविधा सक्षम करें",
+      "enableTitle": "स्थानीय रिकॉर्डिंग",
+      "installError": "स्थापना त्रुटि: {error}",
+      "installSuccess": "निर्भरताएँ सफलतापूर्वक स्थापित हुईं",
+      "openFolder": "फ़ोल्डर खोलें",
       "orphanConvert": "MP4 में बदलें",
+      "orphanDescription": "ये रिकॉर्डिंग बाधित हो गई थीं। आप उन्हें MP4 में बदल सकते हैं या उन्हें छोड़ सकते हैं।",
       "orphanDismiss": "छोड़ दें",
-      "starting": "रिकॉर्डिंग शुरू हो रही है...",
-      "stopping": "रिकॉर्डिंग रुक रही है...",
+      "orphanFound": "{count} अपूर्ण रिकॉर्डिंग मिलीं",
+      "orphanTitle": "अपूर्ण रिकॉर्डिंग",
+      "pathDescription": "चुनें कि रिकॉर्डिंग कहाँ सहेजी जानी चाहिए। डिफ़ॉल्ट वीडियो फ़ोल्डर का उपयोग करने के लिए खाली छोड़ दें।",
+      "pathTitle": "निर्देशिका",
+      "quality1080p": "1080p",
+      "quality480p": "480p",
+      "quality720p": "720p",
+      "qualityBest": "सर्वोत्तम",
+      "qualityDescription": "पसंदीदा स्ट्रीम गुणवत्ता। यदि नहीं मिलता है तो सर्वोत्तम उपलब्ध पर वापस आता है।",
+      "qualityPrefix": "गुणवत्ता: ",
+      "qualityTitle": "डिफ़ॉल्ट गुणवत्ता",
+      "qualityWorst": "सबसे कम",
+      "remuxFailed": "रूपांतरण विफल। कच्ची रिकॉर्डिंग सुरक्षित है।",
       "remuxing": "MP4 में बदल रहा है...",
       "remuxingDescription": "फ़ाइल आकार के आधार पर इसमें कुछ समय लग सकता है।",
+      "resetFolder": "रीसेट करें",
       "saved": "रिकॉर्डिंग सहेजी गई",
-      "openFolder": "फ़ोल्डर खोलें",
-      "remuxFailed": "रूपांतरण विफल। कच्ची रिकॉर्डिंग सुरक्षित है।",
+      "selectFolder": "फ़ोल्डर चुनें",
+      "starting": "रिकॉर्डिंग शुरू हो रही है...",
+      "stopping": "रिकॉर्डिंग रुक रही है...",
       "streamEnded": "स्ट्रीम समाप्त। रिकॉर्डिंग सहेज रहा है...",
       "streamError": "रिकॉर्डिंग त्रुटि: {error}",
-      "customNotSupported": "कस्टम स्ट्रीम के लिए रिकॉर्डिंग समर्थित नहीं है।",
-      "orphanFound": "{count} अपूर्ण रिकॉर्डिंग मिलीं"
+      "tabLabel": "रिकॉर्डिंग",
+      "unavailableOS": "रिकॉर्डिंग आपके आर्किटेक्चर पर समर्थित नहीं है।",
+      "uninstallConfirmButton": "अनइंस्टॉल करें",
+      "uninstallConfirmDescription": "यह अलग रिकॉर्डर वातावरण को हटा देगा और स्थान खाली कर देगा। आप इसे बाद में फिर से स्थापित कर सकते हैं।",
+      "uninstallConfirmTitle": "सुविधा अनइंस्टॉल करें?",
+      "uninstallDependencies": "सुविधा अनइंस्टॉल करें",
+      "uninstallError": "अनइंस्टॉल करने में त्रुटि: {error}",
+      "uninstallSuccess": "सुविधा सफलतापूर्वक अनइंस्टॉल की गई"
+    },
+    "sites": {
+      "description": "Sites opened in their own window. Sign-ins stay saved in the app browser.",
+      "empty": "No site windows open.",
+      "openInWindow": "Open in window",
+      "title": "Site windows",
+      "youtubeHint": "Sign in on youtube.com once — streams and chat reuse it.",
+      "youtubeLogin": "Open YouTube to sign in"
     }
   },
   "share": {
-    "tooltip": "शेयर",
-    "title": "स्ट्रीम साझा करें",
-    "description": "अपने दोस्तों के साथ अपनी स्ट्रीम साझा करें।",
-    "noStreams": "साझा करने के लिए कोई स्ट्रीम नहीं",
     "cancelButton": "रद्द करें",
     "copyButton": "लिंक कॉपी करें",
-    "toast": "लिंक क्लिपबोर्ड पर कॉपी किया गया"
+    "description": "अपने दोस्तों के साथ अपनी स्ट्रीम साझा करें।",
+    "noStreams": "साझा करने के लिए कोई स्ट्रीम नहीं",
+    "title": "स्ट्रीम साझा करें",
+    "toast": "लिंक क्लिपबोर्ड पर कॉपी किया गया",
+    "tooltip": "शेयर"
   },
   "import": {
-    "tooltip": "आयात",
-    "title": "स्ट्रीम आयात करें",
+    "deepLinkSuccess": "डीप लिंक के माध्यम से स्ट्रीम सफलतापूर्वक आयात की गईं!",
     "description": "स्ट्रीम आयात करने के लिए शेयर लिंक पेस्ट करें।",
-    "placeholder": "शेयर लिंक यहां पेस्ट करें...",
     "importButton": "आयात करें",
-    "invalidLink": "अमान्य शेयर लिंक",
     "invalidCustom": "कस्टम स्ट्रीम पार्स करने में विफल",
+    "invalidLink": "अमान्य शेयर लिंक",
+    "placeholder": "शेयर लिंक यहां पेस्ट करें...",
     "success": "स्ट्रीम सफलतापूर्वक आयात की गईं",
-    "deepLinkSuccess": "डीप लिंक के माध्यम से स्ट्रीम सफलतापूर्वक आयात की गईं!"
+    "title": "स्ट्रीम आयात करें",
+    "tooltip": "आयात"
   },
   "hide": {
     "tooltip": "छिपाएं"
@@ -248,16 +257,17 @@
       "focus": "स्ट्रीम पर फ़ोकस करें",
       "unfocus": "फ़ोकस हटाएं",
       "copyUrl": "स्ट्रीम URL कॉपी करें",
-      "reload": "स्ट्रीम पुनः लोड करें"
+      "reload": "स्ट्रीम पुनः लोड करें",
+      "openInWindow": "Open in window"
     }
   },
   "empty": {
-    "title": "कोई स्ट्रीम नहीं चुनी गई",
-    "description": "एक साथ देखने के लिए अपने पसंदीदा चैनल जोड़कर प्रारंभ करें।",
     "addButton": "स्ट्रीम जोड़ें",
-    "tourLink": "मदद चाहिए? टूर लें",
+    "description": "एक साथ देखने के लिए अपने पसंदीदा चैनल जोड़कर प्रारंभ करें।",
+    "loading": "लोड हो रहा है...",
     "refresh": "रीफ्रेश करें",
-    "loading": "लोड हो रहा है..."
+    "title": "कोई स्ट्रीम नहीं चुनी गई",
+    "tourLink": "मदद चाहिए? टूर लें"
   },
   "chat": {
     "controlTitle": "नियंत्रण",
@@ -284,41 +294,41 @@
       }
     },
     "unified": {
-      "selectorLabel": "एकीकृत चैट",
-      "connectTitle": "ट्विच के साथ कनेक्ट करें",
-      "connectHint": "अपने ग्रिड में सभी ट्विच चैनलों से एक ही फ़ीड में संदेश देखने के लिए साइन इन करें।",
-      "connectButton": "कनेक्ट करें",
-      "reconnecting": "फिर से कनेक्ट हो रहा है…",
-      "noStreams": "आपके ग्रिड में कोई स्ट्रीम नहीं है।",
-      "noStreamsHint": "यहां संदेश देखने के लिए स्ट्रीम जोड़ें।",
-      "disconnected": "चैट डिस्कनेक्ट हो गया।",
       "auth": {
-        "expired": "प्राधिकरण कोड समाप्त हो गया है। कृपया पुन: प्रयास करें।",
+        "cancel": "रद्द करें",
+        "defaultUser": "उपयोगकर्ता",
         "error": "प्रमाणीकरण के दौरान एक त्रुटि हुई: ",
-        "tryAgain": "पुन: प्रयास करें",
+        "expired": "प्राधिकरण कोड समाप्त हो गया है। कृपया पुन: प्रयास करें।",
+        "initFailed": "लॉगिन प्रक्रिया शुरू करने में विफल।",
         "step1": "1. नीचे दिया गया सत्यापन लिंक खोलें",
         "step2": "2. अपना खाता लिंक करने के लिए यह कोड दर्ज करें",
-        "waiting": "प्राधिकरण की प्रतीक्षा कर रहा है...",
-        "cancel": "रद्द करें",
-        "successTitle": "{platform} पर सफलतापूर्वक प्रमाणित",
         "successDesc": "{username} के रूप में लॉग इन किया गया",
-        "initFailed": "लॉगिन प्रक्रिया शुरू करने में विफल।",
-        "defaultUser": "उपयोगकर्ता"
+        "successTitle": "{platform} पर सफलतापूर्वक प्रमाणित",
+        "tryAgain": "पुन: प्रयास करें",
+        "waiting": "प्राधिकरण की प्रतीक्षा कर रहा है..."
       },
-      "warningTwitchLoginToMerge": "एकीकृत चैट में ट्विच चैट शामिल करने के लिए अपना ट्विच खाता कनेक्ट करें।",
-      "warningTwitchLogin": "एकीकृत चैट सक्षम करने के लिए अपना ट्विच खाता कनेक्ट करें।"
+      "connectButton": "कनेक्ट करें",
+      "connectHint": "अपने ग्रिड में सभी ट्विच चैनलों से एक ही फ़ीड में संदेश देखने के लिए साइन इन करें।",
+      "connectTitle": "ट्विच के साथ कनेक्ट करें",
+      "disconnected": "चैट डिस्कनेक्ट हो गया।",
+      "noStreams": "आपके ग्रिड में कोई स्ट्रीम नहीं है।",
+      "noStreamsHint": "यहां संदेश देखने के लिए स्ट्रीम जोड़ें।",
+      "reconnecting": "फिर से कनेक्ट हो रहा है…",
+      "selectorLabel": "एकीकृत चैट",
+      "warningTwitchLogin": "एकीकृत चैट सक्षम करने के लिए अपना ट्विच खाता कनेक्ट करें।",
+      "warningTwitchLoginToMerge": "एकीकृत चैट में ट्विच चैट शामिल करने के लिए अपना ट्विच खाता कनेक्ट करें।"
     },
     "loginPrompt": "बातचीत करने के लिए लॉग इन करें",
     "loginPromptTwitch": "इस चैनल में संदेश भेजने के लिए अपना ट्विच खाता कनेक्ट करें।",
     "loginPromptKick": "इस चैनल में संदेश भेजने के लिए अपना Kick खाता कनेक्ट करें।",
     "connectAction": "कनेक्ट करें",
     "emotes": {
-      "searchEmote": "इमोट खोजें...",
       "noEmotesFound": "कोई इमोट नहीं मिला",
+      "searchEmote": "इमोट खोजें...",
       "tabs": {
-        "recent": "हाल का",
+        "channel": "चैनल",
         "global": "वैश्विक",
-        "channel": "चैनल"
+        "recent": "हाल का"
       }
     },
     "you": "आप",
@@ -326,8 +336,8 @@
     "badges": {
       "broadcaster": "प्रसारक",
       "moderator": "मध्यस्थ",
-      "vip": "वीआईपी",
-      "subscriber": "सब्सक्राइबर"
+      "subscriber": "सब्सक्राइबर",
+      "vip": "वीआईपी"
     },
     "sendError": "संदेश भेजने में विफल",
     "reply": "जवाब दें",
@@ -339,9 +349,9 @@
   },
   "confirm": {
     "deleteOrphan": {
-      "title": "रिकॉर्डिंग हटाएं",
+      "confirm": "हटाएं",
       "description": "यह रिकॉर्डिंग फ़ाइल स्थायी रूप से डिस्क से हटा दी जाएगी। यह कार्रवाई पूर्ववत नहीं की जा सकती।",
-      "confirm": "हटाएं"
+      "title": "रिकॉर्डिंग हटाएं"
     },
     "deleteModel": {
       "title": "एआई मॉडल हटाएं",
@@ -350,24 +360,24 @@
     }
   },
   "common": {
+    "cancel": "रद्द करें",
     "close": "बंद करें",
     "comingSoon": "जल्द आ रहा है",
-    "play": "चलाएं",
-    "pause": "रोकें",
-    "mute": "म्यूट करें",
-    "unmute": "अनम्यूट करें",
-    "fullscreen": "पूर्ण स्क्रीन",
-    "exitFullscreen": "पूर्ण स्क्रीन से बाहर निकलें",
-    "settings": "सेटिंग्स",
-    "volume": "वॉल्यूम",
     "confirm": "पुष्टि करें",
-    "cancel": "रद्द करें"
+    "exitFullscreen": "पूर्ण स्क्रीन से बाहर निकलें",
+    "fullscreen": "पूर्ण स्क्रीन",
+    "mute": "म्यूट करें",
+    "pause": "रोकें",
+    "play": "चलाएं",
+    "settings": "सेटिंग्स",
+    "unmute": "अनम्यूट करें",
+    "volume": "वॉल्यूम"
   },
   "toasts": {
     "add": {
       "added": "जोड़ा गया",
       "alreadyAdded": "स्ट्रीम पहले ही जुड़ चुकी है",
-      "maxStreams": "अधिकतम 12 स्ट्रीम पूरी हो गईं"
+      "maxStreams": "अधिकतम 16 स्ट्रीम पूरी हो गईं"
     },
     "favorite": {
       "added": "पसंदीदा में जोड़ा गया",
@@ -375,18 +385,18 @@
     },
     "remove": "हटा दिया गया",
     "update": {
-      "newVersion": "नया संस्करण उपलब्ध है",
-      "latestVersion": "आप नवीनतम संस्करण पर हैं!",
+      "downloading": "अपडेट डाउनलोड हो रहा है...",
       "failedCheck": "अपडेट की जांच करने में विफल",
       "failedUpdate": "अपडेट डाउनलोड करने में विफल",
-      "downloading": "अपडेट डाउनलोड हो रहा है...",
+      "latestVersion": "आप नवीनतम संस्करण पर हैं!",
+      "newVersion": "नया संस्करण उपलब्ध है",
       "success": "अपडेट पूरा हुआ! पुनरारंभ हो रहा है..."
     },
     "screenshot": {
-      "saved": "स्क्रीनशॉट सहेजा गया!",
+      "blocked": "प्लेटफ़ॉर्म DRM द्वारा स्क्रीनशॉट अवरुद्ध",
       "failed": "स्क्रीनशॉट लेने में विफल",
       "noStream": "कोई वीडियो स्ट्रीम नहीं मिली",
-      "blocked": "प्लेटफ़ॉर्म DRM द्वारा स्क्रीनशॉट अवरुद्ध",
+      "saved": "स्क्रीनशॉट सहेजा गया!",
       "timeout": "स्क्रीनशॉट का समय समाप्त हो गया"
     },
     "codecs": {
@@ -403,16 +413,16 @@
     "streamDiagnostics": "स्ट्रीम_निदान"
   },
   "notifications": {
+    "actionIgnore": "अनदेखा करें",
+    "actionWatch": "स्ट्रीम देखें",
+    "live": "{channel} लाइव है!",
+    "liveBody": "[{category}] {title}",
+    "liveBodyFallback": "{platform} पर {channel}",
+    "liveBodyTitleOnly": "{title}",
     "welcome": "पसंदीदा लाइव हैं",
     "welcomeBody": "{channels} अब लाइव हैं!",
     "welcomeBodyMore": "{channels} और {count} अन्य पसंदीदा लाइव हैं!",
-    "welcomeBodySingle": "{channel} अब लाइव है!",
-    "live": "{channel} लाइव है!",
-    "liveBody": "[{category}] {title}",
-    "liveBodyTitleOnly": "{title}",
-    "liveBodyFallback": "{platform} पर {channel}",
-    "actionWatch": "स्ट्रीम देखें",
-    "actionIgnore": "अनदेखा करें"
+    "welcomeBodySingle": "{channel} अब लाइव है!"
   },
   "onboarding": {
     "title": "Multistream में आपका स्वागत है",
@@ -482,8 +492,8 @@
     "hintLabel": "सुझाव"
   },
   "webBanner": {
-    "title": "मल्टीस्ट्रीम डेस्कटॉप ऐप पर बेहतर चलता है।",
-    "button": "डाउनलोड करें"
+    "button": "डाउनलोड करें",
+    "title": "मल्टीस्ट्रीम डेस्कटॉप ऐप पर बेहतर चलता है।"
   },
   "sidebar": {
     "openSidebar": "साइडबार खोलें",
@@ -492,22 +502,23 @@
     "loginTitle": "अपना खाता कनेक्ट करें",
     "loginSubtitle": "उन चैनलों को देखें जिनका आप अनुसरण करते हैं",
     "noChannels": "कोई चैनल ऑनलाइन नहीं है",
-    "noChannelsSubtitle": "चैनलों को पसंदीदा बनाएं या अपना Twitch खाता कनेक्ट करें।"
+    "noChannelsSubtitle": "चैनलों को पसंदीदा बनाएं या अपना Twitch खाता कनेक्ट करें।",
+    "previewUnavailable": "पूर्वावलोकन उपलब्ध नहीं है"
   },
   "nativePlayer": {
     "live": "लाइव",
     "quality": {
-      "auto": "ऑटो",
-      "audio": "ऑडियो"
+      "audio": "ऑडियो",
+      "auto": "ऑटो"
     },
     "offline": {
-      "title": "स्ट्रीम समाप्त",
-      "description": "प्रसारक ने इस स्ट्रीम को समाप्त कर दिया है।"
+      "description": "प्रसारक ने इस स्ट्रीम को समाप्त कर दिया है।",
+      "title": "स्ट्रीम समाप्त"
     },
     "errors": {
-      "tokenExpired": "पहुँच अस्वीकृत (403)। स्ट्रीम टोकन समाप्त हो गया।",
       "hlsError": "HLS त्रुटि ({type}: {details})",
-      "playbackError": "मूल प्लेबैक त्रुटि"
+      "playbackError": "मूल प्लेबैक त्रुटि",
+      "tokenExpired": "पहुँच अस्वीकृत (403)। स्ट्रीम टोकन समाप्त हो गया।"
     },
     "retry": "पुनः प्रयास करें"
   },
@@ -537,5 +548,118 @@
     "immersive": {
       "toastEnabled": "इमर्सिव मोड सक्षम — स्क्रीन के किनारों पर होवर करें या बाहर निकलने के लिए Esc दबाएं (फुलस्क्रीन के लिए F11)"
     }
+  },
+  "app": {
+    "forceReload": "Force reload app",
+    "reload": "Reload app"
+  },
+  "browser": {
+    "address": "Address bar",
+    "addressPlaceholder": "Enter URL...",
+    "back": "Go back",
+    "desktopView": "Switch to desktop view",
+    "dragTile": "Drag tile",
+    "forward": "Go forward",
+    "loading": "Loading {title}...",
+    "mobileView": "Switch to mobile view",
+    "reload": "Reload page"
+  },
+  "layouts": {
+    "addToSlot": "Add stream",
+    "auto": "Auto",
+    "deleteCustom": "Delete custom layout",
+    "duo": "Duo",
+    "focus": "Focus",
+    "focusPlus": "Focus+",
+    "pip": "PiP",
+    "pip2": "2x PiP",
+    "quad": "Quad",
+    "saveCurrent": "Save current grid",
+    "sidebar": "Sidebar",
+    "solo": "Solo",
+    "stack": "Stack",
+    "tall": "Tall",
+    "theater": "Theater",
+    "title": "Layout",
+    "wall": "Wall",
+    "wide": "Wide",
+    "groups": {
+      "grid": "ग्रिड",
+      "focus": "फ़ोकस",
+      "pip": "पिक्चर इन पिक्चर",
+      "saved": "सहेजे गए लेआउट"
+    },
+    "autoHint": "आपकी सभी स्ट्रीम के लिए सबसे छोटा ग्रिड",
+    "expandedHint": "सभी {count} स्ट्रीम दिखाने के लिए विस्तृत। पर्याप्त स्ट्रीम हटाने पर चुना गया लेआउट लौटेगा।",
+    "slotCount": "पैनल: {count}",
+    "savedName": "{name} की कॉपी",
+    "gridSize": "{cols} × {rows}",
+    "tallTwo": "लंबा + 2",
+    "duoFour": "2 बड़े + 4",
+    "lShape": "L-आकार",
+    "mosaic": "मोज़ेक",
+    "golden": "स्वर्ण सर्पिल",
+    "pipTopLeft": "PiP ऊपर बाएँ",
+    "pipTopRight": "PiP ऊपर दाएँ",
+    "pipBottomLeft": "PiP नीचे बाएँ",
+    "pipWide": "2 PiP साथ-साथ",
+    "pipCorners": "2 PiP कोनों में",
+    "pipThree": "3 PiP एक के ऊपर एक",
+    "pipFour": "4 PiP कोनों में",
+    "pipSix": "6 PiP ग्रिड",
+    "stripThree": "3 PiP पट्टी",
+    "stripFour": "4 PiP पट्टी"
+  },
+  "workspaces": {
+    "add": "Add workspace",
+    "cannotDeleteLast": "Cannot delete the last workspace",
+    "delete": "Delete workspace",
+    "deleted": "deleted",
+    "maxReached": "Maximum of 5 workspaces reached",
+    "roomName": "Room {n}",
+    "title": "Workspaces"
+  },
+  "mixer": {
+    "title": "स्ट्रीम ऑडियो",
+    "master": "मुख्य आवाज़",
+    "muteAll": "सभी म्यूट करें",
+    "mute": "म्यूट",
+    "solo": "सोलो",
+    "empty": "ऑडियो नियंत्रित करने के लिए स्ट्रीम जोड़ें।",
+    "channelVolume": "{channel} की आवाज़",
+    "nativeRequired": "आउटपुट म्यूट के लिए Windows डेस्कटॉप ऐप आवश्यक है।",
+    "dragTile": "क्रम बदलने के लिए टाइल खींचें",
+    "outputFailed": "नेटिव प्लेयर नियंत्रण विफल रहा। डेस्कटॉप ऐप दोबारा शुरू करें।",
+    "audioMode": "ऑडियो मोड",
+    "modes": {
+      "click": "फ़ोकस करने के लिए क्लिक करें",
+      "hover": "ऑडियो कर्सर के साथ चले",
+      "manual": "मैन्युअल फ़ोकस",
+      "all-muted": "सभी म्यूट",
+      "multi": "कई स्रोत"
+    },
+    "focus": "फ़ोकस",
+    "unmute": "आवाज़ चालू करें",
+    "closeStream": "{channel} बंद करें",
+    "quality": "गुणवत्ता",
+    "qualityFor": "{channel} की गुणवत्ता",
+    "qualityUnavailable": "इस प्लेयर में गुणवत्ता नियंत्रण उपलब्ध नहीं है।",
+    "qualityFailed": "गुणवत्ता नहीं बदली जा सकी। प्लेयर में फिर कोशिश करें।"
+  },
+  "liveNow": {
+    "title": "अभी लाइव",
+    "description": "लाइव स्ट्रीम खोजें और मौजूदा कार्यस्थान में जोड़ें।",
+    "search": "चैनल, शीर्षक या श्रेणी खोजें…",
+    "platforms": "प्लेटफ़ॉर्म",
+    "category": "श्रेणी",
+    "allCategories": "सभी श्रेणियाँ",
+    "offline": "आप ऑफ़लाइन हैं। अपडेट करने के लिए दोबारा कनेक्ट करें।",
+    "failed": "अपडेट नहीं हो सका। फिर कोशिश करें।",
+    "empty": "कोई लाइव स्ट्रीम नहीं मिली। फिर खोजें या रीफ़्रेश करें।",
+    "openStream": "{channel} खोलें",
+    "favorite": "{channel} को पसंदीदा बनाएँ",
+    "added": "जोड़ा गया",
+    "add": "कार्यस्थान में जोड़ें",
+    "more": "और दिखाएँ"
   }
 }

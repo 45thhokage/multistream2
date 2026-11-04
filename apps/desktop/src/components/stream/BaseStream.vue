@@ -12,6 +12,7 @@ import {
   Link,
   RotateCw,
   WifiOff,
+  ExternalLink,
 } from "@lucide/vue";
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from "vue";
 import { useFavorites } from "@/composables/useFavorites";
@@ -26,6 +27,8 @@ import { useProfilePicture } from "@/composables/useProfilePicture";
 import { useRecording } from "@/composables/useRecording";
 import { usePreferences } from "@/composables/usePreferences";
 import { useNetworkStatus } from "@/composables/useNetworkStatus";
+import { useSiteWindows } from "@/composables/useSiteWindows";
+import { siteFaviconForUrl } from "@/lib/siteMeta";
 
 const { requestRemoveStream, sessionStartTimes, now } = useStreams();
 const { addFavorite, removeFavorite, favorites } = useFavorites();
@@ -79,6 +82,7 @@ const props = defineProps<{
   displayName?: string;
   handle?: string;
   iframeUrl?: string;
+  siteUrl?: string;
 }>();
 
 const platformConfig = computed(() => {
@@ -512,6 +516,13 @@ const handleFavoriteStream = async (_channel: string, platform: Platform) => {
       removeFavorite(liveStatus.value.displayName, platform);
     }
     toast.success(`${toastName} ${t("toasts.favorite.removed")}`);
+  } else if (platform === "custom" && props.siteUrl) {
+    addFavorite(props.channel, platform, props.siteUrl, {
+      displayName: props.channel,
+      faviconUrl: siteFaviconForUrl(props.siteUrl),
+      siteUrl: props.siteUrl,
+    });
+    toast.success(`${props.channel} ${t("toasts.favorite.added")}`);
   } else {
     if (platform === "youtube" && displayNameToSave) {
       displayNameToSave = displayNameToSave.replace(/^@/, "");
@@ -543,6 +554,14 @@ const handleCopyUrl = async () => {
     toast.success(t("share.toast"));
   } catch (err) {
     console.error("Failed to copy URL:", err);
+  }
+};
+
+const { openSite } = useSiteWindows();
+
+const handleOpenSite = () => {
+  if (props.siteUrl) {
+    openSite(props.siteUrl, props.channel);
   }
 };
 </script>
@@ -797,6 +816,18 @@ const handleCopyUrl = async () => {
         @click="handleCopyUrl"
       >
         <Link :class="isMiniaturized ? 'size-3' : 'size-4'" />
+      </button>
+      <!-- open in window button (custom sites only) -->
+      <button
+        v-if="props.platform === 'custom' && props.siteUrl"
+        :aria-label="$t('stream.actions.openInWindow')"
+        :class="[
+          'pointer-events-auto flex items-center justify-center rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-indigo-500/80 hover:text-white hover:border-indigo-400/50 transition-all duration-200 hover:scale-110 cursor-pointer',
+          isMiniaturized ? 'size-5' : 'size-8',
+        ]"
+        @click="handleOpenSite"
+      >
+        <ExternalLink :class="isMiniaturized ? 'size-3' : 'size-4'" />
       </button>
       <!-- record button -->
       <template v-if="isDependenciesInstalled && props.platform !== 'custom'">

@@ -1,8 +1,10 @@
 import { createSharedComposable } from "@vueuse/core";
+import { isCustomLayoutId, isLayoutId } from "@/config/layouts";
 import { useStreams } from "./useStreams";
 import { useFavorites } from "./useFavorites";
 import { useRecents } from "./useRecents";
 import { usePreferences } from "./usePreferences";
+import { useWorkspaces, type Workspace } from "./useWorkspaces";
 import { useI18n } from "vue-i18n";
 import type { Stream, Platform } from "./useStreams";
 import type { FavoriteChannel } from "./useFavorites";
@@ -15,6 +17,8 @@ export interface BackupData {
   streams: Stream[];
   favorites: FavoriteChannel[];
   recents: RecentChannel[];
+  workspaces?: Workspace[];
+  activeWorkspaceId?: string;
   preferences: {
     selectedChat: string;
     sidebarOpen: boolean;
@@ -25,6 +29,7 @@ export interface BackupData {
     recordingPath?: string;
     nativePlayerEnabled?: boolean;
     immersiveModeEnabled?: boolean;
+    streamLayout?: string;
   };
   watchHistory?: Record<string, number>;
 }
@@ -42,6 +47,8 @@ const isValidChannelShape = (item: any): boolean => {
   if (item.displayName !== undefined && typeof item.displayName !== "string") return false;
   if (item.handle !== undefined && typeof item.handle !== "string") return false;
   if (item.lastVideoId !== undefined && typeof item.lastVideoId !== "string") return false;
+  if (item.faviconUrl !== undefined && typeof item.faviconUrl !== "string") return false;
+  if (item.siteUrl !== undefined && typeof item.siteUrl !== "string") return false;
   return true;
 };
 
@@ -88,6 +95,7 @@ export const validateBackupData = (data: any): data is BackupData => {
     return false;
   if (prefs.immersiveModeEnabled !== undefined && typeof prefs.immersiveModeEnabled !== "boolean")
     return false;
+  if (prefs.streamLayout !== undefined && typeof prefs.streamLayout !== "string") return false;
 
   // Validate watchHistory
   if (data.watchHistory !== undefined) {
@@ -101,6 +109,18 @@ export const validateBackupData = (data: any): data is BackupData => {
     for (const key of Object.keys(data.watchHistory)) {
       if (typeof data.watchHistory[key] !== "number") return false;
     }
+  }
+
+  // Validate workspaces (optional, v2 backups)
+  if (data.workspaces !== undefined) {
+    if (!Array.isArray(data.workspaces) || data.workspaces.length === 0) return false;
+    for (const w of data.workspaces) {
+      if (!w || typeof w !== "object") return false;
+      if (typeof w.id !== "string" || typeof w.name !== "string") return false;
+    }
+  }
+  if (data.activeWorkspaceId !== undefined && typeof data.activeWorkspaceId !== "string") {
+    return false;
   }
 
   return true;
@@ -124,7 +144,7 @@ const getStreamStorageKey = (item: {
   iframeUrl?: string;
 }): string => {
   if (item.platform === "custom" && item.iframeUrl) {
-    return `custom:${item.iframeUrl.toLowerCase()}`;
+    return `custom:${item.iframeUrl}`;
   }
   return `${item.platform}:${item.channel.toLowerCase()}`;
 };
@@ -133,6 +153,7 @@ const _useBackup = () => {
   const { streams, watchHistory } = useStreams();
   const { favorites } = useFavorites();
   const { recents } = useRecents();
+  const { workspaces, activeWorkspaceId } = useWorkspaces();
 
   const {
     selectedChat,
@@ -143,6 +164,7 @@ const _useBackup = () => {
     recordingPath,
     nativePlayerEnabled,
     immersiveModeEnabled,
+    streamLayout,
   } = usePreferences();
 
   // Retrieve locale from vue-i18n. If called outside standard Vue setup, fallback gracefully.
@@ -241,12 +263,14 @@ const _useBackup = () => {
    */
   const exportConfig = async (): Promise<boolean> => {
     const backup: BackupData = {
-      version: 1,
+      version: 2,
       app: "multistream",
       exportedAt: Date.now(),
       streams: streams.value,
       favorites: favorites.value,
       recents: recents.value,
+      workspaces: workspaces.value,
+      activeWorkspaceId: activeWorkspaceId.value,
       preferences: {
         selectedChat: selectedChat.value,
         sidebarOpen: sidebarOpen.value,
@@ -256,6 +280,7 @@ const _useBackup = () => {
         recordingPath: recordingPath.value,
         nativePlayerEnabled: nativePlayerEnabled.value,
         immersiveModeEnabled: immersiveModeEnabled.value,
+        streamLayout: streamLayout.value,
         ...(locale && { locale: locale.value }),
       },
       watchHistory: watchHistory.value,
@@ -340,6 +365,11 @@ const _useBackup = () => {
       nativePlayerEnabled.value = prefs.nativePlayerEnabled;
     if (prefs.immersiveModeEnabled !== undefined)
       immersiveModeEnabled.value = prefs.immersiveModeEnabled;
+    if (
+      prefs.streamLayout !== undefined &&
+      (isLayoutId(prefs.streamLayout) || isCustomLayoutId(prefs.streamLayout))
+    )
+      streamLayout.value = prefs.streamLayout;
 
     if (prefs.locale) {
       if (locale) locale.value = prefs.locale;
@@ -349,6 +379,22 @@ const _useBackup = () => {
     // 5. Additive Merge for Watch History
     if (data.watchHistory) {
       watchHistory.value = { ...watchHistory.value, ...data.watchHistory };
+    }
+
+    // 6. Additive Merge for Workspaces (v2 backups)
+    if (data.workspaces && data.workspaces.length > 0) {
+      const known = new Set(workspaces.value.map((w) => w.id));
+      const merged = [...workspaces.value];
+      for (const w of data.workspaces) {
+        if (!known.has(w.id)) {
+          merged.push({ id: w.id, name: w.name.slice(0, 24) });
+          known.add(w.id);
+        }
+      }
+      workspaces.value = merged;
+      if (data.activeWorkspaceId && merged.some((w) => w.id === data.activeWorkspaceId)) {
+        activeWorkspaceId.value = data.activeWorkspaceId;
+      }
     }
   };
 

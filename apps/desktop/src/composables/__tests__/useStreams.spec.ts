@@ -1,4 +1,4 @@
-import { effectScope, EffectScope } from "vue";
+import { effectScope, EffectScope, nextTick, ref } from "vue";
 import { describe, it, expect, beforeEach, beforeAll, afterAll, afterEach, vi } from "vitest";
 import { useStreams } from "../useStreams";
 import { toast } from "@/composables/useToast";
@@ -32,6 +32,19 @@ vi.mock("../useRecording", () => ({
   }),
 }));
 
+const mockWorkspacesRef = ref([{ id: "ws-test", name: "Room" }]);
+const mockActiveWorkspaceIdRef = ref("ws-test");
+vi.mock("../useWorkspaces", () => ({
+  useWorkspaces: () => ({
+    workspaces: mockWorkspacesRef,
+    activeWorkspaceId: mockActiveWorkspaceIdRef,
+    workspaceIdOf: (workspaceId?: string) =>
+      mockWorkspacesRef.value.some((w) => w.id === workspaceId)
+        ? (workspaceId as string)
+        : (mockWorkspacesRef.value[0]?.id ?? "ws-test"),
+  }),
+}));
+
 describe("useStreams composable unit tests", () => {
   let scope: EffectScope;
   let sut: ReturnType<typeof useStreams>;
@@ -52,6 +65,8 @@ describe("useStreams composable unit tests", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.clearAllMocks();
+    mockWorkspacesRef.value = [{ id: "ws-test", name: "Room" }];
+    mockActiveWorkspaceIdRef.value = "ws-test";
     scope = effectScope();
     sut = scope.run(() => useStreams())!;
     sut.clearStreams();
@@ -426,5 +441,134 @@ describe("useStreams composable unit tests", () => {
       // Verify watchHistory has no entry for twitch:gaules (not accumulated)
       expect(watchHistory.value["twitch:gaules"]).toBeUndefined();
     });
+
+    it("should track watch time separately for same-named customs with different urls", () => {
+      // Arrange
+      const { addStream, tick, watchHistory } = sut;
+
+      addStream("github.com", "custom", "https://github.com/gorhill/ublock");
+      addStream("github.com", "custom", "https://github.com/gorhill/");
+
+      // Act (tick past the 10s sync interval)
+      tick(1600000000000 + 11000);
+
+      // Assert (each full url has its own accumulated entry)
+      expect(watchHistory.value["custom:github.com:https://github.com/gorhill/ublock"]).toBe(11000);
+      expect(watchHistory.value["custom:github.com:https://github.com/gorhill/"]).toBe(11000);
+    });
+  });
+
+  describe("workspaces", () => {
+    it("should assign new streams to the active workspace", () => {
+      // Arrange
+      const { addStream, streams, activeStreams } = sut;
+
+      // Act
+      addStream("gaules", "twitch");
+
+      // Assert
+      expect(streams.value[0]?.workspaceId).toBe("ws-test");
+      expect(activeStreams.value).toHaveLength(1);
+    });
+
+    it("should allow the same channel in different workspaces but not twice in one", () => {
+      // Arrange
+      const { addStream, streams } = sut;
+      addStream("gaules", "twitch");
+
+      // Act
+      addStream("gaules", "twitch");
+      mockWorkspacesRef.value = [...mockWorkspacesRef.value, { id: "ws-b", name: "Room B" }];
+      mockActiveWorkspaceIdRef.value = "ws-b";
+      addStream("gaules", "twitch");
+
+      // Assert
+      expect(streams.value).toHaveLength(2);
+      expect(toast.warning).toHaveBeenCalledWith("toasts.add.alreadyAdded");
+    });
+
+    it("should cap streams per workspace instead of globally", () => {
+      // Arrange
+      const { addStream, streams, activeStreams } = sut;
+      for (let i = 0; i < 16; i++) addStream(`s${i}`, "twitch");
+
+      // Act
+      addStream("overflow", "twitch");
+      mockWorkspacesRef.value = [...mockWorkspacesRef.value, { id: "ws-b", name: "Room B" }];
+      mockActiveWorkspaceIdRef.value = "ws-b";
+      addStream("fresh", "twitch");
+
+      // Assert
+      expect(activeStreams.value).toHaveLength(1);
+      expect(activeStreams.value[0]?.channel).toBe("fresh");
+      expect(streams.value).toHaveLength(17);
+      expect(toast.warning).toHaveBeenCalledWith("toasts.add.maxStreams");
+    });
+
+    it("should prune streams of deleted workspaces without touching survivors", async () => {
+      // Arrange
+      const { addStream, streams, activeStreams } = sut;
+      addStream("keep", "twitch");
+      mockWorkspacesRef.value = [...mockWorkspacesRef.value, { id: "ws-b", name: "Room B" }];
+      mockActiveWorkspaceIdRef.value = "ws-b";
+      addStream("drop", "twitch");
+      expect(streams.value).toHaveLength(2);
+
+      // Act (simulate room deletion: metadata gone, activation back on the survivor)
+      mockWorkspacesRef.value = mockWorkspacesRef.value.filter((w) => w.id !== "ws-b");
+      mockActiveWorkspaceIdRef.value = "ws-test";
+      await nextTick();
+
+      // Assert
+      expect(streams.value).toHaveLength(1);
+      expect(streams.value[0]?.channel).toBe("keep");
+      expect(activeStreams.value).toHaveLength(1);
+    });
+  });
+
+  it("should allow same-named customs with different urls as separate streams", () => {
+    // Arrange
+    const { addStream, streams } = sut;
+
+    // Act
+    addStream("github.com", "custom", "https://github.com/gorhill/ublock");
+    addStream("github.com", "custom", "https://github.com/gorhill/");
+
+    // Assert
+    expect(streams.value.length).toBe(2);
+    expect(toast.warning).not.toHaveBeenCalledWith("toasts.add.alreadyAdded");
+  });
+
+  it("should reject an exact duplicate custom url", () => {
+    // Arrange
+    const { addStream, streams } = sut;
+
+    // Act
+    addStream("github.com", "custom", "https://github.com/gorhill/ublock");
+    addStream("github.com", "custom", "https://github.com/gorhill/ublock");
+
+    // Assert
+    expect(streams.value.length).toBe(1);
+    expect(toast.warning).toHaveBeenCalledWith("toasts.add.alreadyAdded");
+  });
+
+  it("should remove a stream by ID", () => {
+    // Arrange
+    const { addStream, removeStream, streams } = sut;
+
+    addStream("stream1", "kick");
+    addStream("stream2", "youtube");
+
+    // Assert (check if streams were added)
+    expect(streams.value.length).toBe(2);
+
+    // Act
+    const stream1Id = streams.value.find((s) => s.channel === "stream1")!.id;
+    removeStream(stream1Id);
+
+    // Assert (check if stream1 was removed)
+    expect(streams.value.length).toBe(1);
+    expect(streams.value.find((s) => s.channel === "stream1")).toBeUndefined();
+    expect(streams.value.find((s) => s.channel === "stream2")).toBeDefined();
   });
 });

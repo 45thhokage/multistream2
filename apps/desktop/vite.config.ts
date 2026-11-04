@@ -24,7 +24,7 @@ export default defineConfig({
   ],
   clearScreen: false,
   server: {
-    port: 5173,
+    port: 5174,
     strictPort: true,
     host: "127.0.0.1",
     watch: {
@@ -35,6 +35,9 @@ export default defineConfig({
         "**/playwright-report/**",
         "**/test-results/**",
         "**/tests-results/**",
+        // Cargo writes + locks executables here while building; watching them
+        // crashes vite's watcher on Windows (EBUSY). Dev-only setting.
+        "**/src-tauri/target/**",
       ],
     },
   },

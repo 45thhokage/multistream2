@@ -27,27 +27,28 @@
     "suggestedLabel": "推荐直播",
     "suggestedDescription": "当前热门直播",
     "noSuggestions": "未找到直播",
-    "resolvingLive": "正在检查 YouTube 直播状态..."
+    "resolvingLive": "正在检查 YouTube 直播状态...",
+    "openInWindow": "Open in window"
   },
   "settings": {
     "tooltip": "设置",
     "title": "设置",
     "description": "调整您的偏好设置。",
     "updates": {
-      "title": "更新",
-      "description": "检查新版本",
       "checkButton": "检查更新",
-      "checking": "检查中..."
+      "checking": "检查中...",
+      "description": "检查新版本",
+      "title": "更新"
     },
     "language": {
-      "title": "语言",
-      "description": "选择您的首选语言"
+      "description": "选择您的首选语言",
+      "title": "语言"
     },
     "notifications": {
-      "title": "通知",
       "description": "当收藏的主播开始直播时接收提醒",
+      "disabled": "通知已关闭",
       "enabled": "通知已开启",
-      "disabled": "通知已关闭"
+      "title": "通知"
     },
     "auth": {
       "title": "账户",
@@ -62,9 +63,9 @@
       "disconnected": "未连接",
       "logout": "登出",
       "features": {
+        "followedChannels": "关注频道列表",
         "readChat": "读取聊天消息",
-        "sendChat": "发送聊天消息",
-        "followedChannels": "关注频道列表"
+        "sendChat": "发送聊天消息"
       },
       "disclaimer": "Multistream 是一个独立的开源客户端，与 Twitch、Kick、YouTube 或 Amazon 均无关联，亦未获得其认可或赞助。",
       "disconnectConfirmTitle": "断开账户连接？",
@@ -72,17 +73,17 @@
       "disconnectConfirmButton": "断开连接"
     },
     "backup": {
-      "title": "数据与备份",
       "description": "导出或导入您的完整配置",
       "exportButton": "导出数据",
+      "exportSuccess": "配置导出成功",
       "importButton": "导入数据",
-      "importConfirmTitle": "覆盖配置？",
-      "importConfirmDescription": "您确定要导入此配置吗？这将完全替换您当前的流、收藏夹、最近记录和偏好设置。",
       "importConfirmButton": "导入并覆盖",
       "importConfirmCancel": "取消",
-      "importSuccess": "配置导入成功",
+      "importConfirmDescription": "您确定要导入此配置吗？这将完全替换您当前的流、收藏夹、最近记录和偏好设置。",
+      "importConfirmTitle": "覆盖配置？",
       "importError": "无效的配置文件",
-      "exportSuccess": "配置导出成功"
+      "importSuccess": "配置导入成功",
+      "title": "数据与备份"
     },
     "transcription": {
       "title": "实时字幕",
@@ -128,17 +129,17 @@
       "modelInUse": "使用中"
     },
     "help": {
-      "title": "帮助",
       "description": "需要帮助或想查看功能？",
-      "showTourButton": "显示新手教程"
+      "showTourButton": "显示新手教程",
+      "title": "帮助"
     },
     "tabs": {
-      "general": "常规",
-      "data": "数据",
+      "about": "关于",
       "connections": "连接",
-      "resources": "转录",
+      "data": "数据",
+      "general": "常规",
       "recording": "录制",
-      "about": "关于"
+      "resources": "转录"
     },
     "about": {
       "title": "关于 Multistream",
@@ -155,82 +156,90 @@
       "extension": "浏览器扩展"
     },
     "nativePlayer": {
-      "title": "Twitch 内置播放器（实验性）",
       "description": "使用内置流媒体引擎代替嵌入式播放器。可能会提升性能和兼容性。",
       "loadError": "无法加载直播。自定义播放器可能暂时不可用。",
-      "videoRefError": "视频元素引用未绑定",
-      "notSupportedError": "浏览器不支持媒体播放"
+      "notSupportedError": "浏览器不支持媒体播放",
+      "title": "Twitch 内置播放器（实验性）",
+      "videoRefError": "视频元素引用未绑定"
     },
     "adblock": {
-      "title": "内置广告拦截器",
       "description": "拦截 Twitch 和 YouTube 直播中的视频和横幅广告",
-      "toastEnabled": "广告拦截器已启用",
-      "toastDisabled": "广告拦截器已禁用"
+      "title": "内置广告拦截器",
+      "toastDisabled": "广告拦截器已禁用",
+      "toastEnabled": "广告拦截器已启用"
     },
     "recording": {
-      "tabLabel": "录制",
-      "enableTitle": "本地录制",
-      "enableFeatureToggle": "启用本地录制功能",
-      "downloadDependencies": "下载依赖项",
-      "installSuccess": "依赖项安装成功",
-      "installError": "安装错误: {error}",
-      "uninstallDependencies": "卸载功能",
-      "uninstallSuccess": "功能卸载成功",
-      "uninstallError": "卸载错误: {error}",
-      "uninstallConfirmTitle": "卸载功能？",
-      "uninstallConfirmDescription": "这会删除独立的录制器环境并释放空间。您以后可以重新安装。",
-      "uninstallConfirmButton": "卸载",
-      "enableDescription": "使用 Streamlink 直接从源录制流。文件保存到您的视频文件夹。",
-      "unavailableOS": "您的架构不支持录制。",
-      "qualityTitle": "默认画质",
-      "qualityPrefix": "画质: ",
-      "qualityDescription": "首选流画质。如果未找到，则回退到最佳可用画质。",
-      "qualityBest": "最佳",
-      "quality1080p": "1080p",
-      "quality720p": "720p",
-      "quality480p": "480p",
-      "qualityWorst": "最低",
-      "pathTitle": "目录",
-      "pathDescription": "选择录制的保存位置。留空以使用默认的视频文件夹。",
-      "selectFolder": "选择文件夹",
+      "customNotSupported": "自定义流不支持录制。",
       "defaultPath": "默认 (视频)",
-      "resetFolder": "重置",
-      "orphanTitle": "不完整的录制",
-      "orphanDescription": "这些录制被中断。您可以将它们转换为 MP4 或丢弃。",
+      "downloadDependencies": "下载依赖项",
+      "enableDescription": "使用 Streamlink 直接从源录制流。文件保存到您的视频文件夹。",
+      "enableFeatureToggle": "启用本地录制功能",
+      "enableTitle": "本地录制",
+      "installError": "安装错误: {error}",
+      "installSuccess": "依赖项安装成功",
+      "openFolder": "打开文件夹",
       "orphanConvert": "转换为 MP4",
+      "orphanDescription": "这些录制被中断。您可以将它们转换为 MP4 或丢弃。",
       "orphanDismiss": "丢弃",
-      "starting": "正在开始录制...",
-      "stopping": "正在停止录制...",
+      "orphanFound": "发现 {count} 个不完整的录制",
+      "orphanTitle": "不完整的录制",
+      "pathDescription": "选择录制的保存位置。留空以使用默认的视频文件夹。",
+      "pathTitle": "目录",
+      "quality1080p": "1080p",
+      "quality480p": "480p",
+      "quality720p": "720p",
+      "qualityBest": "最佳",
+      "qualityDescription": "首选流画质。如果未找到，则回退到最佳可用画质。",
+      "qualityPrefix": "画质: ",
+      "qualityTitle": "默认画质",
+      "qualityWorst": "最低",
+      "remuxFailed": "转换失败。原始录制已保留。",
       "remuxing": "正在转换为 MP4...",
       "remuxingDescription": "这可能需要一些时间，具体取决于文件大小。",
+      "resetFolder": "重置",
       "saved": "录制已保存",
-      "openFolder": "打开文件夹",
-      "remuxFailed": "转换失败。原始录制已保留。",
+      "selectFolder": "选择文件夹",
+      "starting": "正在开始录制...",
+      "stopping": "正在停止录制...",
       "streamEnded": "流已结束。正在保存录制...",
       "streamError": "录制错误：{error}",
-      "customNotSupported": "自定义流不支持录制。",
-      "orphanFound": "发现 {count} 个不完整的录制"
+      "tabLabel": "录制",
+      "unavailableOS": "您的架构不支持录制。",
+      "uninstallConfirmButton": "卸载",
+      "uninstallConfirmDescription": "这会删除独立的录制器环境并释放空间。您以后可以重新安装。",
+      "uninstallConfirmTitle": "卸载功能？",
+      "uninstallDependencies": "卸载功能",
+      "uninstallError": "卸载错误: {error}",
+      "uninstallSuccess": "功能卸载成功"
+    },
+    "sites": {
+      "description": "Sites opened in their own window. Sign-ins stay saved in the app browser.",
+      "empty": "No site windows open.",
+      "openInWindow": "Open in window",
+      "title": "Site windows",
+      "youtubeHint": "Sign in on youtube.com once — streams and chat reuse it.",
+      "youtubeLogin": "Open YouTube to sign in"
     }
   },
   "share": {
-    "tooltip": "分享",
-    "title": "分享直播",
-    "description": "与朋友分享您的直播。",
-    "noStreams": "没有可分享的直播",
     "cancelButton": "取消",
     "copyButton": "复制链接",
-    "toast": "链接已复制到剪贴板"
+    "description": "与朋友分享您的直播。",
+    "noStreams": "没有可分享的直播",
+    "title": "分享直播",
+    "toast": "链接已复制到剪贴板",
+    "tooltip": "分享"
   },
   "import": {
-    "tooltip": "导入",
-    "title": "导入直播",
+    "deepLinkSuccess": "通过 Deep Link 成功导入直播！",
     "description": "粘贴分享链接以导入直播。",
-    "placeholder": "在此粘贴分享链接...",
     "importButton": "导入",
-    "invalidLink": "无效的分享链接",
     "invalidCustom": "无法解析自定义直播",
+    "invalidLink": "无效的分享链接",
+    "placeholder": "在此粘贴分享链接...",
     "success": "直播导入成功",
-    "deepLinkSuccess": "通过 Deep Link 成功导入直播！"
+    "title": "导入直播",
+    "tooltip": "导入"
   },
   "hide": {
     "tooltip": "隐藏"
@@ -248,16 +257,17 @@
       "focus": "聚焦直播",
       "unfocus": "取消聚焦",
       "copyUrl": "复制直播URL",
-      "reload": "重新加载直播"
+      "reload": "重新加载直播",
+      "openInWindow": "Open in window"
     }
   },
   "empty": {
-    "title": "没有选择的直播",
-    "description": "首先添加您喜爱的频道以同时观看。",
     "addButton": "添加直播",
-    "tourLink": "需要帮助？查看新手教程",
+    "description": "首先添加您喜爱的频道以同时观看。",
+    "loading": "加载中...",
     "refresh": "刷新",
-    "loading": "加载中..."
+    "title": "没有选择的直播",
+    "tourLink": "需要帮助？查看新手教程"
   },
   "chat": {
     "controlTitle": "控制",
@@ -284,41 +294,41 @@
       }
     },
     "unified": {
-      "selectorLabel": "统一聊天",
-      "connectTitle": "连接 Twitch",
-      "connectHint": "登录以在单一聊天流中查看网格中所有 Twitch 频道的消息。",
-      "connectButton": "连接",
-      "reconnecting": "正在重新连接…",
-      "noStreams": "网格中没有 Twitch 直播。",
-      "noStreamsHint": "添加 Twitch 直播以在此查看消息。",
-      "disconnected": "聊天已断开。",
       "auth": {
-        "expired": "授权码已过期。请重试。",
+        "cancel": "取消",
+        "defaultUser": "用户",
         "error": "验证过程中发生错误：",
-        "tryAgain": "重试",
+        "expired": "授权码已过期。请重试。",
+        "initFailed": "初始化登录流程失败。",
         "step1": "1. 打开下方的验证链接",
         "step2": "2. 输入此代码以关联您的账户",
-        "waiting": "等待授权中...",
-        "cancel": "取消",
-        "successTitle": "成功在 {platform} 认证",
         "successDesc": "已登录为 {username}",
-        "initFailed": "初始化登录流程失败。",
-        "defaultUser": "用户"
+        "successTitle": "成功在 {platform} 认证",
+        "tryAgain": "重试",
+        "waiting": "等待授权中..."
       },
-      "warningTwitchLoginToMerge": "连接您的Twitch帐号以在统一聊天中包含Twitch聊天。",
-      "warningTwitchLogin": "连接您的Twitch帐号以启用统一聊天。"
+      "connectButton": "连接",
+      "connectHint": "登录以在单一聊天流中查看网格中所有 Twitch 频道的消息。",
+      "connectTitle": "连接 Twitch",
+      "disconnected": "聊天已断开。",
+      "noStreams": "网格中没有 Twitch 直播。",
+      "noStreamsHint": "添加 Twitch 直播以在此查看消息。",
+      "reconnecting": "正在重新连接…",
+      "selectorLabel": "统一聊天",
+      "warningTwitchLogin": "连接您的Twitch帐号以启用统一聊天。",
+      "warningTwitchLoginToMerge": "连接您的Twitch帐号以在统一聊天中包含Twitch聊天。"
     },
     "loginPrompt": "登录以互动",
     "loginPromptTwitch": "连接您的 Twitch 帐户以在此频道中发送消息。",
     "loginPromptKick": "连接您的 Kick 帐户以在此频道中发送消息。",
     "connectAction": "连接",
     "emotes": {
-      "searchEmote": "搜索表情...",
       "noEmotesFound": "未找到表情",
+      "searchEmote": "搜索表情...",
       "tabs": {
-        "recent": "最近",
+        "channel": "频道",
         "global": "全局",
-        "channel": "频道"
+        "recent": "最近"
       }
     },
     "you": "你",
@@ -326,8 +336,8 @@
     "badges": {
       "broadcaster": "主播",
       "moderator": "房管",
-      "vip": "VIP",
-      "subscriber": "订阅者"
+      "subscriber": "订阅者",
+      "vip": "VIP"
     },
     "sendError": "发送消息失败",
     "reply": "回复",
@@ -339,9 +349,9 @@
   },
   "confirm": {
     "deleteOrphan": {
-      "title": "删除录制",
+      "confirm": "删除",
       "description": "此录制文件将从磁盘永久删除。此操作无法撤销。",
-      "confirm": "删除"
+      "title": "删除录制"
     },
     "deleteModel": {
       "title": "删除AI模型",
@@ -350,24 +360,24 @@
     }
   },
   "common": {
+    "cancel": "取消",
     "close": "关闭",
     "comingSoon": "即将推出",
-    "play": "播放",
-    "pause": "暂停",
-    "mute": "静音",
-    "unmute": "取消静音",
-    "fullscreen": "全屏",
-    "exitFullscreen": "退出全屏",
-    "settings": "设置",
-    "volume": "音量",
     "confirm": "确认",
-    "cancel": "取消"
+    "exitFullscreen": "退出全屏",
+    "fullscreen": "全屏",
+    "mute": "静音",
+    "pause": "暂停",
+    "play": "播放",
+    "settings": "设置",
+    "unmute": "取消静音",
+    "volume": "音量"
   },
   "toasts": {
     "add": {
       "added": "已添加",
       "alreadyAdded": "直播已添加",
-      "maxStreams": "已达到 12 个流的最大限制"
+      "maxStreams": "已达到 16 个流的最大限制"
     },
     "favorite": {
       "added": "已添加到收藏",
@@ -375,18 +385,18 @@
     },
     "remove": "已移除",
     "update": {
-      "newVersion": "有新版本可用",
-      "latestVersion": "您已是最新版本！",
+      "downloading": "正在下载更新...",
       "failedCheck": "检查更新失败",
       "failedUpdate": "下载更新失败",
-      "downloading": "正在下载更新...",
+      "latestVersion": "您已是最新版本！",
+      "newVersion": "有新版本可用",
       "success": "更新完成！正在重启..."
     },
     "screenshot": {
-      "saved": "截图已保存！",
+      "blocked": "截图被平台DRM阻止",
       "failed": "截图失败",
       "noStream": "未找到视频流",
-      "blocked": "截图被平台DRM阻止",
+      "saved": "截图已保存！",
       "timeout": "截图超时"
     },
     "codecs": {
@@ -403,16 +413,16 @@
     "streamDiagnostics": "直播_诊断"
   },
   "notifications": {
+    "actionIgnore": "忽略",
+    "actionWatch": "观看直播",
+    "live": "{channel} 开始直播了！",
+    "liveBody": "[{category}] {title}",
+    "liveBodyFallback": "{channel} 在 {platform}",
+    "liveBodyTitleOnly": "{title}",
     "welcome": "收藏主播正在直播",
     "welcomeBody": "{channels} 正在直播！",
     "welcomeBodyMore": "{channels} 和其他 {count} 个收藏主播正在直播！",
-    "welcomeBodySingle": "{channel} 正在直播！",
-    "live": "{channel} 开始直播了！",
-    "liveBody": "[{category}] {title}",
-    "liveBodyTitleOnly": "{title}",
-    "liveBodyFallback": "{channel} 在 {platform}",
-    "actionWatch": "观看直播",
-    "actionIgnore": "忽略"
+    "welcomeBodySingle": "{channel} 正在直播！"
   },
   "onboarding": {
     "title": "欢迎使用 Multistream",
@@ -482,8 +492,8 @@
     "hintLabel": "提示"
   },
   "webBanner": {
-    "title": "Multistream 在桌面应用上运行得更好。",
-    "button": "下载"
+    "button": "下载",
+    "title": "Multistream 在桌面应用上运行得更好。"
   },
   "sidebar": {
     "openSidebar": "打开侧边栏",
@@ -492,22 +502,23 @@
     "loginTitle": "连接您的账户",
     "loginSubtitle": "查看您关注的频道",
     "noChannels": "没有正在直播的频道",
-    "noChannelsSubtitle": "收藏频道或连接您的 Twitch 账户。"
+    "noChannelsSubtitle": "收藏频道或连接您的 Twitch 账户。",
+    "previewUnavailable": "预览不可用"
   },
   "nativePlayer": {
     "live": "直播中",
     "quality": {
-      "auto": "自动",
-      "audio": "仅音频"
+      "audio": "仅音频",
+      "auto": "自动"
     },
     "offline": {
-      "title": "直播结束",
-      "description": "主播已结束此直播。"
+      "description": "主播已结束此直播。",
+      "title": "直播结束"
     },
     "errors": {
-      "tokenExpired": "访问被拒绝 (403)。直播令牌已过期。",
       "hlsError": "HLS 错误 ({type}: {details})",
-      "playbackError": "原生播放错误"
+      "playbackError": "原生播放错误",
+      "tokenExpired": "访问被拒绝 (403)。直播令牌已过期。"
     },
     "retry": "重试"
   },
@@ -537,5 +548,118 @@
     "immersive": {
       "toastEnabled": "沉浸模式已启用 — 将鼠标悬停在屏幕边缘或按 Esc 退出（按 F11 进入全屏）"
     }
+  },
+  "app": {
+    "forceReload": "Force reload app",
+    "reload": "Reload app"
+  },
+  "browser": {
+    "address": "Address bar",
+    "addressPlaceholder": "Enter URL...",
+    "back": "Go back",
+    "desktopView": "Switch to desktop view",
+    "dragTile": "Drag tile",
+    "forward": "Go forward",
+    "loading": "Loading {title}...",
+    "mobileView": "Switch to mobile view",
+    "reload": "Reload page"
+  },
+  "layouts": {
+    "addToSlot": "Add stream",
+    "auto": "Auto",
+    "deleteCustom": "Delete custom layout",
+    "duo": "Duo",
+    "focus": "Focus",
+    "focusPlus": "Focus+",
+    "pip": "PiP",
+    "pip2": "2x PiP",
+    "quad": "Quad",
+    "saveCurrent": "Save current grid",
+    "sidebar": "Sidebar",
+    "solo": "Solo",
+    "stack": "Stack",
+    "tall": "Tall",
+    "theater": "Theater",
+    "title": "Layout",
+    "wall": "Wall",
+    "wide": "Wide",
+    "groups": {
+      "grid": "网格",
+      "focus": "聚焦",
+      "pip": "画中画",
+      "saved": "已保存布局"
+    },
+    "autoHint": "自动选择适合所有直播的最小网格",
+    "expandedHint": "已扩展以显示全部 {count} 个直播。移除足够的直播后将恢复所选布局。",
+    "slotCount": "窗格：{count}",
+    "savedName": "{name} 副本",
+    "gridSize": "{cols} × {rows}",
+    "tallTwo": "竖屏 + 2",
+    "duoFour": "2 大 + 4",
+    "lShape": "L 形",
+    "mosaic": "马赛克",
+    "golden": "黄金螺旋",
+    "pipTopLeft": "画中画 左上",
+    "pipTopRight": "画中画 右上",
+    "pipBottomLeft": "画中画 左下",
+    "pipWide": "2 个画中画并排",
+    "pipCorners": "2 个画中画底角",
+    "pipThree": "3 个画中画堆叠",
+    "pipFour": "4 个画中画四角",
+    "pipSix": "6 个画中画网格",
+    "stripThree": "3 个画中画底栏",
+    "stripFour": "4 个画中画底栏"
+  },
+  "workspaces": {
+    "add": "Add workspace",
+    "cannotDeleteLast": "Cannot delete the last workspace",
+    "delete": "Delete workspace",
+    "deleted": "deleted",
+    "maxReached": "Maximum of 5 workspaces reached",
+    "roomName": "Room {n}",
+    "title": "Workspaces"
+  },
+  "mixer": {
+    "title": "直播音频",
+    "master": "总音量",
+    "muteAll": "全部静音",
+    "mute": "静音",
+    "solo": "独奏",
+    "empty": "添加直播以控制音频。",
+    "channelVolume": "{channel} 的音量",
+    "nativeRequired": "输出静音需要使用 Windows 桌面应用。",
+    "dragTile": "拖动以重新排序",
+    "outputFailed": "原生播放器控制失败，请重启桌面应用。",
+    "audioMode": "音频模式",
+    "modes": {
+      "click": "点击聚焦",
+      "hover": "音频跟随鼠标",
+      "manual": "手动聚焦",
+      "all-muted": "全部静音",
+      "multi": "多个音源"
+    },
+    "focus": "聚焦",
+    "unmute": "取消静音",
+    "closeStream": "关闭 {channel}",
+    "quality": "画质",
+    "qualityFor": "{channel} 的画质",
+    "qualityUnavailable": "此播放器不支持画质控制。",
+    "qualityFailed": "无法更改画质，请在播放器内重试。"
+  },
+  "liveNow": {
+    "title": "正在直播",
+    "description": "浏览直播并添加到当前工作区。",
+    "search": "搜索频道、标题或分类…",
+    "platforms": "平台",
+    "category": "分类",
+    "allCategories": "全部分类",
+    "offline": "当前离线，请联网后刷新直播。",
+    "failed": "刷新失败，请重试。",
+    "empty": "未找到直播，请更改搜索或刷新。",
+    "openStream": "打开 {channel}",
+    "favorite": "收藏 {channel}",
+    "added": "已添加",
+    "add": "添加到工作区",
+    "more": "显示更多"
   }
 }

@@ -99,7 +99,7 @@ describe("platformParser unit tests", () => {
       const result = parseStreamUrl(url);
       expect(result).toEqual({
         platform: "custom",
-        channel: "",
+        channel: url,
         iframeUrl: url,
       });
     });
@@ -108,8 +108,26 @@ describe("platformParser unit tests", () => {
       const result = parseStreamUrl("mycustomsite.org/stream/123");
       expect(result).toEqual({
         platform: "custom",
-        channel: "",
+        channel: "https://mycustomsite.org/stream/123",
         iframeUrl: "https://mycustomsite.org/stream/123",
+      });
+    });
+
+    it("should pass tiktok watch urls through as browser tile customs", () => {
+      const result = parseStreamUrl("https://www.tiktok.com/@user/video/7263847263847263");
+      expect(result).toEqual({
+        platform: "custom",
+        channel: "https://www.tiktok.com/@user/video/7263847263847263",
+        iframeUrl: "https://www.tiktok.com/@user/video/7263847263847263",
+      });
+    });
+
+    it("should normalize redgifs watch urls to the ifr player", () => {
+      const result = parseStreamUrl("https://www.redgifs.com/watch/unselfishgrandhyena");
+      expect(result).toEqual({
+        platform: "custom",
+        channel: "https://www.redgifs.com/ifr/unselfishgrandhyena",
+        iframeUrl: "https://www.redgifs.com/ifr/unselfishgrandhyena",
       });
     });
   });

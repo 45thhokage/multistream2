@@ -283,6 +283,87 @@ describe("useFollowedChannels", () => {
 
   it("should combine and sort channels correctly", async () => {
     // Arrange
+    mockFavorites.favorites.value = [
+      {
+        channel: "github.com",
+        platform: "custom",
+        iframeUrl: "https://github.com/gorhill/ublock",
+        displayName: "uBlock Origin",
+        faviconUrl: "https://github.com/favicon.ico",
+        siteUrl: "https://github.com/gorhill/ublock",
+        addedAt: 0,
+      },
+    ];
+
+    // Act
+    const { channels } = useFollowedChannels();
+
+    // Assert
+    expect(channels.value).toHaveLength(1);
+    expect(channels.value[0]).toEqual({
+      id: "github.com",
+      platform: "custom",
+      displayName: "uBlock Origin",
+      avatarUrl: "https://github.com/favicon.ico",
+      isLive: true,
+      title: "https://github.com/gorhill/ublock",
+      iframeUrl: "https://github.com/gorhill/ublock",
+      isFavorite: true,
+    });
+  });
+
+  it("should expose same-domain customs as distinct sidebar entries", () => {
+    // Arrange
+    mockFavorites.favorites.value = [
+      {
+        channel: "github.com",
+        platform: "custom",
+        iframeUrl: "https://github.com/gorhill/ublock",
+        addedAt: 0,
+      },
+      {
+        channel: "github.com",
+        platform: "custom",
+        iframeUrl: "https://github.com/gorhill/",
+        addedAt: 1,
+      },
+    ];
+
+    // Act
+    const { channels } = useFollowedChannels();
+
+    // Assert
+    expect(channels.value).toHaveLength(2);
+    expect(channels.value.map((c) => c.iframeUrl).toSorted()).toEqual([
+      "https://github.com/gorhill/",
+      "https://github.com/gorhill/ublock",
+    ]);
+  });
+
+  it("should hide custom entries when filtering by twitch or kick", () => {
+    // Arrange
+    mockFavorites.favorites.value = [
+      { channel: "github.com", platform: "custom", iframeUrl: "https://github.com/", addedAt: 0 },
+    ];
+
+    // Act
+    const { channels, platformFilter } = useFollowedChannels();
+
+    // Assert
+    expect(channels.value).toHaveLength(1);
+
+    platformFilter.value = "twitch";
+    expect(channels.value).toHaveLength(0);
+
+    platformFilter.value = "kick";
+    expect(channels.value).toHaveLength(0);
+
+    platformFilter.value = "all";
+    expect(channels.value).toHaveLength(1);
+  });
+
+  it("should combine and sort channels correctly", async () => {
+    // Arrange
     mockTwitchAuth.authenticated.value = true;
     mockKickAuth.authenticated.value = true;
 
@@ -632,5 +713,36 @@ describe("useFollowedChannels", () => {
 
     // Assert - isInitialLoading must be false because Kick resolved even though YouTube is still scraping in the background
     expect(isInitialLoading.value).toBe(false);
+  });
+
+  it("should expose custom favorites as always-live sidebar entries", () => {
+    // Arrange
+    mockFavorites.favorites.value = [
+      {
+        channel: "github.com",
+        platform: "custom",
+        iframeUrl: "https://github.com/gorhill/ublock",
+        displayName: "uBlock Origin",
+        faviconUrl: "https://github.com/favicon.ico",
+        siteUrl: "https://github.com/gorhill/ublock",
+        addedAt: 0,
+      },
+    ];
+
+    // Act
+    const { channels } = useFollowedChannels();
+
+    // Assert
+    expect(channels.value).toHaveLength(1);
+    expect(channels.value[0]).toEqual({
+      id: "github.com",
+      platform: "custom",
+      displayName: "uBlock Origin",
+      avatarUrl: "https://github.com/favicon.ico",
+      isLive: true,
+      title: "https://github.com/gorhill/ublock",
+      iframeUrl: "https://github.com/gorhill/ublock",
+      isFavorite: true,
+    });
   });
 });
