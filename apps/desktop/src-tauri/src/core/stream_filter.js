@@ -144,19 +144,6 @@ if (window.location.hostname.includes("twitch.tv") || window.location.origin.inc
         };
     } catch(e) {}
 
-    // Aggressive Auto-Resume for stuck players
-    setInterval(() => {
-        try {
-            const videos = document.getElementsByTagName('video');
-            if (videos.length > 0 && videos[0].paused && !videos[0].ended) {
-                // Only force play if we have buffered data, to avoid spamming play on dead streams
-                if (videos[0].readyState >= 3) {
-                    videos[0].play();
-                }
-            }
-        } catch(e) {}
-    }, 3000);
-
     function declareOptions(scope) {
         scope.AdSignifier = 'stitched';
         scope.ClientID = 'kimne78kx3ncx6brgo4mv6wki5h1ko';

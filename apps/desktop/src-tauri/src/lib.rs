@@ -36,13 +36,15 @@ mod site_windows;
 use site_windows::{close_site_window, list_site_windows, open_site_window};
 
 mod ui_overlay;
-use ui_overlay::{close_ui_overlay, open_ui_overlay};
+use ui_overlay::{close_ui_overlay, open_ui_overlay, prewarm_ui_overlay};
+mod bandwidth;
 mod browser_tiles;
 mod tile_audio;
 use browser_tiles::{
-    close_tile_webview, open_player_webview, open_tile_webview, tile_current_url, tile_go_back,
-    tile_go_forward, tile_navigate, tile_reload, tile_set_audio, tile_set_bounds, tile_set_quality,
-    tile_set_visible,
+    close_tile_webview, drag_pointer_watch, open_player_webview, open_tile_webview,
+    tile_current_url, tile_fit_auto, tile_fit_video, tile_go_back, tile_go_forward, tile_navigate,
+    tile_reload, tile_set_audio, tile_set_bounds_batch, tile_set_quality, tile_set_visible,
+    tiles_set_cutout,
 };
 
 mod recording;
@@ -59,6 +61,10 @@ use recording::RecordingManager;
 
 mod network;
 use network::check_network_connectivity;
+
+mod accounts;
+mod media_proxy;
+mod web_guard;
 
 // fixed port
 const LOCALHOST_PORT: u16 = 14831;
@@ -78,8 +84,10 @@ pub(crate) const SITE_BROWSER_ARGS: &str =
                                 --disable-renderer-backgrounding \
                                 --autoplay-policy=no-user-gesture-required";
 
+const PLAYER_AUTOPLAY_SCRIPT: &str = include_str!("core/player_autoplay.js");
+const PLAYER_WATCHDOG_SCRIPT: &str = include_str!("core/player_watchdog.js");
 const SCREENSHOT_SCRIPT: &str = include_str!("core/screenshot_capture.js");
-const KEYBOARD_SCRIPT: &str = include_str!("core/keyboard_shortcuts.js");
+const INTERACTION_SCRIPT: &str = include_str!("core/tile_interaction.js");
 
 const STREAM_FILTER_SCRIPT: &str = include_str!("core/stream_filter.js");
 
@@ -106,7 +114,7 @@ async fn close_splashscreen(app: tauri::AppHandle) -> Result<(), String> {
             log::warn!("failed to close splashscreen: {e}");
         }
     }
-    match app.get_webview_window("main") {
+    match app.get_window("main") {
         Some(main) => {
             if let Err(e) = main.show() {
                 log::warn!("failed to show main window: {e}");
@@ -145,7 +153,7 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
-            if let Some(window) = app.get_webview_window("main") {
+            if let Some(window) = app.get_window("main") {
                 let _ = window.unminimize();
                 let _ = window.show();
                 let _ = window.set_focus();
@@ -172,6 +180,9 @@ pub fn run() {
         .plugin(tauri_plugin_localhost::Builder::new(LOCALHOST_PORT).build())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_deep_link::init())
+        .register_asynchronous_uri_scheme_protocol(media_proxy::SCHEME, |_ctx, request, responder| {
+            media_proxy::handle(request, responder)
+        })
         .invoke_handler(tauri::generate_handler![
             notifications::send_notification,
             screenshot::save_screenshot,
@@ -221,6 +232,7 @@ pub fn run() {
             youtube_resolve_live_id,
             youtube_check_channels_status,
             youtube_search_channels,
+            youtube::discovery::youtube_search_live,
             check_network_connectivity,
             open_site_window,
             close_site_window,
@@ -233,17 +245,50 @@ pub fn run() {
             tile_set_quality,
             open_ui_overlay,
             close_ui_overlay,
+            prewarm_ui_overlay,
             tile_reload,
             tile_go_back,
             tile_go_forward,
-            tile_set_bounds,
+            tile_set_bounds_batch,
             tile_set_visible,
+            tiles_set_cutout,
+            tile_fit_video,
+            tile_fit_auto,
+            bandwidth::bandwidth_record_rtc,
+            drag_pointer_watch,
             tile_current_url,
+            web_guard::commands::adblock_get_state,
+            web_guard::commands::adblock_set_enabled,
+            web_guard::commands::adblock_set_auto_update,
+            web_guard::commands::adblock_set_list_enabled,
+            web_guard::commands::adblock_add_list,
+            web_guard::commands::adblock_remove_list,
+            web_guard::commands::adblock_update_now,
+            web_guard::commands::adblock_set_custom_rules,
+            web_guard::commands::adblock_allowlist_add,
+            web_guard::commands::adblock_allowlist_remove,
+            web_guard::commands::tile_media_list,
+            web_guard::commands::site_hls_set,
+            web_guard::commands::diagnostics_snapshot,
+            web_guard::commands::diagnostics_clear,
+            accounts::accounts_list,
+            accounts::accounts_switch,
+            accounts::accounts_remove,
+            accounts::accounts_prepare_add,
+            accounts::site_cookies::site_account_save,
+            accounts::site_cookies::site_account_switch,
+            accounts::site_cookies::site_account_sign_out,
+            accounts::site_cookies::site_account_remove,
+            accounts::site_cookies::site_account_domain,
         ])
         .setup(move |app| {
             network::start_network_monitor(app.handle().clone());
+            bandwidth::start(app.handle().clone());
+            ui_overlay::init(app.handle());
             app.manage(TranscriptionState(std::sync::Mutex::new(None)));
             app.manage(RecordingManager::new());
+            app.manage(web_guard::GuardState::new());
+            web_guard::start(app.handle());
 
             let twitch_state = TwitchState::new();
             app.manage(twitch_state);
@@ -413,9 +458,11 @@ pub fn run() {
                 .additional_browser_args(browser_args)
                 .initialization_script_for_all_frames(include_str!("core/mixer.js"))
                 .initialization_script_for_all_frames(STREAM_FILTER_SCRIPT)
+                .initialization_script_for_all_frames(PLAYER_AUTOPLAY_SCRIPT)
+                .initialization_script_for_all_frames(PLAYER_WATCHDOG_SCRIPT)
                 .initialization_script_for_all_frames(graveyard_script)
                 .initialization_script_for_all_frames(SCREENSHOT_SCRIPT)
-                .initialization_script_for_all_frames(KEYBOARD_SCRIPT)
+                .initialization_script_for_all_frames(INTERACTION_SCRIPT)
                 .build()?;
 
             // system tray
@@ -424,7 +471,7 @@ pub fn run() {
             let menu = Menu::with_items(app, &[&show_i, &quit_i])?;
 
             fn show_main_window(app: &tauri::AppHandle) {
-                match app.get_webview_window("main") {
+                match app.get_window("main") {
                     Some(window) => {
                         if let Err(e) = window.show() {
                             log::warn!("tray show: failed to show main window: {e}");
@@ -447,7 +494,7 @@ pub fn run() {
                 .on_menu_event(|app, event| match event.id.as_ref() {
                     "show" => show_main_window(app),
                     "quit" => {
-                        if let Some(webview) = app.get_webview_window("main") {
+                        if let Some(webview) = app.get_webview("main") {
                             let _ = webview.eval(
                                 "document.querySelectorAll('video, audio').forEach(el => { el.muted = true; el.pause(); });\
                                  document.querySelectorAll('iframe').forEach(function(f) { try { f.contentWindow.postMessage({type:'MULTISTREAM_GRAVEYARD_SUSPEND'}, '*'); } catch(e) {} });",
@@ -485,7 +532,7 @@ pub fn run() {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 api.prevent_close();
 
-                if let Some(webview) = window.app_handle().get_webview_window(window.label()) {
+                if let Some(webview) = window.app_handle().get_webview(window.label()) {
                     let _ = webview.eval(
                         "document.querySelectorAll('video, audio').forEach(el => { el.muted = true; el.pause(); });\
                          document.querySelectorAll('iframe').forEach(function(f) { try { f.contentWindow.postMessage({type:'MULTISTREAM_GRAVEYARD_SUSPEND'}, '*'); } catch(e) {} });",

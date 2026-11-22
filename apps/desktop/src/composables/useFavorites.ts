@@ -9,6 +9,10 @@ export interface FavoriteChannel {
   iframeUrl?: string;
   faviconUrl?: string;
   siteUrl?: string;
+  /** Live alerts are sent only for favorites that were starred for them. */
+  notify?: boolean;
+  /** Kept at the top of the sidebar's Favorites list. */
+  pinned?: boolean;
   addedAt: number;
 }
 
@@ -103,6 +107,53 @@ const _useFavorites = () => {
   };
 
   /**
+   * @brief Whether live alerts are on for a channel
+   */
+  const isNotify = (channel: string, platform: Platform, iframeUrl?: string): boolean =>
+    favorites.value.some(
+      (f) => f.notify === true && isMatchingFavorite(f, channel, platform, iframeUrl)
+    );
+
+  /**
+   * @brief Turn live alerts for a channel on or off
+   *
+   * @details
+   * Alerts are a flag on a favorite, so starring a channel that is not a favorite yet adds it.
+   */
+  const toggleNotify = (
+    channel: string,
+    platform: Platform,
+    iframeUrl?: string,
+    displayName?: string
+  ): boolean => {
+    const exists = favorites.value.some((f) => isMatchingFavorite(f, channel, platform, iframeUrl));
+    if (!exists) addFavorite(channel, platform, iframeUrl, displayName);
+    const enable = !isNotify(channel, platform, iframeUrl);
+    favorites.value = favorites.value.map((f) =>
+      isMatchingFavorite(f, channel, platform, iframeUrl) ? { ...f, notify: enable } : f
+    );
+    return enable;
+  };
+
+  /** Whether a favorite is pinned to the top of the sidebar list. */
+  const isPinned = (channel: string, platform: Platform, iframeUrl?: string): boolean =>
+    favorites.value.some(
+      (f) => f.pinned === true && isMatchingFavorite(f, channel, platform, iframeUrl)
+    );
+
+  /** Pin or unpin a favorite; an unpinned favorite carries no flag. Returns the new state. */
+  const togglePin = (channel: string, platform: Platform, iframeUrl?: string): boolean => {
+    const pin = !isPinned(channel, platform, iframeUrl);
+    favorites.value = favorites.value.map((f) => {
+      if (!isMatchingFavorite(f, channel, platform, iframeUrl)) return f;
+      if (pin) return { ...f, pinned: true };
+      const { pinned: _unpinned, ...rest } = f;
+      return rest;
+    });
+    return pin;
+  };
+
+  /**
    * @brief Clear all favorites
    *
    * @return void
@@ -115,6 +166,10 @@ const _useFavorites = () => {
     favorites,
     addFavorite,
     removeFavorite,
+    isNotify,
+    toggleNotify,
+    isPinned,
+    togglePin,
     clearFavorites,
   };
 };

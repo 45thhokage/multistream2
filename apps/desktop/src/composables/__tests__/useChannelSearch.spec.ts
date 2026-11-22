@@ -317,7 +317,7 @@ describe("useChannelSearch", () => {
       expect(results.value[0]).toMatchObject({
         channel: "newchannel",
         platform: "youtube",
-        isLive: false,
+        isLive: undefined,
       });
     });
 
@@ -326,14 +326,14 @@ describe("useChannelSearch", () => {
       mockInvoke.mockResolvedValueOnce([
         {
           channel: "batzera1",
-          display_name: "Batzera",
-          is_live: true,
+          displayName: "Batzera",
+          isLive: true,
           category: "150 mil inscritos",
         },
         {
           channel: "batzera2",
-          display_name: "Batzera Fan",
-          is_live: false,
+          displayName: "Batzera Fan",
+          isLive: false,
           category: "10 mil inscritos",
         },
       ]);
@@ -359,7 +359,7 @@ describe("useChannelSearch", () => {
         channel: "Batzera Fan",
         handle: "batzera2",
         platform: "youtube",
-        isLive: false,
+        isLive: undefined,
       });
     });
 
@@ -367,8 +367,8 @@ describe("useChannelSearch", () => {
       // Arrange
       mockFavorites.value = [{ channel: "batzera1", platform: "youtube", displayName: "Batzera" }];
       mockInvoke.mockResolvedValueOnce([
-        { channel: "batzera1", display_name: "Batzera", is_live: true, category: "Gaming" },
-        { channel: "batzera2", display_name: "Batzera Fan", is_live: false },
+        { channel: "batzera1", displayName: "Batzera", isLive: true, category: "Gaming" },
+        { channel: "batzera2", displayName: "Batzera Fan", isLive: false },
       ]);
 
       const query = ref("batzera");
@@ -509,5 +509,31 @@ describe("useChannelSearch", () => {
       // Assert
       expect(fetchSpy).not.toHaveBeenCalled();
     });
+  });
+  it("submits immediately and discards results after the query is cleared", async () => {
+    // Arrange
+    let complete!: (value: Response) => void;
+    fetchSpy.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        })
+    );
+    const query = ref("old");
+    const session = sut.search(query, "twitch");
+    // Act
+    session.submit();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    query.value = "";
+    await nextTick();
+    complete(
+      Response.json({
+        data: { searchFor: { channels: { items: [{ login: "stale", stream: null }] } } },
+      })
+    );
+    await flush();
+    // Assert
+    expect(session.results.value).toEqual([]);
+    expect(session.isLoading.value).toBe(false);
   });
 });

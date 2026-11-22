@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { mediaKindOf, mediaLabel } from "@/lib/mediaSource";
 import { ref, computed, watch, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import {
@@ -286,7 +287,8 @@ const handleAddStream = async () => {
 
   if (isCustom.value) {
     const url = normalizeCustomEmbedUrl(iframeUrl.value);
-    const name = channelName.value.trim() || displayHostname(url);
+    const name =
+      channelName.value.trim() || (mediaKindOf(url) ? mediaLabel(url) : displayHostname(url));
 
     addStream(name, "custom", url);
 
@@ -315,7 +317,7 @@ const handleAddStream = async () => {
     selectedPlatform.value = parsedResult.platform;
     if (parsedResult.platform === "custom") {
       const url = normalizeCustomEmbedUrl(parsedResult.iframeUrl || "");
-      const name = displayHostname(url);
+      const name = mediaKindOf(url) ? mediaLabel(url) : displayHostname(url);
       addStream(name, "custom", url);
       channelName.value = "";
       iframeUrl.value = "";
@@ -491,7 +493,7 @@ watch(
 <template>
   <Dialog :open="open" :modal="false" @update:open="emit('update:open', $event)">
     <DialogContent
-      class="bg-[#14161a] border-[#262930] w-[95vw] sm:w-[92vw] max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl max-h-[92vh] flex flex-col overflow-hidden p-4 sm:p-6"
+      class="bg-[#14161a] border-[#262930] w-[95vw] sm:w-[92vw] max-w-xl md:max-w-3xl lg:max-w-5xl xl:max-w-6xl max-h-[92vh] flex flex-col overflow-hidden p-4 sm:p-6 data-[state=open]:animate-none! data-[state=closed]:animate-none!"
     >
       <DialogHeader>
         <DialogTitle class="text-white">
@@ -649,7 +651,7 @@ watch(
               <div class="border border-[#2a2d33]/60 bg-[#14161a] p-2.5 rounded-xl">
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5">
                   <StreamChip
-                    v-for="recent in recents"
+                    v-for="recent in recents.slice(0, 8)"
                     :key="`${recent.platform}:${recent.channel}:${recent.iframeUrl || ''}`"
                     :channel="recent.handle || recent.channel"
                     :display-name="recent.displayName"

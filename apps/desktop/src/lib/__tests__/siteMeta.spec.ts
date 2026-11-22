@@ -3,6 +3,7 @@ import {
   displayHostname,
   ensureHttpUrl,
   siteFaviconForUrl,
+  tileStartUrl,
   siteLabelForUrl,
   siteTitleForUrl,
 } from "../siteMeta";
@@ -82,5 +83,33 @@ describe("siteMeta unit tests", () => {
 
     // Assert
     expect(result).toBe("redgifs.com");
+  });
+});
+
+describe("tileStartUrl", () => {
+  const original = "https://www.camsoda.com/";
+
+  it("reopens on the page the live tile is on, not the URL it was added with", () => {
+    // Act
+    const url = tileStartUrl("https://www.camsoda.com/curvyjules69", undefined, original);
+
+    // Assert
+    expect(url).toBe("https://www.camsoda.com/curvyjules69");
+  });
+
+  it("falls back to the saved page after a restart, when there is no live tile", () => {
+    // Act
+    const url = tileStartUrl(null, "https://www.camsoda.com/curvyjules69", original);
+
+    // Assert
+    expect(url).toBe("https://www.camsoda.com/curvyjules69");
+  });
+
+  it("skips pages that are not http(s) and ends on the original URL", () => {
+    // Act
+    const url = tileStartUrl("about:blank", "javascript:alert(1)", original);
+
+    // Assert
+    expect(url).toBe(original);
   });
 });

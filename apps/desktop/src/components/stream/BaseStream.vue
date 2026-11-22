@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { useStreams, type Platform } from "@/composables/useStreams";
 import { useFocusedStream } from "@/composables/useFocusedStream";
+import { useMaximizedStream } from "@/composables/useMaximizedStream";
 import {
   X,
   Heart,
+  Focus,
   Maximize2,
+  Minimize2,
   Camera,
   Circle,
   CircleStop,
@@ -33,6 +36,7 @@ import { siteFaviconForUrl } from "@/lib/siteMeta";
 const { requestRemoveStream, sessionStartTimes, now } = useStreams();
 const { addFavorite, removeFavorite, favorites } = useFavorites();
 const { toggleFocus, isFocused, clearFocus, focusedStreamId } = useFocusedStream();
+const { isMaximized, toggleMaximize } = useMaximizedStream();
 const { captureStream, isCapturing } = useScreenshot();
 const { t } = useI18n();
 const { recordingQuality, nativePlayerEnabled, adblockEnabled } = usePreferences();
@@ -762,6 +766,7 @@ const handleOpenSite = () => {
       <button
         :data-testid="`remove-stream-${channel}`"
         :aria-label="$t('stream.actions.remove')"
+        :title="$t('stream.actions.remove')"
         :class="[
           'pointer-events-auto flex items-center justify-center rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-red-500/80 hover:text-white hover:border-red-400/50 transition-all duration-200 hover:scale-110 cursor-pointer',
           isMiniaturized ? 'size-5' : 'size-8',
@@ -772,6 +777,7 @@ const handleOpenSite = () => {
       </button>
       <button
         :aria-label="isFavorite ? $t('stream.actions.unfavorite') : $t('stream.actions.favorite')"
+        :title="isFavorite ? $t('stream.actions.unfavorite') : $t('stream.actions.favorite')"
         :class="[
           'pointer-events-auto flex items-center justify-center rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-pink-500/80 hover:text-white hover:border-pink-400/50 transition-all duration-200 hover:scale-110 cursor-pointer',
           isMiniaturized ? 'size-5' : 'size-8',
@@ -787,6 +793,7 @@ const handleOpenSite = () => {
       <button
         :data-testid="`reload-stream-${channel}`"
         :aria-label="$t('stream.actions.reload')"
+        :title="$t('stream.actions.reload')"
         :class="[
           'pointer-events-auto flex items-center justify-center rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-zinc-700/80 hover:text-white hover:border-white/20 transition-all duration-200 hover:scale-110 cursor-pointer',
           isMiniaturized ? 'size-5' : 'size-8',
@@ -799,6 +806,7 @@ const handleOpenSite = () => {
       <button
         :disabled="isCapturing"
         :aria-label="$t('stream.actions.screenshot')"
+        :title="$t('stream.actions.screenshot')"
         :class="[
           'pointer-events-auto flex items-center justify-center rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-blue-500/80 hover:text-white hover:border-blue-400/50 transition-all duration-200 hover:scale-110 cursor-pointer',
           isMiniaturized ? 'size-5' : 'size-8',
@@ -812,6 +820,7 @@ const handleOpenSite = () => {
       <button
         v-if="props.platform === 'custom' && props.iframeUrl"
         :aria-label="$t('stream.actions.copyUrl')"
+        :title="$t('stream.actions.copyUrl')"
         :class="[
           'pointer-events-auto flex items-center justify-center rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-emerald-500/80 hover:text-white hover:border-emerald-400/50 transition-all duration-200 hover:scale-110 cursor-pointer',
           isMiniaturized ? 'size-5' : 'size-8',
@@ -824,6 +833,7 @@ const handleOpenSite = () => {
       <button
         v-if="props.platform === 'custom' && props.siteUrl"
         :aria-label="$t('stream.actions.openInWindow')"
+        :title="$t('stream.actions.openInWindow')"
         :class="[
           'pointer-events-auto flex items-center justify-center rounded-lg bg-black/60 backdrop-blur-sm border border-white/10 text-white/80 hover:bg-indigo-500/80 hover:text-white hover:border-indigo-400/50 transition-all duration-200 hover:scale-110 cursor-pointer',
           isMiniaturized ? 'size-5' : 'size-8',
@@ -833,10 +843,15 @@ const handleOpenSite = () => {
         <ExternalLink :class="isMiniaturized ? 'size-3' : 'size-4'" />
       </button>
       <!-- record button -->
-      <template v-if="isDependenciesInstalled && props.platform !== 'custom'">
+      <template v-if="isDependenciesInstalled && (props.platform !== 'custom' || props.iframeUrl)">
         <button
           :data-testid="`record-stream-${props.channel}`"
           :aria-label="
+            isRecording(props.channelid)
+              ? $t('stream.actions.stopRecord')
+              : $t('stream.actions.record')
+          "
+          :title="
             isRecording(props.channelid)
               ? $t('stream.actions.stopRecord')
               : $t('stream.actions.record')
@@ -853,7 +868,8 @@ const handleOpenSite = () => {
               ? stopRecording(props.channelid)
               : startRecording(
                   { id: props.channelid, channel: props.channel, platform: props.platform },
-                  recordingQuality || 'best'
+                  recordingQuality || 'best',
+                  props.platform === 'custom' ? props.iframeUrl : undefined
                 )
           "
         >
@@ -867,6 +883,7 @@ const handleOpenSite = () => {
       <!-- focus mode button -->
       <button
         :aria-label="isStreamFocused ? $t('stream.actions.unfocus') : $t('stream.actions.focus')"
+        :title="isStreamFocused ? $t('stream.actions.unfocus') : $t('stream.actions.focus')"
         :class="[
           'pointer-events-auto flex items-center justify-center rounded-lg backdrop-blur-sm border transition-all duration-200 hover:scale-110 cursor-pointer',
           isMiniaturized ? 'size-5' : 'size-8',
@@ -876,7 +893,29 @@ const handleOpenSite = () => {
         ]"
         @click="handleFocusStream(channelid)"
       >
-        <Maximize2 :class="isMiniaturized ? 'size-3' : 'size-4'" />
+        <Focus :class="isMiniaturized ? 'size-3' : 'size-4'" />
+      </button>
+      <!-- maximize button: this tile fills the whole grid until restored -->
+      <button
+        :data-testid="`maximize-stream-${channel}`"
+        :aria-label="
+          isMaximized(channelid) ? $t('stream.actions.restore') : $t('stream.actions.maximize')
+        "
+        :title="
+          isMaximized(channelid) ? $t('stream.actions.restore') : $t('stream.actions.maximize')
+        "
+        :aria-pressed="isMaximized(channelid)"
+        :class="[
+          'pointer-events-auto flex items-center justify-center rounded-lg backdrop-blur-sm border transition-all duration-200 hover:scale-110 cursor-pointer',
+          isMiniaturized ? 'size-5' : 'size-8',
+          isMaximized(channelid)
+            ? 'bg-indigo-500/80 text-white border-indigo-400/50 hover:bg-indigo-600/80'
+            : 'bg-black/60 text-white/80 border-white/10 hover:bg-indigo-500/80 hover:text-white hover:border-indigo-400/50',
+        ]"
+        @click="toggleMaximize(channelid)"
+      >
+        <Minimize2 v-if="isMaximized(channelid)" :class="isMiniaturized ? 'size-3' : 'size-4'" />
+        <Maximize2 v-else :class="isMiniaturized ? 'size-3' : 'size-4'" />
       </button>
     </div>
 

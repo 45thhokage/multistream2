@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import BaseStream from "./BaseStream.vue";
 import BrowserTile from "./BrowserTile.vue";
+import MediaStream from "./MediaStream.vue";
 import { customEmbedRoute } from "@/lib/customEmbed";
 
 const props = defineProps<{
@@ -20,6 +21,15 @@ const route = computed(() => customEmbedRoute(props.iframeUrl));
     :channelid="channelid"
     :iframe-url="route.url"
   />
+  <BaseStream
+    v-else-if="route.kind === 'media'"
+    :channelid="channelid"
+    :channel="channel"
+    platform="custom"
+    :iframe-url="route.url"
+  >
+    <MediaStream :channelid="channelid" :url="route.url" :kind="route.media" />
+  </BaseStream>
   <BaseStream
     v-else
     :channelid="channelid"

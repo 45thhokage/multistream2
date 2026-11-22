@@ -48,3 +48,16 @@ export function displayHostname(raw: string): string {
     return raw.trim().slice(0, 80);
   }
 }
+
+/**
+ * The page a website tile opens on: the page its native view is already on (that view outlives a
+ * reload of the app's own page), else the page saved from last time, else the URL it was added
+ * with. Anything that is not an http(s) page is skipped.
+ */
+export function tileStartUrl(
+  live: string | null | undefined,
+  saved: string | null | undefined,
+  original: string
+): string {
+  return ensureHttpUrl(live ?? "") ?? ensureHttpUrl(saved ?? "") ?? original;
+}

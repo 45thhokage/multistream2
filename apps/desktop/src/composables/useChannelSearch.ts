@@ -1,4 +1,4 @@
-import { ref, watchEffect, toValue } from "vue";
+import { ref, watchEffect, toValue, onScopeDispose } from "vue";
 import type { MaybeRefOrGetter } from "vue";
 import { createSharedComposable } from "@vueuse/core";
 import { invoke } from "@tauri-apps/api/core";
@@ -13,7 +13,8 @@ export interface ChannelSearchResult {
   channel: string;
   handle?: string;
   platform: Platform;
-  isLive: boolean;
+  isLive: boolean | undefined;
+  identity?: string;
   category?: string;
 }
 
@@ -68,7 +69,8 @@ function getLocalChannelMatches(
         channel: cleanDisplay || cleanChannel,
         handle: resolvedHandle,
         platform,
-        isLive: status?.isLive ?? false,
+        isLive: status?.isLive,
+        identity: cleanHandle || cleanChannel,
         category: status?.category || defaultCategory,
       });
     }
@@ -130,12 +132,13 @@ async function searchTwitchChannels(query: string): Promise<ChannelSearchResult[
     if (!response.ok) return null;
 
     const data = await response.json();
-    const items: any[] = data?.data?.searchFor?.channels?.items ?? [];
+    if (data.errors?.length || !Array.isArray(data?.data?.searchFor?.channels?.items)) return null;
+    const items: any[] = data.data.searchFor.channels.items;
 
     return items.slice(0, SEARCH_LIMIT).map((item: any) => ({
       channel: item.login as string,
       platform: "twitch" as Platform,
-      isLive: item.stream !== null,
+      isLive: item.stream === undefined ? undefined : item.stream !== null,
       category: item.stream?.game?.displayName as string | undefined,
     }));
   } catch {
@@ -184,7 +187,7 @@ async function searchKickChannels(
 
     const data = await response.json();
     const channelSlug = (data?.slug ?? slug) as string;
-    const isLive = data?.livestream !== null && data?.livestream !== undefined;
+    const isLive = data?.livestream === undefined ? undefined : data.livestream !== null;
     const category = data?.livestream?.categories?.[0]?.name as string | undefined;
 
     return [{ channel: channelSlug, platform: "kick" as Platform, isLive, category }];
@@ -213,6 +216,7 @@ const _useChannelSearch = () => {
   const search = (query: MaybeRefOrGetter<string>, platform: MaybeRefOrGetter<Platform>) => {
     const results = ref<ChannelSearchResult[]>([]);
     const isLoading = ref(false);
+    const error = ref(false);
 
     let debounceTimer: ReturnType<typeof setTimeout> | null = null;
     let currentRequestId = 0;
@@ -227,7 +231,11 @@ const _useChannelSearch = () => {
       }
     };
 
+    let execute: (() => void) | undefined;
     watchEffect(() => {
+      ++currentRequestId;
+      execute = undefined;
+      error.value = false;
       const currentQuery = toValue(query);
       const currentPlatform = toValue(platform);
 
@@ -252,7 +260,7 @@ const _useChannelSearch = () => {
       isLoading.value = true;
       const requestId = ++currentRequestId;
 
-      debounceTimer = setTimeout(async () => {
+      execute = async () => {
         let found: ChannelSearchResult[] = [];
 
         if (currentPlatform === "youtube") {
@@ -269,8 +277,8 @@ const _useChannelSearch = () => {
             try {
               const remoteResults: {
                 channel: string;
-                display_name?: string;
-                is_live: boolean;
+                displayName?: string;
+                isLive?: boolean;
                 category?: string;
               }[] = await invoke("youtube_search_channels", { query: cleanTrimmed });
               const seen = new Set(localMatches.map((m) => (m.handle ?? m.channel).toLowerCase()));
@@ -279,17 +287,18 @@ const _useChannelSearch = () => {
                 if (!seen.has(key)) {
                   seen.add(key);
                   localMatches.push({
-                    channel: r.display_name || r.channel,
+                    channel: r.displayName || r.channel,
                     handle: r.channel,
                     platform: "youtube",
-                    isLive: r.is_live,
+                    isLive: r.isLive === true ? true : undefined,
+                    identity: r.channel,
                     category: r.category,
                   });
                 }
                 if (localMatches.length >= SEARCH_LIMIT) break;
               }
             } catch {
-              /* silent */
+              if (requestId === currentRequestId) error.value = true;
             }
           }
           if (localMatches.length === 0 && cleanTrimmed.length > 0) {
@@ -297,7 +306,7 @@ const _useChannelSearch = () => {
             localMatches.push({
               channel: cleanTrimmed,
               platform: "youtube",
-              isLive: status?.isLive ?? false,
+              isLive: status?.isLive,
               category: status?.category,
             });
           }
@@ -311,9 +320,13 @@ const _useChannelSearch = () => {
             suggestedStreams.value,
             getStatus
           );
-          const remoteResults = (await searchTwitchChannels(trimmed)) ?? [];
+          const reply = await searchTwitchChannels(trimmed);
+          if (requestId === currentRequestId) error.value = reply === null;
+          const remoteResults = reply ?? [];
           const merged: ChannelSearchResult[] = [...localMatches];
-          const seen = new Set(localMatches.map((m) => m.channel.toLowerCase()));
+          const seen = new Set(
+            localMatches.map((m) => (m.identity || m.handle || m.channel).toLowerCase())
+          );
           for (const r of remoteResults) {
             const key = r.channel.toLowerCase();
             if (!seen.has(key)) {
@@ -334,9 +347,13 @@ const _useChannelSearch = () => {
           const kickCache = suggestedStreams.value
             .filter((s) => s.platform === "kick")
             .map((s) => ({ channel: s.channel, isLive: true, category: s.category }));
-          const remoteResults = (await searchKickChannels(trimmed, kickCache)) ?? [];
+          const reply = await searchKickChannels(trimmed, kickCache);
+          if (requestId === currentRequestId) error.value = reply === null;
+          const remoteResults = reply ?? [];
           const merged: ChannelSearchResult[] = [...localMatches];
-          const seen = new Set(localMatches.map((m) => m.channel.toLowerCase()));
+          const seen = new Set(
+            localMatches.map((m) => (m.identity || m.handle || m.channel).toLowerCase())
+          );
           for (const r of remoteResults) {
             const key = r.channel.toLowerCase();
             if (!seen.has(key)) {
@@ -351,10 +368,16 @@ const _useChannelSearch = () => {
 
         results.value = found;
         isLoading.value = false;
-      }, DEBOUNCE_MS);
+      };
+      debounceTimer = setTimeout(execute, DEBOUNCE_MS);
     });
 
-    return { results, isLoading, clear };
+    onScopeDispose(clear, true);
+    const submit = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      execute?.();
+    };
+    return { results, isLoading, error, clear, submit };
   };
 
   return { search };

@@ -11,6 +11,7 @@ import { useNetworkStatus } from "./useNetworkStatus";
 
 import { i18n } from "@/i18n";
 import { isTauri, httpGet, httpPost } from "@/lib/http";
+import { nativePlayerId } from "@/lib/nativePlayer";
 
 import { API_CONFIG, REFRESH_CONFIG } from "@/config/api";
 import { CDN_CONFIG } from "@/config/cdn";
@@ -300,6 +301,43 @@ function processTwitchStreams(
   return [...filtered, ...other].slice(0, limit).map(({ language: _, ...s }: any) => s);
 }
 
+// The channel endpoint links thumbnails on stream.kick.com, which rejects every request (403).
+// The livestream endpoint links images.kick.com instead; resolve it once per live session.
+const KICK_THUMBNAIL_HOST = "images.kick.com";
+const kickThumbnailBySession = new Map<string, string | undefined>();
+const isKickImage = (url: unknown): url is string => {
+  try {
+    return typeof url === "string" && new URL(url).hostname === KICK_THUMBNAIL_HOST;
+  } catch {
+    return false;
+  }
+};
+
+async function kickThumbnail(
+  channel: string,
+  livestream: { id?: number | string; thumbnail?: { url?: string; src?: string } }
+): Promise<string | undefined> {
+  const direct = livestream.thumbnail?.src || livestream.thumbnail?.url;
+  if (isKickImage(direct)) return direct;
+  const session = livestream.id === undefined ? null : String(livestream.id);
+  if (session && kickThumbnailBySession.has(session)) return kickThumbnailBySession.get(session);
+  let resolved: string | undefined;
+  try {
+    const response = await httpGet(
+      `${API_CONFIG.kick.apiBaseUrl}/${encodeURIComponent(channel)}/livestream`
+    );
+    if (response.ok) {
+      const body = await response.json();
+      const src = body?.data?.thumbnail?.src;
+      if (isKickImage(src)) resolved = src;
+    }
+  } catch {
+    resolved = undefined;
+  }
+  if (session) kickThumbnailBySession.set(session, resolved);
+  return resolved;
+}
+
 /**
  * @brief Check Kick streams
  *
@@ -308,12 +346,14 @@ function processTwitchStreams(
  * @param channels The channels to check
  * @return The status of the channels
  */
+const KICK_CHECK_CONCURRENCY = 4;
+
 async function checkKickStreams(channels: string[]): Promise<StatusMap | null> {
   const result: StatusMap = {};
   if (channels.length === 0) return result;
 
   let failedCount = 0;
-  const promises = channels.map(async (channel) => {
+  const checkChannel = async (channel: string): Promise<void> => {
     try {
       const response = await httpGet(
         `${API_CONFIG.kick.apiBaseUrl}/${encodeURIComponent(channel)}`
@@ -339,7 +379,7 @@ async function checkKickStreams(channels: string[]): Promise<StatusMap | null> {
           title: data.livestream.session_title,
           category: data.livestream.categories?.[0]?.name,
           avatarUrl: data.user?.profile_pic,
-          thumbnailUrl: data.livestream.thumbnail?.url || data.livestream.thumbnail?.src,
+          thumbnailUrl: await kickThumbnail(channel, data.livestream),
         };
       } else {
         result[key] = {
@@ -350,9 +390,17 @@ async function checkKickStreams(channels: string[]): Promise<StatusMap | null> {
     } catch {
       failedCount++;
     }
-  });
+  };
 
-  await Promise.allSettled(promises);
+  // One request per channel, a few at a time: firing them all at once starves the Kick players
+  // that are loading beside them, and gets rate limited.
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < channels.length) await checkChannel(channels[next++]!);
+  };
+  await Promise.all(
+    Array.from({ length: Math.min(KICK_CHECK_CONCURRENCY, channels.length) }, worker)
+  );
 
   // If all requests failed (and not due to 404), return null to indicate a network issue
   if (failedCount === channels.length && channels.length > 0) {
@@ -742,6 +790,11 @@ async function fetchKickStreamsByCategory(
 
 // --- Composable ---
 const _useLiveStatus = () => {
+  // Every native stream tile runs its own copy of the app. Only the main window polls and
+  // notifies; tiles receive its statuses (useNativePlayerBridge). Polling from each tile
+  // multiplied the API traffic by the number of streams, which delayed the Kick players
+  // at startup, and made every tile show its own copy of each notification.
+  const isNativeTile = nativePlayerId() !== null;
   const { recents } = useRecents();
   const { favorites } = useFavorites();
   const { notificationsEnabled } = usePreferences();
@@ -780,6 +833,7 @@ const _useLiveStatus = () => {
    * @returns Promise<void>
    */
   const checkAll = async (): Promise<void> => {
+    if (isNativeTile) return;
     if (activeCheckPromise) {
       return activeCheckPromise;
     }
@@ -915,6 +969,8 @@ const _useLiveStatus = () => {
 
           for (const fav of favorites.value) {
             if (fav.platform !== "twitch" && fav.platform !== "kick") continue;
+            // Alerts are opt-in: only channels starred for them (right-click > notify).
+            if (!fav.notify) continue;
 
             const key = `${fav.platform}:${fav.channel.toLowerCase()}`;
 
@@ -1163,6 +1219,7 @@ const _useLiveStatus = () => {
    * @return void
    */
   const startPolling = () => {
+    if (isNativeTile) return;
     if (!intervalId && hasChannels()) {
       checkAll();
       intervalId = setInterval(checkAll, REFRESH_CONFIG.interval);
@@ -1209,6 +1266,7 @@ const _useLiveStatus = () => {
         .toSorted()
         .join(","),
     () => {
+      if (isNativeTile) return;
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         if (hasChannels()) {
@@ -1229,6 +1287,7 @@ const _useLiveStatus = () => {
   // Foreground wake-up: fire an immediate check when the tab becomes visible
   // so statuses are never stale by more than the interval after returning.
   watch(visibility, (newVisibility) => {
+    if (isNativeTile) return;
     if (newVisibility === "visible") {
       checkAll();
       if (
@@ -1241,6 +1300,7 @@ const _useLiveStatus = () => {
   });
 
   onReconnect(() => {
+    if (isNativeTile) return;
     checkAll();
     if (
       streams.value.length === 0 &&
@@ -1264,6 +1324,7 @@ const _useLiveStatus = () => {
    * @returns Promise<void>
    */
   const refreshSuggestions = async () => {
+    if (isNativeTile) return;
     if (!isOnline.value || isLoadingSuggestions.value || isLoadingMoreSuggestions.value) return;
     isLoadingSuggestions.value = true;
     lastSuggestionsFetch.value = Date.now();

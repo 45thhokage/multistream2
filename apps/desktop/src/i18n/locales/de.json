@@ -139,7 +139,8 @@
       "data": "Daten",
       "general": "Allgemein",
       "recording": "Aufnahme",
-      "resources": "Transkription"
+      "resources": "Transkription",
+      "adblock": "Ad blocking"
     },
     "about": {
       "title": "Über Multistream",
@@ -219,6 +220,14 @@
       "title": "Site windows",
       "youtubeHint": "Sign in on youtube.com once — streams and chat reuse it.",
       "youtubeLogin": "Open YouTube to sign in"
+    },
+    "fitVideoAuto": {
+      "description": "Wenn du in einem Video einer Website-Kachel auf Play drückst, füllt es die Kachel aus. Esc stellt die Seite wieder her.",
+      "title": "Video beim Abspielen anpassen"
+    },
+    "tabbedSidebar": {
+      "description": "Ein Bereich nach dem anderen, über eine Leiste mit Symbol-Tabs.",
+      "title": "Seitenleiste mit Tabs"
     }
   },
   "share": {
@@ -258,7 +267,9 @@
       "unfocus": "Fokus aufheben",
       "copyUrl": "Stream-URL kopieren",
       "reload": "Stream neu laden",
-      "openInWindow": "Open in window"
+      "openInWindow": "Open in window",
+      "maximize": "Maximize (fill the whole grid)",
+      "restore": "Restore to the grid (Esc)"
     }
   },
   "empty": {
@@ -434,13 +445,13 @@
       "title": "Streams hinzufügen",
       "description": "Stelle dein Raster mit Live-Streams von Twitch, Kick, YouTube oder eigenen Embed-Links auf einem einzigen Bildschirm zusammen, mit direkter Verbindung zu jeder Plattform.",
       "customPlatform": "Eigener",
-      "hint": "Drücke {key} oder klicke rechts in der Seitenleiste auf '+', um Kanäle hinzuzufügen. Bei mehreren geöffneten Streams kannst du Kacheln per Drag-and-Drop neu anordnen oder F über einem Stream drücken, um ihn hervorzuheben."
+      "hint": "Klicke rechts in der Seitenleiste auf '+', um Kanäle hinzuzufügen. Bei mehreren Streams kannst du Kacheln am Griff ziehen, um das Raster neu anzuordnen, oder mit der Vergrößern-Schaltfläche eines Streams ihn zur Hauptansicht machen."
     },
     "step2": {
       "title": "Chat-Steuerung",
       "description": "Verfolge Live-Nachrichten aller geöffneten Streams direkt in der rechten Seitenleiste, ohne das Fenster zu wechseln.",
       "chatActive": "Aktiver Chat",
-      "hint": "Wähle oben im Chat-Panel den Vereinten Chat (der alle Streams deines Rasters in einem Lese-Feed bündelt) oder drücke {keys} auf der Tastatur, um direkt zum Chat eines einzelnen Kanals zu wechseln und Nachrichten zu senden."
+      "hint": "Wähle oben im Chat-Bereich den Unified Chat (der alle Streams deines Rasters in einem Feed zusammenführt) oder den Chat eines einzelnen Kanals, um Nachrichten zu senden."
     },
     "step3": {
       "title": "Twitch- & Kick-Konten",
@@ -455,7 +466,7 @@
     "step4": {
       "title": "Nach Kategorie durchsuchen",
       "description": "Sieh sofort, wer gerade auf Twitch und Kick live ist, indem du nach Spiel oder Kategorie filterst, ganz ohne im Browser nach Links zu suchen.",
-      "hint": "Live-Vorschläge erscheinen auf dem Startbildschirm bei leerem Raster sowie im Dialog „Stream hinzufügen“ (Taste {key}). Wähle einfach eine Kategorie und klicke auf eine Live-Karte, um sie direkt in dein Raster aufzunehmen."
+      "hint": "Live-Vorschläge erscheinen auf dem Startbildschirm, wenn dein Raster leer ist, und im Dialog „Stream hinzufügen“. Wähle eine Kategorie und klicke auf eine Live-Karte, um sie direkt ins Raster zu legen."
     },
     "step5": {
       "title": "Live-Transkription",
@@ -473,21 +484,6 @@
       "badgeFormat": "MP4 Source",
       "hint": "Aktiviere die Funktion unter Einstellungen → Aufnahme, um den Recorder beim ersten Mal einzurichten. Fahre dann mit der Maus über einen aktiven Stream und klicke in der oberen Player-Leiste auf die Aufnahmetaste. Den Speicherordner kannst du ebenfalls in den Einstellungen anpassen."
     },
-    "step7": {
-      "title": "Tastenkombinationen",
-      "description": "Verwalte dein Raster, wechsle zwischen Chats und hebe Streams schnell über die globalen Tastenkürzel der App hervor.",
-      "add": "Stream-Hinzufügen-Dialog öffnen",
-      "screenshot": "Screenshot des fokussierten Streams erstellen",
-      "chat": "Zu Stream-Chat {keys} wechseln",
-      "screenshotTitle": "Screenshot",
-      "focusTitle": "Stream fokussieren",
-      "focus": "Stream unter dem Mauszeiger vergrößern",
-      "hint": "Die Tastenkürzel funktionieren jederzeit außerhalb von Textfeldern, selbst wenn sich der Mauszeiger über einem Video-Player befindet. Du kannst diese Einführung jederzeit unter Einstellungen → Allgemein → Einführungstour anzeigen erneut öffnen.",
-      "escTitle": "Beenden & Schließen",
-      "esc": "Vollbild, immersiven Modus verlassen oder Bedienfelder schließen",
-      "fullscreenTitle": "Vollbild",
-      "fullscreen": "Vollbildmodus der Anwendung umschalten"
-    },
     "goToStep": "Zu Schritt {step}",
     "hintLabel": "Tipp"
   },
@@ -503,7 +499,12 @@
     "loginSubtitle": "Sehen Sie die Kanäle, denen Sie folgen",
     "noChannels": "Keine Kanäle online",
     "noChannelsSubtitle": "Favorisiere Kanäle oder verbinde dein Twitch-Konto.",
-    "previewUnavailable": "Vorschau nicht verfügbar"
+    "previewUnavailable": "Vorschau nicht verfügbar",
+    "tabFollowing": "Folge ich",
+    "tabFavorites": "Favoriten",
+    "noFavoriteSites": "Noch keine Favoriten-Websites",
+    "noFavoriteSitesSubtitle": "Tippe auf das Herz einer Website-Kachel, um sie hier zu speichern.",
+    "tabStreams": "Streams"
   },
   "nativePlayer": {
     "live": "LIVE",
@@ -542,11 +543,14 @@
   },
   "immersive": {
     "tooltip": "Immersiver Modus",
-    "exitTooltip": "Immersiven Modus verlassen (Esc)"
+    "exitTooltip": "Immersiven Modus verlassen",
+    "enter": "Fullscreen",
+    "exit": "Exit immersive mode",
+    "exitFullscreen": "Exit fullscreen"
   },
   "preferences": {
     "immersive": {
-      "toastEnabled": "Immersiver Modus aktiviert — Bildschirmränder berühren oder Esc zum Beenden drücken (F11 für Vollbild)"
+      "toastEnabled": "Immersiver Modus aktiviert — fahre an die Bildschirmränder, um die Leisten zu zeigen, oder verlasse ihn über die Schaltfläche oben"
     }
   },
   "app": {
@@ -562,7 +566,10 @@
     "forward": "Go forward",
     "loading": "Loading {title}...",
     "mobileView": "Switch to mobile view",
-    "reload": "Reload page"
+    "reload": "Reload page",
+    "fitVideo": "Video der Seite an diese Kachel anpassen",
+    "fitVideoExit": "Seite wiederherstellen",
+    "fitVideoNone": "Auf dieser Seite wurde kein Video gefunden"
   },
   "layouts": {
     "addToSlot": "Add stream",
@@ -608,7 +615,77 @@
     "pipFour": "4 PiP in Ecken",
     "pipSix": "6 PiP im Raster",
     "stripThree": "3 PiP als Streifen",
-    "stripFour": "4 PiP als Streifen"
+    "stripFour": "4 PiP als Streifen",
+    "editCustom": "Edit layout",
+    "openEditor": "Layout editor",
+    "editor": {
+      "title": "Layout editor",
+      "name": "Layout name",
+      "defaultName": "My layout",
+      "editedName": "{name} (edited)",
+      "undo": "Undo (Ctrl+Z)",
+      "redo": "Redo (Ctrl+Shift+Z)",
+      "draw": "Draw a slot (D): drag on the canvas. Drawn inside a tile it becomes a PiP",
+      "snap": "Snapping (S): hold Alt while dragging to bypass",
+      "close": "Close (Esc)",
+      "startFrom": "Start from",
+      "blank": "Blank",
+      "grid": "Uniform grid",
+      "applyGrid": "Replace the canvas with a {cols} × {rows} grid",
+      "columns": "columns",
+      "rows": "rows",
+      "fewer": "Fewer {what}",
+      "more": "More {what}",
+      "emptyCanvas": "Empty canvas. Draw a slot, pick a starting shape, or:",
+      "fullTile": "One full tile",
+      "addPip": "Add PiP",
+      "addPipKey": "Add a picture-in-picture (P)",
+      "fillGaps": "Fill gaps",
+      "gapHint": "Empty: double-click to fill with a tile",
+      "summary": "{tiles} tiles · {pips} PiPs",
+      "gapShare": "{pct}% of the frame is empty",
+      "noSelection": "Click a slot to edit it. Drag to move, pull the handles to resize. Shared edges move together; hold Alt to resize one tile on its own.",
+      "main": "Main",
+      "tile": "Tile",
+      "pip": "PiP",
+      "slot": "Slot {n}",
+      "deselect": "Deselect (Esc)",
+      "position": "Position and size (%)",
+      "splitCols": "Split into {n} columns",
+      "splitRows": "Split into {n} rows",
+      "split": "Split",
+      "pipStrip": "PiP row",
+      "pipStripHint": "A row of {n} PiPs along the bottom",
+      "pipPosition": "PiP position",
+      "pipSize": "PiP size",
+      "duplicate": "Duplicate (Ctrl+D)",
+      "earlier": "Fill earlier",
+      "later": "Fill later",
+      "backward": "Send backward",
+      "forward": "Bring forward",
+      "makeMain": "Make main (gets the first stream)",
+      "remove": "Remove (Delete)",
+      "floatLimit": "A PiP stays smaller than the tile it floats on",
+      "unsavedTitle": "Discard your changes?",
+      "unsavedBody": "This layout has edits that are not saved.",
+      "keepEditing": "Keep editing",
+      "discard": "Discard",
+      "cancel": "Cancel",
+      "saveNew": "Save as new",
+      "saveChanges": "Save changes",
+      "saved": "Layout \"{name}\" saved",
+      "anchors": {
+        "tl": "Top left",
+        "tc": "Top centre",
+        "tr": "Top right",
+        "ml": "Middle left",
+        "mc": "Centre",
+        "mr": "Middle right",
+        "bl": "Bottom left",
+        "bc": "Bottom centre",
+        "br": "Bottom right"
+      }
+    }
   },
   "workspaces": {
     "add": "Add workspace",
@@ -649,7 +726,7 @@
   "liveNow": {
     "title": "Jetzt live",
     "description": "Live-Streams entdecken und zum aktuellen Arbeitsbereich hinzufügen.",
-    "search": "Kanäle, Titel oder Kategorien suchen…",
+    "search": "Kanäle oder YouTube-Livethemen suchen…",
     "platforms": "Plattformen",
     "category": "Kategorie",
     "allCategories": "Alle Kategorien",
@@ -660,6 +737,292 @@
     "favorite": "{channel} favorisieren",
     "added": "Hinzugefügt",
     "add": "Zum Arbeitsbereich hinzufügen",
-    "more": "Mehr anzeigen"
+    "more": "Mehr anzeigen",
+    "unknown": "Unbekannt",
+    "retry": "Erneut versuchen",
+    "categorySearch": "Kategorien suchen (Kick: 3+ Zeichen)",
+    "moreCategories": "Weitere Kategorien",
+    "clearCategory": "Kategorie entfernen",
+    "directoryTags": "Twitch-Verzeichnis-Tag",
+    "applyTag": "Tag anwenden",
+    "saveFilter": "Filter speichern",
+    "deleteFilter": "Gespeicherten Filter löschen",
+    "loadedSearch": "Geladene Kanäle und Titel filtern",
+    "loadedTags": "Tags geladener Streams filtern",
+    "loadedCount": "Nur geladene Ergebnisse: {matching} von {loaded}",
+    "channelResults": "Kanalsuche",
+    "channelOffline": "Offline",
+    "separateSearch": "Ergebnisse der Kanalsuche",
+    "refresh": "Aktualisieren",
+    "browseCategories": "Kategorien durchsuchen",
+    "backStreams": "Zurück zu Live-Streams",
+    "backCategories": "Zurück zu allen Kategorien",
+    "allTwitchStreams": "Alle Twitch-Live-Streams",
+    "clearTags": "Tags löschen",
+    "removeTag": "Tag {tag} entfernen",
+    "chooseCategory": "Wähle eine Kategorie für Live-Streams.",
+    "categoryViewers": "{count} Zuschauer",
+    "twitchCategorySearch": "Kategorien nach Namen suchen",
+    "saveTags": "Tags speichern",
+    "twitchTagsPlaceholder": "Tags, z. B. English, DropsEnabled"
+  },
+  "media": {
+    "source": "Source",
+    "unreachable": "The stream could not be reached. It may be offline, or the server may refuse playback outside its own site.",
+    "unsupported": "This player cannot play HLS here.",
+    "playbackFailed": "Playback failed ({detail}).",
+    "kindFile": "File",
+    "quality": "Quality",
+    "qualityMax": "Max",
+    "qualityAuto": "Auto",
+    "stats": "Stats",
+    "statResolution": "Resolution",
+    "statBitrate": "Bitrate",
+    "statBuffer": "Buffer",
+    "statDropped": "Dropped frames",
+    "retry": "Retry"
+  },
+  "siteTools": {
+    "open": "Site tools",
+    "title": "Site tools",
+    "direct": {
+      "title": "Direct stream playback (HLS, experimental)",
+      "description": "Finds the page's live stream (for example a live-room site) and plays it in this tile at the highest quality. Turn it off to return to the page.",
+      "off": "Off",
+      "waiting": "Waiting for the page to load…",
+      "via": "found via {source}",
+      "state": {
+        "searching": "Looking for the stream",
+        "loading": "Loading stream",
+        "playing": "Playing",
+        "failed": "No playable stream, showing the page",
+        "off": "Off"
+      }
+    },
+    "detected": {
+      "title": "Streams found on this page",
+      "refresh": "Refresh",
+      "none": "None yet. Start the video on the page and they appear here.",
+      "copy": "Copy URL",
+      "openTile": "Open as tile"
+    },
+    "record": {
+      "title": "Record",
+      "description": "Records the page's video with Streamlink: a supported site's own stream, or the stream this page is playing.",
+      "needsTools": "Install the recording tools in Settings → Recording first."
+    },
+    "adblock": {
+      "title": "Block ads on this site",
+      "description": "Website ad blocking is on. Switch it off for {host} if the site breaks.",
+      "globallyOff": "Website ad blocking is switched off in Settings → Ad blocking.",
+      "reloadHint": "Saved. Reload the tile to apply it."
+    },
+    "accounts": {
+      "title": "Sign-ins for {domain}",
+      "description": "Save who is signed in to this site, then switch between saved sign-ins. Every tile on the site uses the same sign-in.",
+      "use": "Use",
+      "remove": "Remove saved sign-in",
+      "nameLabel": "Name for this sign-in",
+      "namePlaceholder": "Name, e.g. Main account",
+      "save": "Save current",
+      "signOut": "Sign out of {domain}",
+      "saved": "Sign-in saved",
+      "switched": "Switched sign-in. Tiles on this site are reloading.",
+      "signedOut": "Signed out. Tiles on this site are reloading."
+    }
+  },
+  "adblock": {
+    "title": "Block ads and trackers on websites",
+    "description": "Applies to website tiles and site windows. Twitch, Kick and YouTube keep their own ad blocker under General.",
+    "desktopOnly": "Website ad blocking needs the desktop app.",
+    "never": "never",
+    "updated": "Filter lists checked: {count} updated",
+    "listAdded": "Filter list added",
+    "rulesSaved": "Rules saved",
+    "everyHours": "Every {n} hours",
+    "everyDays": "Every {n} days",
+    "rules": "{count} rules",
+    "blocked": "{count} requests blocked",
+    "lastCheck": "Last checked {when}",
+    "updating": "Updating…",
+    "updateNow": "Update now",
+    "autoUpdate": "Update lists automatically",
+    "interval": "Update interval",
+    "autoUpdateHint": "Lists are re-downloaded in the background once they are older than this interval, or sooner when a list asks for it. Unchanged lists are not downloaded again.",
+    "lists": "Filter lists",
+    "listMeta": "{rules} rules · updated {when}",
+    "notDownloaded": "Not downloaded yet",
+    "removeList": "Remove {name}",
+    "listName": "Name (optional)",
+    "listUrl": "Filter list URL",
+    "addList": "Subscribe",
+    "allowlist": "Trusted sites",
+    "allowlistHint": "Nothing is blocked on these sites or their subdomains.",
+    "removeAllow": "Stop trusting {host}",
+    "allowPlaceholder": "example.com",
+    "allowAdd": "Trust site",
+    "customRules": "My rules",
+    "customRulesHint": "One rule per line, in Adblock Plus / uBlock Origin syntax. Network rules and element-hiding rules are supported.",
+    "saveRules": "Save rules"
+  },
+  "accounts": {
+    "title": "Saved accounts",
+    "description": "Every account you sign in with is kept here, so you can switch without signing in again.",
+    "none": "No saved accounts yet.",
+    "active": "Active",
+    "switched": "Now using {name}",
+    "use": "Use",
+    "remove": "Remove {name}",
+    "add": "Add another account",
+    "sites": "Website sign-ins",
+    "sitesHint": "Saved from a website tile's site tools."
+  },
+  "usage": {
+    "title": "Datenverbrauch",
+    "now": "Jetzt",
+    "session": "Diese Sitzung",
+    "month": "Diesen Monat",
+    "byStream": "Nach Stream",
+    "other": "Andere Kacheln",
+    "idle": "Nichts wird wiedergegeben"
+  },
+  "alerts": {
+    "enable": "Benachrichtigen, wenn live",
+    "disable": "Live-Benachrichtigungen beenden",
+    "enabled": "{channel}: Du wirst benachrichtigt, wenn der Stream live geht",
+    "disabled": "Live-Benachrichtigungen für {channel} aus",
+    "on": "Live-Benachrichtigungen an"
+  },
+  "diagnostics": {
+    "open": "Diagnostics",
+    "title": "Diagnostics",
+    "description": "What the app is doing right now: blocked requests, streams found on pages, direct playback and recording.",
+    "desktopOnly": "Diagnostics need the desktop app.",
+    "siteWindow": "Site window",
+    "network": "Network",
+    "online": "Online",
+    "offline": "Offline",
+    "adblock": "Website ad blocking",
+    "rules": "{count} rules",
+    "off": "Off",
+    "blockedTotal": "Requests blocked",
+    "recorder": "Recorder",
+    "installed": "Installed",
+    "notInstalled": "Not installed",
+    "engineBuilt": "filter engine built in {ms} ms",
+    "tiles": "Tiles",
+    "noTiles": "No streams open.",
+    "tile": "Tile",
+    "type": "Type",
+    "blocked": "Blocked",
+    "streamsFound": "Streams found",
+    "directHls": "Direct HLS",
+    "recording": "Recording",
+    "byList": "Blocked by list",
+    "media": "Streams found on pages",
+    "noMedia": "None yet.",
+    "recentBlocked": "Recently blocked",
+    "filter": "Filter",
+    "noBlocked": "Nothing blocked yet.",
+    "refresh": "Refresh",
+    "export": "Export JSON",
+    "clear": "Clear log"
+  },
+  "favoritesPanel": {
+    "title": "Favorites",
+    "liveBadge": "{count} live",
+    "liveBadgeTitle": "{count} of your favorites are live",
+    "empty": "Star a channel or a website tile and it appears here.",
+    "searchLabel": "Search favorites",
+    "searchPlaceholder": "Search {count} favorites…",
+    "clear": "Clear",
+    "filterLabel": "Show favorites",
+    "noMatch": "No favorite matches “{query}”.",
+    "noneHere": "None here right now.",
+    "showAll": "Show all",
+    "allShownWhileSearching": "Every match is shown while searching",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "showMore": "Show {count} more",
+    "showLess": "Show less",
+    "live": "live",
+    "rightClick": "right-click for more",
+    "open": "Open",
+    "pin": "Pin to top",
+    "unpin": "Unpin",
+    "copyAddress": "Copy address",
+    "copied": "Address copied",
+    "remove": "Remove from favorites",
+    "groups": {
+      "pinned": "Pinned",
+      "live": "Live now",
+      "others": "Others"
+    },
+    "chips": {
+      "all": "All",
+      "live": "Live",
+      "twitch": "Twitch",
+      "kick": "Kick",
+      "youtube": "YouTube",
+      "tiktok": "TikTok",
+      "web": "Websites",
+      "other": "More links"
+    }
+  },
+  "sidebarSections": {
+    "title": "Control room",
+    "fold": "Fold the sidebar",
+    "unfold": "Open the sidebar",
+    "collapseAll": "Fold every section away",
+    "expandAll": "Show every section",
+    "collapse": "Collapse {name}",
+    "expand": "Expand {name}",
+    "streams": {
+      "title": "Streams"
+    },
+    "layout": {
+      "title": "Layout"
+    },
+    "following": {
+      "title": "Following",
+      "refresh": "Check who is live now"
+    },
+    "favorites": {
+      "title": "Favorites"
+    },
+    "presets": {
+      "title": "Presets",
+      "defaultName": "My preset",
+      "namePlaceholder": "Preset name…",
+      "save": "Save preset",
+      "saveAll": "Save all {count} streams…",
+      "saveEmpty": "Save workspace…",
+      "saveTitle": "Save all {count} streams in this workspace as one preset",
+      "addFirst": "Add a stream first: a preset saves the whole workspace",
+      "empty": "No presets yet.",
+      "applyTitle": "Add {count} streams from “{name}” to this workspace",
+      "applied": "Added {count} streams from “{name}”",
+      "rename": "Rename preset",
+      "delete": "Delete preset"
+    },
+    "history": {
+      "title": "History",
+      "searchLabel": "Search history",
+      "searchPlaceholder": "Search {count} entries…",
+      "noMatch": "Nothing in history matches “{query}”.",
+      "empty": "Nothing watched yet.",
+      "addFavorite": "Add to favorites",
+      "remove": "Remove from history",
+      "clear": "Clear",
+      "clearConfirm": "Clear all?",
+      "clearTitle": "Clear history (favorites are kept)"
+    },
+    "workspaces": {
+      "title": "Workspaces",
+      "rename": "Workspace name",
+      "renameTitle": "Click to rename",
+      "newPlaceholder": "New workspace…",
+      "open": "Open workspace"
+    }
   }
 }

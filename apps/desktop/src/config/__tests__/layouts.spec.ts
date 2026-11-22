@@ -82,6 +82,36 @@ describe("layouts config unit tests", () => {
       ]);
     });
 
+    it("should keep a pinned stream on its slot and fill the rest in order", () => {
+      // Arrange
+      const streams = makeStreams(2);
+      streams[1] = { ...streams[1]!, slot: 3 };
+
+      // Act
+      const arranged = arrangeStreams("quad", streams, null);
+
+      // Assert
+      expect(arranged.placedById["id-0"]?.slotIndex).toBe(0);
+      expect(arranged.placedById["id-1"]?.slotIndex).toBe(3);
+      expect(arranged.emptyPlacements.map((slot) => slot.index)).toEqual([1, 2]);
+    });
+
+    it("should ignore a pin that is taken, out of range, or for the focused stream", () => {
+      // Arrange
+      const streams = makeStreams(3);
+      streams.forEach((stream, index) => {
+        stream.slot = index === 2 ? 9 : 1;
+      });
+
+      // Act
+      const arranged = arrangeStreams("quad", streams, "id-1");
+
+      // Assert
+      expect(arranged.placedById["id-1"]?.slotIndex).toBe(0);
+      expect(arranged.placedById["id-0"]?.slotIndex).toBe(1);
+      expect(arranged.placedById["id-2"]?.slotIndex).toBe(2);
+    });
+
     it("should restore a fixed layout after overflow is removed", () => {
       // Arrange
       const streams = makeStreams(5);

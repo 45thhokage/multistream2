@@ -10,6 +10,8 @@ import { useStreamQuality } from "@/composables/useStreamQuality";
 import { useWorkspaces } from "@/composables/useWorkspaces";
 import { PLATFORMS } from "@/config/platforms";
 
+/** `bare`: inside a sidebar section, which supplies the title and the frame. */
+defineProps<{ bare?: boolean }>();
 const { t } = useI18n();
 const outputAvailable = nativeOutputAvailable();
 const { activeStreams, removeStream } = useStreams();
@@ -30,11 +32,15 @@ const changeQuality = (id: string, event: Event) => {
 
 <template>
   <section
-    class="shrink-0 max-h-[45%] overflow-y-auto border-b border-[#2a2d33] p-2 space-y-2 text-gray-400"
+    :class="
+      bare
+        ? 'space-y-2 text-gray-400'
+        : 'shrink-0 max-h-[45%] overflow-y-auto border-b border-[#2a2d33] p-2 space-y-2 text-gray-400'
+    "
     :aria-label="t('mixer.title')"
     data-testid="stream-mixer"
   >
-    <h2 class="text-xs font-semibold text-white px-1">{{ t("mixer.title") }}</h2>
+    <h2 v-if="!bare" class="text-xs font-semibold text-white px-1">{{ t("mixer.title") }}</h2>
     <p v-if="!outputAvailable" class="text-xs px-1" data-testid="mixer-native-required">
       {{ t("mixer.nativeRequired") }}
     </p>

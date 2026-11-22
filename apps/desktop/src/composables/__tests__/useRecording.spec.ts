@@ -90,7 +90,49 @@ describe("useRecording", () => {
       platform: mockStream.platform,
       quality: "1080p",
       outputDir: null,
+      sourceUrl: null,
     });
+    scope.stop();
+  });
+
+  it("records custom tiles as url sources", async () => {
+    // Arrange
+    const scope = effectScope();
+    const { startRecording, isRecording } = scope.run(() => useRecording())!;
+    const custom = {
+      id: "123e4567-e89b-12d3-a456-426614174999",
+      channel: "site",
+      platform: "custom" as const,
+    };
+    // Act
+    await startRecording(custom, "best", "https://cdn.example.com/live/master.m3u8");
+    // Assert
+    expect(isRecording(custom.id)).toBe(true);
+    expect(invoke).toHaveBeenCalledWith("start_recording", {
+      streamId: custom.id,
+      channel: "site",
+      platform: "url",
+      quality: "best",
+      outputDir: null,
+      sourceUrl: "https://cdn.example.com/live/master.m3u8",
+    });
+    scope.stop();
+  });
+
+  it("refuses custom tiles without a source url", async () => {
+    // Arrange
+    const scope = effectScope();
+    const { startRecording, isRecording } = scope.run(() => useRecording())!;
+    const custom = {
+      id: "123e4567-e89b-12d3-a456-426614174998",
+      channel: "site",
+      platform: "custom" as const,
+    };
+    // Act
+    await startRecording(custom, "best");
+    // Assert
+    expect(isRecording(custom.id)).toBe(false);
+    expect(toast.error).toHaveBeenCalledWith("settings.recording.customNotSupported");
     scope.stop();
   });
 

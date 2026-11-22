@@ -1,6 +1,15 @@
 import { createSharedComposable, useStorage } from "@vueuse/core";
 import { DEFAULT_LAYOUT } from "@/config/layouts";
 
+export type SidebarTab =
+  | "streams"
+  | "layout"
+  | "following"
+  | "favorites"
+  | "presets"
+  | "history"
+  | "workspaces";
+
 export interface Preferences {
   selectedChat: string;
   sidebarOpen: boolean;
@@ -14,6 +23,9 @@ export interface Preferences {
   nativePlayerEnabled: boolean;
   adblockEnabled: boolean;
   immersiveModeEnabled: boolean;
+  fitVideoAuto: boolean;
+  tabbedSidebar: boolean;
+  sidebarTab: SidebarTab;
   streamLayout: string;
 }
 
@@ -30,6 +42,9 @@ const defaultPreferences: Preferences = {
   nativePlayerEnabled: false,
   adblockEnabled: true,
   immersiveModeEnabled: false,
+  fitVideoAuto: true,
+  tabbedSidebar: false,
+  sidebarTab: "following",
   streamLayout: DEFAULT_LAYOUT,
 };
 
@@ -102,6 +117,20 @@ const _usePreferences = () => {
   const immersiveModeEnabled = useStorage<boolean>(
     "preferences.immersiveModeEnabled",
     defaultPreferences.immersiveModeEnabled
+  );
+  /** Fit a website tile's video to the tile when the viewer presses play in it. */
+  const fitVideoAuto = useStorage<boolean>(
+    "preferences.fitVideoAuto",
+    defaultPreferences.fitVideoAuto
+  );
+  /** Left sidebar shows one section at a time from a strip of icon tabs. */
+  const tabbedSidebar = useStorage<boolean>(
+    "preferences.tabbedSidebar",
+    defaultPreferences.tabbedSidebar
+  );
+  const sidebarTab = useStorage<SidebarTab>(
+    "preferences.sidebarTab",
+    defaultPreferences.sidebarTab
   );
   const streamLayout = useStorage<string>(
     "preferences.streamLayout",
@@ -208,6 +237,9 @@ const _usePreferences = () => {
     nativePlayerEnabled.value = defaultPreferences.nativePlayerEnabled;
     adblockEnabled.value = defaultPreferences.adblockEnabled;
     immersiveModeEnabled.value = defaultPreferences.immersiveModeEnabled;
+    fitVideoAuto.value = defaultPreferences.fitVideoAuto;
+    tabbedSidebar.value = defaultPreferences.tabbedSidebar;
+    sidebarTab.value = defaultPreferences.sidebarTab;
     streamLayout.value = defaultPreferences.streamLayout;
   };
 
@@ -225,6 +257,9 @@ const _usePreferences = () => {
     nativePlayerEnabled,
     adblockEnabled,
     immersiveModeEnabled,
+    fitVideoAuto,
+    tabbedSidebar,
+    sidebarTab,
     streamLayout,
 
     // actions

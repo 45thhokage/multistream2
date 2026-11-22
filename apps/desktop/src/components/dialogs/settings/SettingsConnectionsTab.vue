@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from "vue";
 import { TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import ConfirmDialog from "@/components/dialogs/ConfirmDialog.vue";
+import SavedAccountsSection from "./SavedAccountsSection.vue";
 import { PLATFORMS } from "@/config/platforms";
 import { useTwitchAuth } from "@/composables/useTwitchAuth";
 import { useKickAuth } from "@/composables/useKickAuth";
@@ -320,6 +321,8 @@ const handleConnect = (platformId: string) => {
         </ul>
       </div>
     </div>
+
+    <SavedAccountsSection @close="emit('close')" />
   </TabsContent>
 
   <!-- Disconnect Confirmation Dialog -->

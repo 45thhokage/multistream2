@@ -192,4 +192,127 @@ describe("useDragAndDrop unit tests", () => {
       expect(sut.isDragging.value).toBe(false);
     });
   });
+  describe("Empty slots and cancelling", () => {
+    it("should pin the dragged stream to the empty slot it was dropped on", () => {
+      // Arrange
+      sut.onMouseDown("stream-1");
+      sut.onSlotEnter(5);
+
+      // Act
+      sut.onSlotMouseUp();
+
+      // Assert
+      expect(mockStreamsRef.value.map((s) => s.id)).toEqual(["stream-2", "stream-3", "stream-1"]);
+      expect(mockStreamsRef.value[2]?.slot).toBe(5);
+      expect(sut.isDragging.value).toBe(false);
+      expect(sut.overSlot.value).toBeNull();
+    });
+
+    it("should keep the other tiles where they are when a tile moves to an empty slot", () => {
+      // Arrange: quad layout, three tiles filling slots 0-2, slot 3 empty
+      const slots: Record<string, number> = { "stream-1": 0, "stream-2": 1, "stream-3": 2 };
+      const slotOf = (id: string) => slots[id];
+      sut.onMouseDown("stream-1");
+      sut.onSlotEnter(3);
+
+      // Act
+      sut.onSlotMouseUp(slotOf);
+
+      // Assert: stream-2/3 stay pinned on their tiles instead of sliding into the vacated slot 0
+      const pins = Object.fromEntries(mockStreamsRef.value.map((s) => [s.id, s.slot]));
+      expect(pins).toEqual({ "stream-1": 3, "stream-2": 1, "stream-3": 2 });
+    });
+
+    it("should leave the order alone when released outside any slot", () => {
+      // Arrange
+      sut.onMouseDown("stream-1");
+      sut.onSlotEnter(5);
+      sut.onSlotLeave();
+
+      // Act
+      sut.onSlotMouseUp();
+
+      // Assert
+      expect(mockStreamsRef.value.map((s) => s.id)).toEqual(["stream-1", "stream-2", "stream-3"]);
+    });
+
+    it("should highlight one kind of target at a time", () => {
+      // Arrange
+      sut.onMouseDown("stream-1");
+
+      // Act
+      sut.onMouseEnter("stream-2");
+      sut.onSlotEnter(4);
+
+      // Assert
+      expect(sut.overId.value).toBeNull();
+      expect(sut.overSlot.value).toBe(4);
+    });
+
+    it("should cancel a drag without changing the order", () => {
+      // Arrange
+      sut.onMouseDown("stream-1");
+      sut.onMouseEnter("stream-2");
+
+      // Act
+      sut.cancelDrag();
+      sut.onMouseUp("stream-2");
+
+      // Assert
+      expect(mockStreamsRef.value.map((s) => s.id)).toEqual(["stream-1", "stream-2", "stream-3"]);
+      expect(sut.isDragging.value).toBe(false);
+    });
+  });
+
+  describe("Drag threshold", () => {
+    beforeEach(() => {
+      vi.stubGlobal("window", new EventTarget());
+    });
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+    const press = (x: number, y: number) => ({ clientX: x, clientY: y }) as MouseEvent;
+    const move = (x: number, y: number) =>
+      window.dispatchEvent(Object.assign(new Event("mousemove"), { clientX: x, clientY: y }));
+
+    it("should not start a drag from a press that barely moves or is released", () => {
+      // Arrange
+      sut.beginDragOnMove("stream-1", press(100, 100));
+
+      // Act
+      move(102, 101);
+      window.dispatchEvent(new Event("mouseup"));
+      move(200, 200);
+
+      // Assert
+      expect(sut.isDragging.value).toBe(false);
+    });
+
+    it("should forget a press whose release the page never saw", () => {
+      // Arrange: pressed on a grip, released over a native tile (no mouseup reaches the page)
+      sut.beginDragOnMove("stream-1", press(100, 100));
+
+      // Act: later the pointer moves over the page with no button held
+      window.dispatchEvent(
+        Object.assign(new Event("mousemove"), { clientX: 300, clientY: 300, buttons: 0 })
+      );
+      window.dispatchEvent(
+        Object.assign(new Event("mousemove"), { clientX: 400, clientY: 400, buttons: 1 })
+      );
+
+      // Assert
+      expect(sut.isDragging.value).toBe(false);
+    });
+
+    it("should start the drag once the pointer has moved far enough", () => {
+      // Arrange
+      sut.beginDragOnMove("stream-1", press(100, 100));
+
+      // Act
+      move(110, 100);
+
+      // Assert
+      expect(sut.draggingId.value).toBe("stream-1");
+    });
+  });
 });

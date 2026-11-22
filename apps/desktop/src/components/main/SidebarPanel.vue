@@ -99,7 +99,12 @@ const sidebarMode = ref<"chat" | "transcript">("chat");
 const hasLoadedUnifiedChat = ref(false);
 const hasLoadedTranscript = ref(false);
 
-const { streams, activeStreams } = useStreams();
+const { streams, activeStreams, pendingSlot } = useStreams();
+
+// A tile picked before the dialog opened only applies to that one add.
+watch(addDialogOpen, (open) => {
+  if (!open) pendingSlot.value = null;
+});
 const chatableStreams = computed(() => activeStreams.value.filter((s) => s.platform !== "custom"));
 const { unifiedChatState } = useUnifiedChatState();
 const { selectedChat, sidebarOpen } = usePreferences();
@@ -110,6 +115,7 @@ const {
   revealRightPanel,
   scheduleHideRightPanel,
   toggleImmersiveMode,
+  exitImmersive,
 } = useImmersiveMode();
 
 const isSelectOpen = ref(false);
@@ -241,6 +247,7 @@ onUnmounted(() => {
 <template>
   <aside
     :inert="immersiveModeEnabled && !isRightPanelRevealed"
+    :data-native-cutout="immersiveModeEnabled && isRightPanelRevealed ? true : undefined"
     :class="[
       immersiveModeEnabled
         ? [
@@ -517,7 +524,7 @@ onUnmounted(() => {
                   "
                   class="group aspect-square h-auto w-full p-0 flex items-center justify-center rounded-xl border-[#2a2d33] bg-[#14161a] hover:bg-[#1c1f24] hover:border-[#3a3f4b] transition-all duration-200"
                   variant="outline"
-                  @click="toggleImmersiveMode"
+                  @click="immersiveModeEnabled ? exitImmersive() : toggleImmersiveMode()"
                 >
                   <component
                     :is="immersiveModeEnabled ? Minimize2 : Maximize2"

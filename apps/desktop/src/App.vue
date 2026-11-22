@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { useQualityBridge } from "@/composables/useStreamQuality";
 import { ref, watch, onMounted, onUnmounted } from "vue";
-import { Menu, X, WifiOff } from "@lucide/vue";
+import { useEventListener } from "@vueuse/core";
+import { Activity, Maximize, Minimize, Menu, Plus, X, WifiOff } from "@lucide/vue";
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { useStreams, type Platform } from "./composables/useStreams";
+import { useDragAndDrop } from "./composables/useDragAndDrop";
+import { useFitVideo } from "./composables/useFitVideo";
 import { usePreferences } from "./composables/usePreferences";
 import { useUpdater, isTauri } from "./composables/useUpdater";
 import { useLiveStatus } from "./composables/useLiveStatus";
@@ -21,25 +24,34 @@ import FollowedChannelsSidebar from "./components/main/FollowedChannelsSidebar.v
 import SidebarPanel from "./components/main/SidebarPanel.vue";
 import StreamGrid from "./components/main/StreamGrid.vue";
 import LiveNow from "./components/main/LiveNow.vue";
+import LiveNowPanel from "./components/main/LiveNowPanel.vue";
 import LayoutPicker from "./components/main/LayoutPicker.vue";
 import AudioModePicker from "./components/main/AudioModePicker.vue";
+import DataUsage from "./components/main/DataUsage.vue";
+import FavoriteContextMenu from "./components/main/FavoriteContextMenu.vue";
 import WorkspaceTabs from "./components/main/WorkspaceTabs.vue";
 import EmptyState from "./components/main/EmptyState.vue";
 import OnboardingTour from "./components/dialogs/OnboardingTour.vue";
 import TwitchAuthDialog from "./components/dialogs/TwitchAuthDialog.vue";
 import KickAuthDialog from "./components/dialogs/KickAuthDialog.vue";
 import ChangelogDialog from "./components/dialogs/ChangelogDialog.vue";
+import DiagnosticsDialog from "./components/dialogs/DiagnosticsDialog.vue";
+import LayoutEditorDialog from "./components/dialogs/LayoutEditorDialog.vue";
+import { useLayoutEditor } from "./composables/useLayoutEditor";
+import { useMaximizedStream } from "./composables/useMaximizedStream";
 
 import { toast } from "@/composables/useToast";
 import { useI18n } from "vue-i18n";
 import { parseUrlOptions } from "./lib/parseUrlOptions";
 import { resolveStream } from "./lib/streamResolver";
+import { nativeOutputAvailable } from "./lib/nativePlayer";
+
+const OVERLAY_PREWARM_DELAY_MS = 3000;
 import { APP_LINKS } from "./config/links";
 
 useQualityBridge();
 useMixerPlayback();
 useNativePlayerBridge(
-  (key) => handleFrameShortcuts(new MessageEvent("message", { data: { type: "SHORTCUT", key } })),
   (tileId, side) => {
     if (!immersiveModeEnabled.value) return;
     const element = document.querySelector(`[data-stream-id="${CSS.escape(tileId)}"]`);
@@ -47,7 +59,8 @@ useNativePlayerBridge(
     if (!rect) return;
     if (side === "left" && rect.left < 14) revealLeftPanel();
     if (side === "right" && rect.right > window.innerWidth - 14) revealRightPanel();
-  }
+  },
+  () => onEscapeKey()
 );
 
 const { onLinkDrop, onLinkDragOver } = useLinkDrop();
@@ -58,6 +71,7 @@ const dismissedWebBanner = ref(false);
 const showTwitchAuth = ref(false);
 const showKickAuth = ref(false);
 const showChangelog = ref(false);
+const showDiagnostics = ref(false);
 
 const hasOpenedOnboarding = ref(false);
 const hasOpenedTwitchAuth = ref(false);
@@ -93,11 +107,12 @@ watch(
   { immediate: true }
 );
 
-const { streams, activeStreams, addStream, clearStreams } = useStreams();
+const { streams, addStream, clearStreams } = useStreams();
 const {
   sidebarOpen,
   streamLayout,
-  setSelectedChat,
+  fitVideoAuto,
+
   onboardingCompleted,
   setOnboardingCompleted,
   pendingChangelogVersion,
@@ -115,19 +130,11 @@ const {
   isRightPanelRevealed,
   revealLeftPanel,
   revealRightPanel,
+  isFullscreen,
+  syncFullscreenState,
   toggleFullscreen,
-  handleEscape,
+  exitImmersive,
 } = useImmersiveMode();
-
-function isModalDialogOpen(): boolean {
-  return (
-    showOnboarding.value ||
-    showTwitchAuth.value ||
-    showKickAuth.value ||
-    showChangelog.value ||
-    Boolean(document.querySelector('[role="dialog"]'))
-  );
-}
 
 onReconnect(() => {
   toast.success(t("network.reconnected"), { id: "network-reconnected", duration: 3000 });
@@ -135,94 +142,54 @@ onReconnect(() => {
 
 useDeepLink();
 
-function handleGlobalKeyDown(e: KeyboardEvent) {
-  if (showOnboarding.value) return;
-
-  const target = e.target as HTMLElement;
-  if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+// Escape leaves fullscreen / immersive mode, unless a dialog or menu is open and wants it.
+const escapeConsumedByOverlay = () =>
+  document.querySelector('[role="dialog"], [role="menu"], [role="listbox"]') !== null;
+const { isDragging, cancelDrag } = useDragAndDrop();
+const fitVideo = useFitVideo();
+// Maximize is per session: the app always opens on the normal grid.
+const maximized = useMaximizedStream();
+maximized.restore();
+// Website tiles get the automatic fit-on-play setting (new pages pick it up on load).
+watch(fitVideoAuto, (enabled) => fitVideo.setAuto(enabled), { immediate: true });
+const onEscapeKey = () => {
+  // Escape while dragging a tile only cancels the drag. A drag started from a native tile keeps
+  // the keyboard in that tile, so its forwarded Escape has to cancel the drag here as well.
+  if (isDragging.value) {
+    cancelDrag();
     return;
   }
-
-  // F11: toggle fullscreen
-  if (e.key === "F11") {
-    e.preventDefault();
-    toggleFullscreen();
+  if (escapeConsumedByOverlay()) return;
+  // A fitted website video puts the page back before Escape leaves fullscreen.
+  if (fitVideo.anyFitted.value) {
+    fitVideo.exitAll();
     return;
   }
-
-  // Escape: exit immersive mode / auto-hide revealed panels if no modal dialog is open
-  if (e.key === "Escape") {
-    if (!isModalDialogOpen()) {
-      handleEscape();
-      return;
-    }
-  }
-
-  const num = parseInt(e.key, 10);
-  if (num >= 1 && num <= 9) {
-    const stream = activeStreams.value[num - 1];
-    if (stream) {
-      setSelectedChat(`${stream.platform}:${stream.channel}`);
-    }
+  // Then a maximized tile goes back to the grid.
+  if (maximized.maximizedStreamId.value) {
+    maximized.restore();
     return;
   }
-
-  // S: screenshot focused stream
-  if (e.key.toLowerCase() === "s") {
-    window.dispatchEvent(new CustomEvent("multistream-screenshot"));
+  if (!immersiveModeEnabled.value && !isFullscreen.value) return;
+  void exitImmersive();
+};
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  if (event.key !== "Escape") return;
+  const target = event.target;
+  // Escape in a text field (e.g. chat in a revealed panel) belongs to that field.
+  if (
+    !isDragging.value &&
+    target instanceof HTMLElement &&
+    (target.closest("input,textarea,select") || target.isContentEditable)
+  )
     return;
-  }
-
-  // D: open add stream dialog
-  if (e.key.toLowerCase() === "d") {
-    window.dispatchEvent(
-      new CustomEvent("multistream-show-dialog", {
-        detail: "add-stream",
-      })
-    );
-  }
-}
-
-function handleFrameShortcuts(e: MessageEvent) {
-  if (e.data?.type !== "SHORTCUT" || showOnboarding.value) return;
-
-  if (e.data?.key === "F11") {
-    toggleFullscreen();
-    return;
-  }
-
-  if (e.data?.key === "Escape") {
-    if (!isModalDialogOpen()) {
-      handleEscape();
-      return;
-    }
-  }
-
-  // 1-9: quick select chat
-  const num = parseInt(e.data.key, 10);
-  if (num >= 1 && num <= 9) {
-    const stream = activeStreams.value[num - 1];
-    if (stream) {
-      setSelectedChat(`${stream.platform}:${stream.channel}`);
-    }
-    return;
-  }
-
-  // S: screenshot focused stream
-  if (e.data?.key?.toLowerCase() === "s") {
-    window.dispatchEvent(new CustomEvent("multistream-screenshot"));
-    return;
-  }
-
-  // D: open add stream dialog
-  if (e.data?.key?.toLowerCase() === "d") {
-    window.dispatchEvent(
-      new CustomEvent("multistream-show-dialog", {
-        detail: "add-stream",
-      })
-    );
-  }
-}
+  onEscapeKey();
+});
+// Embedded players in this window (non-native mode) keep key presses to themselves; the injected
+// tile_interaction.js script posts Escape up instead.
+useEventListener(window, "message", (event: MessageEvent) => {
+  if (event.data?.type === "NATIVE_ESCAPE") onEscapeKey();
+});
 
 watch(immersiveModeEnabled, (enabled) => {
   if (enabled) {
@@ -245,6 +212,10 @@ watch(locale, () => {
   }
 });
 
+function openAddStream() {
+  window.dispatchEvent(new CustomEvent("multistream-show-dialog", { detail: "add-stream" }));
+}
+
 function handleDialogShowEvent(e: Event) {
   const evt = e as CustomEvent;
   if (evt.detail === "onboarding-tour") {
@@ -255,15 +226,24 @@ function handleDialogShowEvent(e: Event) {
     showKickAuth.value = true;
   } else if (evt.detail === "changelog") {
     showChangelog.value = true;
+  } else if (evt.detail === "diagnostics") {
+    showDiagnostics.value = true;
   }
 }
+
+// The layout picker may run in its own overlay window; it asks this window to open the editor.
+const layoutEditor = useLayoutEditor();
+layoutEditor.listenForLayoutEditorRequests();
 
 let unlistenWatch: UnlistenFn | null = null;
 
 onMounted(async () => {
-  window.addEventListener("keydown", handleGlobalKeyDown);
-  window.addEventListener("message", handleFrameShortcuts);
   window.addEventListener("multistream-show-dialog", handleDialogShowEvent);
+  void syncFullscreenState();
+
+  // Create the layout/preview overlay after startup so it never races the splash handoff.
+  if (nativeOutputAvailable())
+    setTimeout(() => invoke("prewarm_ui_overlay").catch(() => {}), OVERLAY_PREWARM_DELAY_MS);
 
   if (isTauri()) {
     invoke("stop_all_recordings_on_reload").catch(() => {});
@@ -348,8 +328,6 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
-  window.removeEventListener("keydown", handleGlobalKeyDown);
-  window.removeEventListener("message", handleFrameShortcuts);
   window.removeEventListener("multistream-show-dialog", handleDialogShowEvent);
 
   if (unlistenWatch) {
@@ -380,12 +358,6 @@ onUnmounted(() => {
       </div>
     </Transition>
 
-    <span
-      v-if="immersiveModeEnabled && (isLeftPanelRevealed || isRightPanelRevealed)"
-      data-native-overlay
-      class="hidden"
-      aria-hidden="true"
-    />
     <!-- left sidebar -->
     <FollowedChannelsSidebar />
 
@@ -427,16 +399,48 @@ onUnmounted(() => {
         >
           <WorkspaceTabs />
           <div class="flex-1" />
+          <button
+            type="button"
+            data-testid="add-stream-button"
+            class="h-8 shrink-0 inline-flex items-center gap-1.5 rounded-md border border-[#2a2d33] bg-[#1f2227] px-3 text-sm font-medium text-gray-200 transition-colors hover:bg-[#2a2d33] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            @click="openAddStream"
+          >
+            <Plus class="size-3.5" aria-hidden="true" />{{ $t("layouts.addToSlot") }}
+          </button>
+          <DataUsage />
           <AudioModePicker />
           <LayoutPicker />
           <LiveNow />
+          <button
+            type="button"
+            data-testid="diagnostics-button"
+            :aria-label="$t('diagnostics.open')"
+            :title="$t('diagnostics.open')"
+            class="h-8 w-8 flex items-center justify-center rounded-md text-gray-400 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            @click="showDiagnostics = true"
+          >
+            <Activity class="size-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            data-testid="fullscreen-button"
+            :aria-label="$t('immersive.enter')"
+            :title="$t('immersive.enter')"
+            class="h-8 w-8 flex items-center justify-center rounded-md text-gray-400 hover:text-white hover:bg-white/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            @click="toggleFullscreen"
+          >
+            <Maximize class="size-4" aria-hidden="true" />
+          </button>
         </div>
 
-        <div class="flex-1 min-h-0 overflow-y-auto">
-          <!-- stream grid (all rooms stay mounted so switching never pauses) -->
-          <StreamGrid v-if="streams.length > 0 || streamLayout !== 'auto'" />
+        <div class="flex-1 min-h-0 flex">
+          <div class="flex-1 min-w-0 min-h-0 overflow-y-auto">
+            <!-- stream grid (all rooms stay mounted so switching never pauses) -->
+            <StreamGrid v-if="streams.length > 0 || streamLayout !== 'auto'" />
 
-          <EmptyState v-else @add="sidebarRef?.openAddDialog()" @tour="showOnboarding = true" />
+            <EmptyState v-else @add="sidebarRef?.openAddDialog()" @tour="showOnboarding = true" />
+          </div>
+          <LiveNowPanel v-if="!immersiveModeEnabled" />
         </div>
       </main>
     </div>
@@ -468,6 +472,23 @@ onUnmounted(() => {
       <Menu class="size-4 text-gray-400 group-hover:text-white transition-colors duration-200" />
     </button>
 
+    <!-- leave fullscreen / immersive mode (Escape works too). Native stream tiles are drawn above
+         the page, so the button cuts its own hole in them or it would be hidden under the grid. -->
+    <button
+      v-if="immersiveModeEnabled"
+      type="button"
+      data-testid="immersive-exit"
+      :data-native-cutout="nativeOutputAvailable() ? true : undefined"
+      :aria-label="isFullscreen ? $t('immersive.exitFullscreen') : $t('immersive.exit')"
+      :title="isFullscreen ? $t('immersive.exitFullscreen') : $t('immersive.exit')"
+      class="fixed top-2 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 rounded-full border border-white/10 bg-black/70 px-3 py-1 text-xs text-white/90 hover:bg-black/90 transition-colors"
+      @click="exitImmersive"
+    >
+      <Minimize class="size-3.5" aria-hidden="true" />
+      {{ isFullscreen ? $t("immersive.exitFullscreen") : $t("immersive.exit") }}
+    </button>
+
+    <FavoriteContextMenu />
     <ToastProvider />
 
     <!-- onboarding tour -->
@@ -481,5 +502,7 @@ onUnmounted(() => {
     <TwitchAuthDialog v-if="hasOpenedTwitchAuth" v-model:open="showTwitchAuth" />
     <KickAuthDialog v-if="hasOpenedKickAuth" v-model:open="showKickAuth" />
     <ChangelogDialog v-if="hasOpenedChangelog" v-model:open="showChangelog" />
+    <DiagnosticsDialog v-if="showDiagnostics" v-model:open="showDiagnostics" />
+    <LayoutEditorDialog v-if="layoutEditor.request.value" />
   </div>
 </template>

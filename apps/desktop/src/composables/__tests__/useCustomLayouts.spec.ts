@@ -20,6 +20,24 @@ describe("useCustomLayouts composable unit tests", () => {
     sut = useCustomLayouts();
   });
 
+  it("updates a saved layout in place, keeping its id", () => {
+    // Arrange
+    const saved = sut.saveCustomLayout("Before", 2, 2);
+    const slots = [
+      { x: 0, y: 0, w: 0.7, h: 1 },
+      { x: 0.7, y: 0, w: 0.3, h: 1 },
+    ];
+
+    // Act
+    const found = sut.updateCustomLayout(saved.id, " After ", slots);
+
+    // Assert
+    expect(found).toBe(true);
+    expect(sut.customLayouts.value).toHaveLength(1);
+    expect(sut.customLayouts.value[0]).toMatchObject({ id: saved.id, name: "After", slots });
+    expect(sut.updateCustomLayout("custom-missing", "x", slots)).toBe(false);
+  });
+
   it("should save a custom layout with clamped dimensions", () => {
     // Arrange
     const { saveCustomLayout, customLayouts } = sut;

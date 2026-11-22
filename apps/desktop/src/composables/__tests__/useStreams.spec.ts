@@ -86,12 +86,10 @@ describe("useStreams composable unit tests", () => {
     if (!preferences) throw new Error("missing preferences scope");
     preferences.streamLayout.value = "solo";
     sut.addStream("first", "twitch");
-    // Act
-    sut.addStream("first", "twitch");
-    // Assert
+    // Assert: one stream still fits Solo
     expect(preferences.streamLayout.value).toBe("solo");
-    // Act
-    sut.addStream("second", "twitch");
+    // Act: a second tile (here the same channel again, which is allowed)
+    sut.addStream("first", "twitch");
     // Assert
     expect(preferences.streamLayout.value).toBe("duo");
   });
@@ -127,22 +125,20 @@ describe("useStreams composable unit tests", () => {
     expect(streams.value[0]?.displayName).toBe("@casimiro");
   });
 
-  it("should not add a duplicate stream", () => {
+  it("should add the same stream twice as two separate tiles", () => {
     // Arrange
     const { addStream, streams } = sut;
 
-    // Act (first add)
-    addStream("alanzoka", "twitch");
+    // Act
+    const first = addStream("alanzoka", "twitch");
+    const second = addStream("alanzoka", "twitch");
 
-    // Assert (ensure stream was added)
-    expect(streams.value.length).toBe(1);
-
-    // Act (second add)
-    addStream("alanzoka", "twitch");
-
-    // Assert (ensure stream was not added)
-    expect(streams.value.length).toBe(1);
-    expect(toast.warning).toHaveBeenCalledWith("toasts.add.alreadyAdded");
+    // Assert
+    expect(streams.value.length).toBe(2);
+    expect(first).toBeTruthy();
+    expect(second).toBeTruthy();
+    expect(first).not.toBe(second);
+    expect(toast.warning).not.toHaveBeenCalled();
   });
 
   it("should allow different platforms for the same channel", () => {
@@ -171,17 +167,17 @@ describe("useStreams composable unit tests", () => {
     expect(streams.value[1]?.iframeUrl).toBe("https://site2.com/embed");
   });
 
-  it("should prevent duplicate custom streams with the same iframeUrl", () => {
-    // Arrange
+  it("should open a website again even when a tile was opened on the same URL", () => {
+    // Arrange: a website tile opened on the home page (and since browsed elsewhere)
     const { addStream, streams } = sut;
+    addStream("www.camsoda.com", "custom", "https://www.camsoda.com");
 
     // Act
-    addStream("Stream 1", "custom", "https://site.com/embed");
-    addStream("Stream 2", "custom", "https://site.com/embed");
+    addStream("www.camsoda.com", "custom", "https://www.camsoda.com");
 
     // Assert
-    expect(streams.value.length).toBe(1);
-    expect(toast.warning).toHaveBeenCalledWith("toasts.add.alreadyAdded");
+    expect(streams.value.length).toBe(2);
+    expect(toast.warning).not.toHaveBeenCalled();
   });
 
   it("should remove a stream by ID and show displayName in toast", () => {
@@ -494,7 +490,7 @@ describe("useStreams composable unit tests", () => {
       expect(activeStreams.value).toHaveLength(1);
     });
 
-    it("should allow the same channel in different workspaces but not twice in one", () => {
+    it("should allow the same channel twice in one workspace and in another", () => {
       // Arrange
       const { addStream, streams } = sut;
       addStream("gaules", "twitch");
@@ -506,8 +502,8 @@ describe("useStreams composable unit tests", () => {
       addStream("gaules", "twitch");
 
       // Assert
-      expect(streams.value).toHaveLength(2);
-      expect(toast.warning).toHaveBeenCalledWith("toasts.add.alreadyAdded");
+      expect(streams.value).toHaveLength(3);
+      expect(toast.warning).not.toHaveBeenCalled();
     });
 
     it("should cap streams per workspace instead of globally", () => {
@@ -559,10 +555,10 @@ describe("useStreams composable unit tests", () => {
 
     // Assert
     expect(streams.value.length).toBe(2);
-    expect(toast.warning).not.toHaveBeenCalledWith("toasts.add.alreadyAdded");
+    expect(toast.warning).not.toHaveBeenCalled();
   });
 
-  it("should reject an exact duplicate custom url", () => {
+  it("should accept an exact duplicate custom url as another tile", () => {
     // Arrange
     const { addStream, streams } = sut;
 
@@ -571,8 +567,40 @@ describe("useStreams composable unit tests", () => {
     addStream("github.com", "custom", "https://github.com/gorhill/ublock");
 
     // Assert
-    expect(streams.value.length).toBe(1);
-    expect(toast.warning).toHaveBeenCalledWith("toasts.add.alreadyAdded");
+    expect(streams.value.length).toBe(2);
+    expect(new Set(streams.value.map((s) => s.id)).size).toBe(2);
+  });
+
+  it("remembers the page a website tile browsed to, keeping the URL it was added with", () => {
+    // Arrange
+    const { addStream, setStreamPageUrl, streamPageUrl, streams } = sut;
+    const id = addStream("www.camsoda.com", "custom", "https://www.camsoda.com/")!;
+    const before = streams.value;
+
+    // Act
+    setStreamPageUrl(id, "https://www.camsoda.com/curvyjules69");
+
+    // Assert: remembered, without rewriting the stream list everything else reacts to
+    expect(streamPageUrl(id)).toBe("https://www.camsoda.com/curvyjules69");
+    expect(streams.value).toBe(before);
+    expect(streams.value[0]?.iframeUrl).toBe("https://www.camsoda.com/");
+  });
+
+  it("counts watch time once per channel even when it is open in two tiles", () => {
+    // Arrange
+    const { addStream, tick, watchHistory, now } = sut;
+    addStream("alanzoka", "twitch");
+    addStream("alanzoka", "twitch");
+    const start = now.value;
+
+    // Act: one tick a minute later, then one past the sync interval to flush
+    tick(start + 60_000);
+    tick(start + 60_000 + 10 * 60_000);
+
+    // Assert: at most the elapsed time, not double it
+    const total = Object.values(watchHistory.value).reduce((a, b) => a + b, 0);
+    expect(total).toBeGreaterThan(0);
+    expect(total).toBeLessThanOrEqual(60_000 + 10 * 60_000 + 1_000);
   });
 
   it("should remove a stream by ID", () => {

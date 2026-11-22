@@ -114,6 +114,13 @@ const _useImmersiveMode = () => {
     hideAllPanels();
   };
 
+  // Leaves fullscreen and immersive mode in one go, whichever panels are showing.
+  const exitImmersive = async () => {
+    hideAllPanels();
+    if (isFullscreen.value) await toggleFullscreen();
+    if (immersiveModeEnabled.value) setImmersiveModeEnabled(false);
+  };
+
   const handleEscape = async () => {
     if (isLeftPanelRevealed.value || isRightPanelRevealed.value) {
       hideAllPanels();
@@ -142,6 +149,7 @@ const _useImmersiveMode = () => {
     syncFullscreenState,
     toggleFullscreen,
     toggleImmersiveMode,
+    exitImmersive,
     handleEscape,
   };
 };

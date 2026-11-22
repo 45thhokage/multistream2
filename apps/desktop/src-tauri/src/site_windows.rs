@@ -67,8 +67,14 @@ pub async fn open_site_window(
         .visible(true)
         .user_agent(crate::USER_AGENT)
         .additional_browser_args(crate::SITE_BROWSER_ARGS)
+        .initialization_script(crate::web_guard::GUARD_SCRIPT)
+        .initialization_script(include_str!("core/max_quality.js"))
         .build()
         .map_err(|e| format!("failed to open site window: {e}"))?;
+    #[cfg(windows)]
+    if let Some(webview) = app.get_webview(&label) {
+        crate::web_guard::attach::attach(&app, &webview, crate::web_guard::attach::Mode::Website);
+    }
     Ok(label)
 }
 

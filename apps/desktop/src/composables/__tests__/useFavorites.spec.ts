@@ -19,6 +19,25 @@ describe("useFavorites composable unit tests", () => {
     vi.useRealTimers();
   });
 
+  it("pins and unpins a favorite, leaving no flag when unpinned", () => {
+    // Arrange
+    sut.addFavorite("alpha", "twitch");
+
+    // Act
+    const pinned = sut.togglePin("alpha", "twitch");
+
+    // Assert
+    expect(pinned).toBe(true);
+    expect(sut.isPinned("ALPHA", "twitch")).toBe(true);
+
+    // Act
+    const unpinned = sut.togglePin("alpha", "twitch");
+
+    // Assert
+    expect(unpinned).toBe(false);
+    expect(sut.favorites.value[0]).not.toHaveProperty("pinned");
+  });
+
   it("should add a new favorite channel to the top of the list", () => {
     // Arrange
     const { addFavorite, favorites } = sut;
@@ -264,5 +283,53 @@ describe("useFavorites composable unit tests", () => {
     expect(
       favorites.value.find((f) => f.iframeUrl === "https://github.com/gorhill/")
     ).toMatchObject({ displayName: "gorhill" });
+  });
+
+  describe("live alerts", () => {
+    it("are off for a favorite until they are starred", () => {
+      // Arrange
+      sut.addFavorite("gaules", "twitch");
+
+      // Assert
+      expect(sut.isNotify("gaules", "twitch")).toBe(false);
+    });
+
+    it("toggle on and off for a favorite, matching the channel case-insensitively", () => {
+      // Arrange
+      sut.addFavorite("Gaules", "twitch");
+
+      // Act / Assert
+      expect(sut.toggleNotify("gaules", "twitch")).toBe(true);
+      expect(sut.isNotify("GAULES", "twitch")).toBe(true);
+      expect(sut.toggleNotify("gaules", "twitch")).toBe(false);
+      expect(sut.isNotify("gaules", "twitch")).toBe(false);
+    });
+
+    it("add the channel as a favorite when it is starred without being one", () => {
+      // Act
+      sut.toggleNotify("kaicenat", "kick", undefined, "KaiCenat");
+
+      // Assert
+      expect(sut.favorites.value).toHaveLength(1);
+      expect(sut.favorites.value[0]).toMatchObject({
+        channel: "kaicenat",
+        platform: "kick",
+        displayName: "KaiCenat",
+        notify: true,
+      });
+    });
+
+    it("only affect the channel on its own platform", () => {
+      // Arrange
+      sut.addFavorite("sam", "twitch");
+      sut.addFavorite("sam", "kick");
+
+      // Act
+      sut.toggleNotify("sam", "kick");
+
+      // Assert
+      expect(sut.isNotify("sam", "kick")).toBe(true);
+      expect(sut.isNotify("sam", "twitch")).toBe(false);
+    });
   });
 });

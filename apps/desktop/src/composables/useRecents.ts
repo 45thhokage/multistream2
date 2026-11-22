@@ -10,7 +10,8 @@ export interface RecentChannel {
   addedAt: number;
 }
 
-const MAX_RECENTS = 8;
+/** The sidebar's History lists these; the Add dialog shows only the newest few. */
+const MAX_RECENTS = 100;
 
 const isMatchingRecent = (
   recent: RecentChannel,

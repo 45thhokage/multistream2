@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import {
   Dialog,
   DialogContent,
@@ -45,7 +45,7 @@ const { isSupported } = useTranscription();
 const visibleSteps = computed(() => {
   const steps = [1, 2, 3, 4];
   if (isSupported.value) steps.push(5);
-  steps.push(6, 7);
+  steps.push(6);
   return steps;
 });
 
@@ -96,33 +96,13 @@ function handleFinish() {
   emit("complete");
 }
 
-function handleKeyDown(e: KeyboardEvent) {
-  if (!props.open) return;
-  if (e.key === "ArrowRight") {
-    e.preventDefault();
-    handleNext();
-  } else if (e.key === "ArrowLeft" && !isFirstStep.value) {
-    e.preventDefault();
-    handleBack();
-  }
-}
-
 watch(
   () => props.open,
   (isOpen) => {
-    if (isOpen) {
-      currentStep.value = 1;
-      window.addEventListener("keydown", handleKeyDown);
-      return;
-    }
-    window.removeEventListener("keydown", handleKeyDown);
+    if (isOpen) currentStep.value = 1;
   },
   { immediate: true, flush: "sync" }
 );
-
-onUnmounted(() => {
-  window.removeEventListener("keydown", handleKeyDown);
-});
 </script>
 
 <template>
@@ -181,9 +161,9 @@ onUnmounted(() => {
 
                     <div class="flex items-center justify-between">
                       <span class="text-xs text-gray-400 tabular-nums">1080p60</span>
-                      <kbd
+                      <span
                         class="px-1.5 py-0.5 text-xs font-medium text-gray-300 bg-[#1e2127] border border-[#3a3f4b] rounded"
-                        >F</kbd
+                        >F</span
                       >
                     </div>
                   </div>
@@ -207,9 +187,9 @@ onUnmounted(() => {
                       class="flex-1 bg-[#14161a]/60 border border-dashed border-[#3a3f4b] rounded-lg p-2 flex items-center justify-center gap-1.5 text-gray-400"
                     >
                       <Plus class="size-3.5 text-gray-400 shrink-0" />
-                      <kbd
+                      <span
                         class="px-1.5 py-0.5 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded"
-                        >D</kbd
+                        >D</span
                       >
                     </div>
                   </div>
@@ -244,7 +224,7 @@ onUnmounted(() => {
                 </div>
               </div>
 
-              <!-- STEP 2: Split Studio Chat Diagram (Unified Chat + 1-9 Switcher) -->
+              <!-- STEP 2: Split Studio Chat Diagram (Unified Chat + channel list) -->
               <div
                 v-else-if="currentStep === 2"
                 aria-hidden="true"
@@ -286,7 +266,7 @@ onUnmounted(() => {
                   </div>
                 </div>
 
-                <!-- 1-9 Channel Switcher Preview -->
+                <!-- Channel chat list preview -->
                 <div
                   class="sm:col-span-5 bg-[#0f1115] border border-[#2a2d33] rounded-lg p-3 flex flex-col justify-between gap-2"
                 >
@@ -294,7 +274,6 @@ onUnmounted(() => {
                     <span class="text-xs font-medium text-gray-300 truncate">{{
                       $t("onboarding.step2.chatActive")
                     }}</span>
-                    <span class="text-xs font-mono text-gray-400 tabular-nums">1–9</span>
                   </div>
 
                   <div class="flex flex-col gap-1.5 text-xs">
@@ -302,9 +281,9 @@ onUnmounted(() => {
                       class="flex items-center justify-between px-2 py-1.5 rounded bg-[#14161a] border border-[#262930]"
                     >
                       <div class="flex items-center gap-2 truncate">
-                        <kbd
+                        <span
                           class="px-1.5 py-0.5 text-xs font-medium text-gray-400 bg-[#1e2127] border border-[#2a2d33] rounded tabular-nums"
-                          >1</kbd
+                          >1</span
                         >
                         <span class="text-gray-400 truncate">gaules</span>
                       </div>
@@ -315,9 +294,9 @@ onUnmounted(() => {
                       class="flex items-center justify-between px-2 py-1.5 rounded bg-[#1e2127] border border-white/25"
                     >
                       <div class="flex items-center gap-2 truncate">
-                        <kbd
+                        <span
                           class="px-1.5 py-0.5 text-xs font-semibold text-white bg-[#14161a] border border-white/30 rounded tabular-nums"
-                          >2</kbd
+                          >2</span
                         >
                         <span class="text-white font-medium truncate">ninja</span>
                       </div>
@@ -328,9 +307,9 @@ onUnmounted(() => {
                       class="flex items-center justify-between px-2 py-1.5 rounded bg-[#14161a] border border-[#262930]"
                     >
                       <div class="flex items-center gap-2 truncate">
-                        <kbd
+                        <span
                           class="px-1.5 py-0.5 text-xs font-medium text-gray-400 bg-[#1e2127] border border-[#2a2d33] rounded tabular-nums"
-                          >3</kbd
+                          >3</span
                         >
                         <span class="text-gray-400 truncate">lolesports</span>
                       </div>
@@ -611,127 +590,6 @@ onUnmounted(() => {
                   </span>
                 </div>
               </div>
-
-              <!-- STEP 7: 2x2 Keyboard Shortcuts Grid -->
-              <div
-                v-else-if="currentStep === 7"
-                class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-3.5 bg-[#181a1f] rounded-xl border border-[#262930]"
-              >
-                <!-- D Key -->
-                <div
-                  class="flex items-center gap-3 p-3 bg-[#14161a] border border-[#262930] rounded-lg"
-                >
-                  <kbd
-                    class="flex items-center justify-center size-8 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded-lg shadow-xs shrink-0"
-                    >D</kbd
-                  >
-                  <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-semibold text-white truncate">{{
-                      $t("onboarding.step1.title")
-                    }}</span>
-                    <span class="text-xs text-gray-400 truncate">{{
-                      $t("onboarding.step7.add")
-                    }}</span>
-                  </div>
-                </div>
-
-                <!-- F Key -->
-                <div
-                  class="flex items-center gap-3 p-3 bg-[#14161a] border border-[#262930] rounded-lg"
-                >
-                  <kbd
-                    class="flex items-center justify-center size-8 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded-lg shadow-xs shrink-0"
-                    >F</kbd
-                  >
-                  <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-semibold text-white truncate">{{
-                      $t("onboarding.step7.focusTitle")
-                    }}</span>
-                    <span class="text-xs text-gray-400 truncate">{{
-                      $t("onboarding.step7.focus")
-                    }}</span>
-                  </div>
-                </div>
-
-                <!-- S Key -->
-                <div
-                  class="flex items-center gap-3 p-3 bg-[#14161a] border border-[#262930] rounded-lg"
-                >
-                  <kbd
-                    class="flex items-center justify-center size-8 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded-lg shadow-xs shrink-0"
-                    >S</kbd
-                  >
-                  <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-semibold text-white truncate">{{
-                      $t("onboarding.step7.screenshotTitle")
-                    }}</span>
-                    <span class="text-xs text-gray-400 truncate">{{
-                      $t("onboarding.step7.screenshot")
-                    }}</span>
-                  </div>
-                </div>
-
-                <!-- 1-9 Keys -->
-                <div
-                  class="flex items-center gap-3 p-3 bg-[#14161a] border border-[#262930] rounded-lg"
-                >
-                  <div class="flex items-center gap-1 shrink-0">
-                    <kbd
-                      class="flex items-center justify-center size-8 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded-lg shadow-xs tabular-nums"
-                      >1</kbd
-                    >
-                    <span class="text-gray-400 font-semibold text-xs">–</span>
-                    <kbd
-                      class="flex items-center justify-center size-8 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded-lg shadow-xs tabular-nums"
-                      >9</kbd
-                    >
-                  </div>
-                  <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-semibold text-white truncate">{{
-                      $t("onboarding.step2.title")
-                    }}</span>
-                    <span class="text-xs text-gray-400 truncate">{{
-                      $t("onboarding.step7.chat", { keys: "1–9" })
-                    }}</span>
-                  </div>
-                </div>
-
-                <!-- F11 Key (Fullscreen) -->
-                <div
-                  class="flex items-center gap-3 p-3 bg-[#14161a] border border-[#262930] rounded-lg"
-                >
-                  <kbd
-                    class="flex items-center justify-center min-w-8 px-1.5 h-8 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded-lg shadow-xs shrink-0"
-                    >F11</kbd
-                  >
-                  <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-semibold text-white truncate">{{
-                      $t("onboarding.step7.fullscreenTitle")
-                    }}</span>
-                    <span class="text-xs text-gray-400 truncate">{{
-                      $t("onboarding.step7.fullscreen")
-                    }}</span>
-                  </div>
-                </div>
-
-                <!-- Esc Key (Exit Immersive / Dismiss) -->
-                <div
-                  class="flex items-center gap-3 p-3 bg-[#14161a] border border-[#262930] rounded-lg"
-                >
-                  <kbd
-                    class="flex items-center justify-center min-w-8 px-1.5 h-8 text-xs font-semibold text-white bg-[#1e2127] border border-[#3a3f4b] rounded-lg shadow-xs shrink-0"
-                    >Esc</kbd
-                  >
-                  <div class="flex flex-col min-w-0">
-                    <span class="text-xs font-semibold text-white truncate">{{
-                      $t("onboarding.step7.escTitle")
-                    }}</span>
-                    <span class="text-xs text-gray-400 truncate">{{
-                      $t("onboarding.step7.esc")
-                    }}</span>
-                  </div>
-                </div>
-              </div>
             </div>
 
             <!-- Practical Context / How to Use Note -->
@@ -743,7 +601,7 @@ onUnmounted(() => {
                 <span>{{ $t("onboarding.hintLabel") }}</span>
               </div>
               <p class="text-xs sm:text-sm text-gray-300 leading-5">
-                {{ $t(`onboarding.step${currentStep}.hint`, { key: "D", keys: "1–9" }) }}
+                {{ $t(`onboarding.step${currentStep}.hint`) }}
               </p>
             </div>
           </div>

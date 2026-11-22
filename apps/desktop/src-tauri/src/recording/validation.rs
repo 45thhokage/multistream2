@@ -1,6 +1,27 @@
 use super::error::RecordingError;
 
-const ALLOWED_PLATFORMS: &[&str] = &["twitch", "kick", "youtube"];
+/// `url` covers everything else: direct HLS/DASH/file links, sites Streamlink
+/// has a plugin for, and website tiles whose playlist the app has observed.
+const ALLOWED_PLATFORMS: &[&str] = &["twitch", "kick", "youtube", "url"];
+
+const MAX_SOURCE_URL_LEN: usize = 4096;
+
+/// A source URL is passed to Streamlink as one argument (never through a shell),
+/// but it must still be a plain http(s) URL.
+pub fn validate_source_url(raw: &str) -> Result<String, RecordingError> {
+    if raw.is_empty() || raw.len() > MAX_SOURCE_URL_LEN || raw.chars().any(char::is_whitespace) {
+        return Err(RecordingError::InvalidInput("invalid source url".into()));
+    }
+    let url = raw
+        .parse::<tauri::Url>()
+        .map_err(|_| RecordingError::InvalidInput("invalid source url".into()))?;
+    match url.scheme() {
+        "http" | "https" => Ok(url.to_string()),
+        _ => Err(RecordingError::InvalidInput(
+            "only http(s) sources can be recorded".into(),
+        )),
+    }
+}
 
 const ALLOWED_QUALITIES: &[&str] = &[
     "best",
@@ -111,6 +132,21 @@ mod tests {
         for p in platforms {
             assert!(validate_platform(p).is_ok());
         }
+    }
+
+    #[test]
+    fn should_accept_http_source_urls_and_reject_others() {
+        // Arrange
+        let good = "https://cdn.example.com/live/master.m3u8?token=abc";
+        let bad = [
+            "file:///etc/passwd",
+            "javascript:alert(1)",
+            "https://x.example/a b",
+            "",
+        ];
+        // Act / Assert
+        assert!(validate_source_url(good).is_ok());
+        assert!(bad.iter().all(|u| validate_source_url(u).is_err()));
     }
 
     #[test]

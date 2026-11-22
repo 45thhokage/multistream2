@@ -261,8 +261,18 @@ const _useRecording = () => {
     (await unlistenRemuxProgress)();
   });
 
-  async function startRecording(stream: Stream, quality: string = "best"): Promise<void> {
-    if (stream.platform === "custom") {
+  /**
+   * Starts recording a tile. Twitch/Kick/YouTube are recorded from the channel;
+   * anything else (media links, embeds, websites) from `sourceUrl`, which the
+   * backend resolves to a playlist, a Streamlink-supported page, or the stream
+   * the tile's page was seen playing.
+   */
+  async function startRecording(
+    stream: Pick<Stream, "id" | "channel" | "platform">,
+    quality: string = "best",
+    sourceUrl?: string
+  ): Promise<void> {
+    if (stream.platform === "custom" && !sourceUrl) {
       toast.error(t("settings.recording.customNotSupported"));
       return;
     }
@@ -285,12 +295,14 @@ const _useRecording = () => {
     try {
       const { recordingPath } = usePreferences();
       const outputDir = recordingPath.value || null;
+      const isUrl = stream.platform === "custom";
       await invoke("start_recording", {
         streamId: stream.id,
-        channel: stream.channel,
-        platform: stream.platform,
+        channel: isUrl ? "site" : stream.channel,
+        platform: isUrl ? "url" : stream.platform,
         quality,
         outputDir,
+        sourceUrl: isUrl ? sourceUrl : null,
       });
     } catch (e) {
       recordings.delete(stream.id);

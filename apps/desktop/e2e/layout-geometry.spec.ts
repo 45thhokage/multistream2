@@ -155,6 +155,7 @@ test.describe("Layout geometry and playback", () => {
   }) => {
     // Arrange
     await seed(page, 3, "pip-2-corners");
+    await expect(page.locator("[data-stream-id]:visible")).toHaveCount(3);
     const before = await page
       .locator("[data-stream-id]")
       .evaluateAll((elements) =>

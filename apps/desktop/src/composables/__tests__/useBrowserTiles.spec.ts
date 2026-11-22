@@ -69,11 +69,11 @@ describe("useBrowserTiles composable unit tests", () => {
     );
   });
 
-  it("should hide native tiles behind modal dialogs and restore them without reopening", async () => {
-    // Arrange
-    const querySelector = vi.fn().mockReturnValue(null);
+  const stubDocument = (selectors: Record<string, unknown>) => {
+    const querySelector = vi.fn((selector: string) => selectors[selector] ?? null);
+    const body = { dispatchEvent: vi.fn() };
     let syncOverlay: (() => void) | undefined;
-    vi.stubGlobal("document", { querySelector, body: {} });
+    vi.stubGlobal("document", { querySelector, body });
     vi.stubGlobal(
       "MutationObserver",
       class {
@@ -83,20 +83,38 @@ describe("useBrowserTiles composable unit tests", () => {
         observe() {}
       }
     );
+    return {
+      selectors,
+      body,
+      querySelector,
+      sync: () => syncOverlay?.(),
+    };
+  };
+  const dialogElement = {
+    isConnected: true,
+    getBoundingClientRect: () => ({ left: 100.4, top: 50, right: 500.2, bottom: 350 }),
+  };
+
+  it("should park native tiles behind native overlays and restore them without reopening", async () => {
+    // Arrange
+    const doc = stubDocument({});
     await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 640, height: 360 });
     vi.clearAllMocks();
 
     // Act
-    querySelector.mockReturnValue({});
-    syncOverlay?.();
+    doc.selectors["[data-native-overlay]"] = {};
+    doc.sync();
 
     // Assert
-    expect(querySelector).toHaveBeenCalledWith('[role="dialog"], [data-native-overlay]');
-    expect(invokeMock).toHaveBeenCalledWith("tile_set_visible", { tileId: "abc", visible: false });
+    expect(invokeMock).toHaveBeenCalledWith("tile_set_visible", {
+      tileId: "abc",
+      visible: false,
+      park: true,
+    });
 
     // Act
-    querySelector.mockReturnValue(null);
-    syncOverlay?.();
+    delete doc.selectors["[data-native-overlay]"];
+    doc.sync();
 
     // Assert
     expect(invokeMock).toHaveBeenLastCalledWith("tile_set_visible", {
@@ -104,6 +122,150 @@ describe("useBrowserTiles composable unit tests", () => {
       visible: true,
     });
     expect(invokeMock).not.toHaveBeenCalledWith("open_tile_webview", expect.anything());
+  });
+
+  it("should keep tiles visible and cut the dialog out of them", async () => {
+    // Arrange
+    invokeMock.mockResolvedValue(true);
+    const doc = stubDocument({});
+    await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 640, height: 360 });
+    vi.clearAllMocks();
+    invokeMock.mockResolvedValue(true);
+
+    // Act
+    doc.selectors['[role="dialog"]'] = dialogElement;
+    doc.sync();
+
+    // Assert
+    expect(invokeMock).toHaveBeenCalledWith("tiles_set_cutout", {
+      rects: [{ x: 100, y: 50, width: 401, height: 300 }],
+    });
+    expect(invokeMock).not.toHaveBeenCalledWith("tile_set_visible", expect.anything());
+
+    // Act
+    delete doc.selectors['[role="dialog"]'];
+    doc.sync();
+
+    // Assert
+    expect(invokeMock).toHaveBeenLastCalledWith("tiles_set_cutout", { rects: [] });
+  });
+
+  it("should cut out a right-click menu, and a menu over a dialog extends the hole", async () => {
+    // Arrange
+    const doc = stubDocument({});
+    await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 640, height: 360 });
+    vi.clearAllMocks();
+    invokeMock.mockResolvedValue(true);
+
+    // Act: a menu on its own
+    doc.selectors['[role="menu"]'] = {
+      isConnected: true,
+      getBoundingClientRect: () => ({ left: 10, top: 20, right: 190, bottom: 60 }),
+    };
+    doc.sync();
+
+    // Assert
+    expect(invokeMock).toHaveBeenCalledWith("tiles_set_cutout", {
+      rects: [{ x: 10, y: 20, width: 180, height: 40 }],
+    });
+
+    // Act: the same menu opened over a dialog
+    doc.selectors['[role="dialog"]'] = dialogElement;
+    doc.sync();
+
+    // Assert: one hole covering both
+    expect(invokeMock).toHaveBeenLastCalledWith("tiles_set_cutout", {
+      rects: [{ x: 10, y: 20, width: 491, height: 330 }],
+    });
+  });
+
+  it("should keep tiles playing and cut a hole per revealed side panel", async () => {
+    // Arrange
+    invokeMock.mockResolvedValue(true);
+    const doc = stubDocument({});
+    const panel = (left: number, right: number) => ({
+      isConnected: true,
+      getBoundingClientRect: () => ({ left, top: 0, right, bottom: 720 }),
+    });
+    (document as unknown as { querySelectorAll: () => unknown[] }).querySelectorAll = () => [
+      panel(0, 224),
+      panel(1200, 1280),
+    ];
+
+    // Act: opening a tile starts watching the page, which already has both panels showing
+    await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 640, height: 360 });
+    doc.sync();
+
+    // Assert: two separate holes, so the video between the panels is never covered
+    expect(invokeMock).toHaveBeenCalledWith("tiles_set_cutout", {
+      rects: [
+        { x: 0, y: 0, width: 224, height: 720 },
+        { x: 1200, y: 0, width: 80, height: 720 },
+      ],
+    });
+    expect(invokeMock).not.toHaveBeenCalledWith(
+      "tile_set_visible",
+      expect.objectContaining({ visible: false })
+    );
+  });
+
+  it("should close an open dialog when a stream tile is clicked", async () => {
+    // Arrange
+    invokeMock.mockResolvedValue(true);
+    const handlers: Record<string, () => void> = {};
+    listenMock.mockImplementation((event: string, cb: () => void) => {
+      handlers[event] = cb;
+      return Promise.resolve(vi.fn());
+    });
+    vi.stubGlobal(
+      "PointerEvent",
+      class {
+        type: string;
+        init: object;
+        constructor(type: string, init: object) {
+          this.type = type;
+          this.init = init;
+        }
+      }
+    );
+    const doc = stubDocument({});
+    await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 640, height: 360 });
+
+    // Act: a tile click with no dialog open does nothing
+    handlers["ui-overlay-dismiss"]?.();
+
+    // Assert
+    expect(doc.body.dispatchEvent).not.toHaveBeenCalled();
+
+    // Act: with a dialog open it replays an outside press
+    doc.selectors['[role="dialog"]'] = dialogElement;
+    handlers["ui-overlay-dismiss"]?.();
+
+    // Assert
+    expect(doc.body.dispatchEvent).toHaveBeenCalledTimes(1);
+    expect(doc.body.dispatchEvent.mock.calls[0]?.[0]).toMatchObject({ type: "pointerdown" });
+  });
+
+  it("should park tiles behind a dialog when the platform cannot cut it out", async () => {
+    // Arrange
+    invokeMock.mockResolvedValue(false);
+    const doc = stubDocument({});
+    await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 640, height: 360 });
+    vi.clearAllMocks();
+    invokeMock.mockResolvedValue(false);
+
+    // Act
+    doc.selectors['[role="dialog"]'] = dialogElement;
+    doc.sync();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // Assert
+    expect(invokeMock).toHaveBeenCalledWith("tile_set_visible", {
+      tileId: "abc",
+      visible: false,
+      park: true,
+    });
   });
 
   it("should close a tile webview and forget its state", async () => {
@@ -144,10 +306,7 @@ describe("useBrowserTiles composable unit tests", () => {
     await sut.syncTileBounds("abc", { x: 0, y: 0, width: 0, height: 0 });
 
     // Assert
-    expect(invokeMock).not.toHaveBeenCalledWith(
-      "tile_set_bounds",
-      expect.objectContaining({ tileId: "abc" })
-    );
+    expect(invokeMock).not.toHaveBeenCalledWith("tile_set_bounds_batch", expect.anything());
     expect(invokeMock).toHaveBeenCalledWith("tile_set_visible", {
       tileId: "abc",
       visible: false,
@@ -163,13 +322,51 @@ describe("useBrowserTiles composable unit tests", () => {
     await sut.syncTileBounds("abc", { x: 5, y: 6, width: 320, height: 180 });
 
     // Assert
-    expect(invokeMock).toHaveBeenCalledWith("tile_set_bounds", {
-      tileId: "abc",
-      x: 5,
-      y: 6,
-      width: 320,
-      height: 180,
+    expect(invokeMock).toHaveBeenCalledWith("tile_set_bounds_batch", {
+      tiles: [{ tileId: "abc", x: 5, y: 6, width: 320, height: 180 }],
     });
+  });
+
+  it("should move every tile of one frame with a single ordered backend call", async () => {
+    // Arrange
+    await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 100, height: 100 });
+    await sut.openTile("def", "https://example.com/", { x: 0, y: 0, width: 100, height: 100 });
+    vi.clearAllMocks();
+    invokeMock.mockImplementation(
+      async (command: string, args: { tiles?: { tileId: string }[] }) =>
+        command === "tile_set_bounds_batch" ? args.tiles?.map((tile) => tile.tileId) : undefined
+    );
+
+    // Act
+    const results = await Promise.all([
+      sut.syncTileBounds("abc", { x: 1, y: 1, width: 50, height: 50 }),
+      sut.syncTileBounds("def", { x: 60, y: 1, width: 50, height: 50 }),
+      sut.syncTileBounds("abc", { x: 2, y: 2, width: 60, height: 60 }),
+    ]);
+
+    // Assert
+    const batches = invokeMock.mock.calls.filter(
+      ([command]) => command === "tile_set_bounds_batch"
+    );
+    expect(batches).toHaveLength(1);
+    expect(batches[0]?.[1]?.tiles).toEqual([
+      { tileId: "abc", x: 2, y: 2, width: 60, height: 60 },
+      { tileId: "def", x: 60, y: 1, width: 50, height: 50 },
+    ]);
+    expect(results).toEqual([true, true, true]);
+  });
+
+  it("should report a rejected batch as not positioned so the rect is sent again", async () => {
+    // Arrange
+    await sut.openTile("abc", "https://example.com/", { x: 0, y: 0, width: 100, height: 100 });
+    vi.clearAllMocks();
+    invokeMock.mockRejectedValue(new Error("busy"));
+
+    // Act
+    const result = await sut.syncTileBounds("abc", { x: 1, y: 1, width: 50, height: 50 });
+
+    // Assert
+    expect(result).toBe(false);
   });
 
   it("should apply document titles pushed by the backend", async () => {
@@ -251,6 +448,7 @@ describe("useBrowserTiles composable unit tests", () => {
     expect(invokeMock).toHaveBeenCalledWith("open_player_webview", {
       tileId: "player-one",
       ...rect,
+      sniff: false,
     });
   });
 
@@ -272,5 +470,101 @@ describe("useBrowserTiles composable unit tests", () => {
     });
     expect(invokeMock).not.toHaveBeenCalledWith("close_tile_webview", expect.anything());
     expect(invokeMock).not.toHaveBeenCalledWith("open_player_webview", expect.anything());
+  });
+  it("waits for native creation before caching visibility during startup", async () => {
+    // Arrange
+    let finish!: (value: string) => void;
+    invokeMock.mockImplementation((command: string) =>
+      command === "open_player_webview"
+        ? new Promise((resolve) => {
+            finish = resolve;
+          })
+        : Promise.resolve()
+    );
+    const opening = sut.openTile(
+      "restored",
+      "",
+      { x: 0, y: 0, width: 640, height: 360 },
+      false,
+      true
+    );
+    // Act
+    sut.setTileVisible("restored", true);
+    sut.setTilesHidden(true);
+    sut.setTilesHidden(false);
+    const beforeReady = invokeMock.mock.calls.filter(([command]) => command === "tile_set_visible");
+    finish("tile-restored");
+    await opening;
+    // Assert
+    expect(beforeReady).toEqual([]);
+    expect(invokeMock).toHaveBeenLastCalledWith("tile_set_visible", {
+      tileId: "restored",
+      visible: true,
+    });
+  });
+  it("closes a tile that was closed while its native view was still being created", async () => {
+    // Arrange
+    let finish!: (value: string) => void;
+    invokeMock.mockImplementation((command: string) =>
+      command === "open_tile_webview"
+        ? new Promise((resolve) => {
+            finish = resolve;
+          })
+        : Promise.resolve()
+    );
+    const opening = sut.openTile("gone", "https://example.com/", {
+      x: 0,
+      y: 0,
+      width: 640,
+      height: 360,
+    });
+
+    // Act: removed before creation finished, then creation completes
+    await sut.closeTile("gone");
+    invokeMock.mockClear();
+    finish("tile-gone");
+    const opened = await opening;
+
+    // Assert: the late view is closed again, never shown, and no longer tracked
+    expect(opened).toBe(false);
+    expect(invokeMock).toHaveBeenCalledWith("close_tile_webview", { tileId: "gone" });
+    expect(invokeMock).not.toHaveBeenCalledWith("tile_set_visible", expect.anything());
+    invokeMock.mockClear();
+    await sut.syncTileBounds("gone", { x: 0, y: 0, width: 640, height: 360 });
+    expect(invokeMock).not.toHaveBeenCalled();
+  });
+  it("retries a failed native show even when the requested visibility has not changed", async () => {
+    // Arrange
+    let failShow = true;
+    invokeMock.mockImplementation((command: string) => {
+      if (command === "tile_set_visible" && failShow) {
+        failShow = false;
+        return Promise.reject(Error("not ready"));
+      }
+      return Promise.resolve("tile-restored");
+    });
+    await sut.openTile("restored", "", { x: 0, y: 0, width: 640, height: 360 }, false, true);
+    await Promise.resolve();
+    vi.clearAllMocks();
+    // Act
+    sut.setTileVisible("restored", true);
+    // Assert
+    expect(invokeMock).toHaveBeenCalledWith("tile_set_visible", {
+      tileId: "restored",
+      visible: true,
+    });
+  });
+  it("reports failed bounds so the surface can retry the same rectangle", async () => {
+    // Arrange
+    const rect = { x: 0, y: 0, width: 640, height: 360 };
+    await sut.openTile("bounds", "", rect, false, true);
+    invokeMock.mockRejectedValueOnce(Error("not positioned"));
+    invokeMock.mockResolvedValueOnce(["bounds"]);
+    // Act
+    const failed = await sut.syncTileBounds("bounds", rect);
+    const retried = await sut.syncTileBounds("bounds", rect);
+    // Assert
+    expect(failed).toBe(false);
+    expect(retried).toBe(true);
   });
 });

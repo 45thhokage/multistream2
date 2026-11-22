@@ -27,6 +27,21 @@ const _useCustomLayouts = () => {
     return def;
   };
 
+  /** Replace a saved layout's name and shape, keeping its id (so a workspace using it follows). */
+  const updateCustomLayout = (id: string, name: string, slots: LayoutSlot[]): boolean => {
+    let found = false;
+    customLayouts.value = customLayouts.value.map((layout) => {
+      if (layout.id !== id) return layout;
+      found = true;
+      return {
+        ...layout,
+        name: name.trim().slice(0, 40) || layout.name,
+        slots: slots.map((slot) => ({ ...slot })),
+      };
+    });
+    return found;
+  };
+
   const deleteCustomLayout = (id: string): void => {
     customLayouts.value = customLayouts.value.filter((c) => c.id !== id);
     const { streamLayout } = usePreferences();
@@ -38,6 +53,7 @@ const _useCustomLayouts = () => {
   return {
     customLayouts,
     saveCustomLayout,
+    updateCustomLayout,
     deleteCustomLayout,
   };
 };

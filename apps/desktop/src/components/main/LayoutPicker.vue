@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { onClickOutside } from "@vueuse/core";
-import { ChevronDown, Plus, X } from "@lucide/vue";
+import { ChevronDown, Pencil, Plus, SquarePen, X } from "@lucide/vue";
 import {
   LAYOUTS,
   getLayoutSlots,
@@ -15,13 +15,19 @@ import {
   type LayoutDef,
 } from "@/config/layouts";
 import { useCustomLayouts } from "@/composables/useCustomLayouts";
+import { useLayoutEditor } from "@/composables/useLayoutEditor";
+import type { CustomLayoutDef } from "@/config/layouts";
 import { usePreferences } from "@/composables/usePreferences";
 import { useStreams } from "@/composables/useStreams";
 import { useI18n } from "vue-i18n";
 import LayoutPreview from "./LayoutPreview.vue";
 import { useNativeOverlay } from "@/composables/useNativeOverlay";
 
-const props = defineProps<{ panelOnly?: boolean }>();
+/**
+ * `panelOnly`: the native overlay window shows just the panel. `inline`: the sidebar's Layout
+ * section shows it in place, always open; picking a layout keeps it there.
+ */
+const props = defineProps<{ panelOnly?: boolean; inline?: boolean }>();
 const emit = defineEmits<{ close: [] }>();
 const native = useNativeOverlay("layout");
 
@@ -29,9 +35,9 @@ const { streamLayout } = usePreferences();
 const { customLayouts, saveCustomLayout, deleteCustomLayout } = useCustomLayouts();
 const { activeStreams } = useStreams();
 const { t } = useI18n();
-const open = ref(!!props.panelOnly);
+const open = ref(!!props.panelOnly || !!props.inline);
 watch(open, (value) => {
-  if (props.panelOnly || !native.available) return;
+  if (props.panelOnly || props.inline || !native.available) return;
   if (!value) {
     native.close();
     return;
@@ -47,12 +53,12 @@ watch(open, (value) => {
   });
 });
 watch(native.opened, (value) => {
-  if (!value && !props.panelOnly) open.value = false;
+  if (!value && !props.panelOnly && !props.inline) open.value = false;
 });
 const rootRef = ref<HTMLDivElement | null>(null);
 const triggerRef = ref<HTMLButtonElement | null>(null);
 onClickOutside(rootRef, () => {
-  open.value = false;
+  if (!props.inline) open.value = false;
 });
 const groups: LayoutGroup[] = ["grid", "focus", "pip"];
 const grouped = computed(() =>
@@ -84,6 +90,7 @@ const expanded = computed(() => currentSlots.value.length !== selectedSlots.valu
 const autoSlots = computed(() => getLayoutSlots("auto", activeStreams.value.length));
 
 function close() {
+  if (props.inline) return;
   open.value = false;
   emit("close");
   triggerRef.value?.focus();
@@ -102,12 +109,35 @@ function saveCurrent() {
   const saved = saveCustomLayout(name, dims.cols, dims.rows, currentSlots.value);
   streamLayout.value = saved.id;
 }
+
+const { requestLayoutEditor } = useLayoutEditor();
+/** Open the editor on the layout in use: a saved one is edited in place, a built-in is copied. */
+function openEditor() {
+  const custom = activeCustom.value;
+  requestLayoutEditor(
+    custom
+      ? { slots: customLayoutSlots(custom), name: custom.name, editId: custom.id }
+      : {
+          slots: currentSlots.value,
+          name: t("layouts.editor.editedName", { name: currentLabel.value }),
+        },
+    !!props.panelOnly
+  );
+  close();
+}
+function editCustom(custom: CustomLayoutDef) {
+  requestLayoutEditor(
+    { slots: customLayoutSlots(custom), name: custom.name, editId: custom.id },
+    !!props.panelOnly
+  );
+  close();
+}
 </script>
 
 <template>
   <div ref="rootRef" class="relative" @keydown.esc.stop.prevent="close">
     <button
-      v-if="!panelOnly"
+      v-if="!panelOnly && !inline"
       ref="triggerRef"
       type="button"
       data-testid="layout-picker-btn"
@@ -127,18 +157,22 @@ function saveCurrent() {
     </button>
     <Transition name="layout-panel">
       <div
-        v-if="open && (panelOnly || !native.available)"
-        id="layout-picker-panel"
-        data-testid="layout-panel"
-        :data-native-overlay="!native.available ? true : undefined"
+        v-if="open && (panelOnly || inline || !native.available)"
+        :id="inline ? undefined : 'layout-picker-panel'"
+        :data-testid="inline ? 'layout-panel-inline' : 'layout-panel'"
+        :data-native-cutout="!inline && !native.available ? true : undefined"
         role="region"
         :aria-label="t('layouts.title')"
         :class="
-          panelOnly
-            ? 'h-screen w-screen'
-            : 'absolute right-0 top-full mt-2 z-50 w-[min(30rem,calc(100vw-2rem))] max-h-[min(70vh,36rem)]'
+          inline
+            ? 'space-y-4'
+            : [
+                'overflow-y-auto overscroll-contain rounded-xl border border-[#2a2d33] bg-[#14161a] p-3 space-y-4 custom-scrollbar',
+                panelOnly
+                  ? 'h-screen w-screen'
+                  : 'absolute right-0 top-full mt-2 z-50 w-[min(30rem,calc(100vw-2rem))] max-h-[min(70vh,36rem)]',
+              ]
         "
-        class="overflow-y-auto overscroll-contain rounded-xl border border-[#2a2d33] bg-[#14161a] p-3 space-y-4 custom-scrollbar"
       >
         <button
           type="button"
@@ -176,7 +210,7 @@ function saveCurrent() {
           <h3 class="text-xs font-medium text-gray-300 mb-2">
             {{ t(`layouts.groups.${group.id}`) }}
           </h3>
-          <div class="grid grid-cols-4 gap-2">
+          <div class="grid gap-2" :class="inline ? 'grid-cols-3' : 'grid-cols-4'">
             <button
               v-for="layout in group.layouts"
               :key="layout.id"
@@ -207,7 +241,7 @@ function saveCurrent() {
         </section>
         <section v-if="customLayouts.length" :aria-label="t('layouts.groups.saved')">
           <h3 class="text-xs font-medium text-gray-300 mb-2">{{ t("layouts.groups.saved") }}</h3>
-          <div class="grid grid-cols-4 gap-2">
+          <div class="grid gap-2" :class="inline ? 'grid-cols-3' : 'grid-cols-4'">
             <div
               v-for="custom in customLayouts"
               :key="custom.id"
@@ -238,7 +272,18 @@ function saveCurrent() {
               </button>
               <button
                 type="button"
+                :data-testid="`layout-edit-${custom.id}`"
+                :aria-label="t('layouts.editCustom')"
+                :title="t('layouts.editCustom')"
+                class="absolute top-0 left-0 flex items-center justify-center size-6 rounded-full bg-[#2a2d33] text-gray-300 opacity-0 group-hover/custom:opacity-100 group-focus-within/custom:opacity-100 hover:bg-[#3a3f4b] focus-visible:opacity-100 cursor-pointer"
+                @click.stop="editCustom(custom)"
+              >
+                <Pencil class="size-3" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
                 :aria-label="t('layouts.deleteCustom')"
+                :title="t('layouts.deleteCustom')"
                 class="absolute top-0 right-0 flex items-center justify-center size-6 rounded-full bg-[#2a2d33] text-gray-300 opacity-0 group-hover/custom:opacity-100 group-focus-within/custom:opacity-100 hover:bg-[#3a3f4b] focus-visible:opacity-100 cursor-pointer"
                 @click.stop="deleteCustomLayout(custom.id)"
               >
@@ -254,6 +299,14 @@ function saveCurrent() {
           @click="saveCurrent"
         >
           <Plus class="size-3.5" aria-hidden="true" />{{ t("layouts.saveCurrent") }}
+        </button>
+        <button
+          type="button"
+          data-testid="layout-open-editor"
+          class="w-full flex items-center justify-center gap-2 h-9 rounded-lg border border-[#3a3f4b] text-xs text-gray-300 hover:text-white hover:bg-[#1e2127] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          @click="openEditor"
+        >
+          <SquarePen class="size-3.5" aria-hidden="true" />{{ t("layouts.openEditor") }}
         </button>
       </div>
     </Transition>

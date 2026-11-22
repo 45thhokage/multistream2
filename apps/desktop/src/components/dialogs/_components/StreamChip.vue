@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { X } from "@lucide/vue";
+import { Bell, X } from "@lucide/vue";
 import { PLATFORMS } from "@/config/platforms";
 import type { Platform } from "@/composables/useStreams";
 import { useLiveStatus } from "@/composables/useLiveStatus";
+import { useFavorites } from "@/composables/useFavorites";
+import { useFavoriteMenu } from "@/composables/useFavoriteMenu";
 
 const props = defineProps<{
   channel: string;
@@ -22,6 +24,9 @@ const emit = defineEmits<{
 }>();
 
 const { getStatus } = useLiveStatus();
+const { isNotify } = useFavorites();
+const favoriteMenu = useFavoriteMenu();
+const alerting = computed(() => isNotify(props.channel, props.platform, props.iframeUrl));
 const { t, locale } = useI18n();
 const status = computed(() => getStatus(props.displayName || props.channel, props.platform));
 
@@ -62,6 +67,14 @@ const chipTitle = computed(() => {
       class="flex items-center gap-1.5 px-2.5 py-1.5 w-full min-w-0 cursor-pointer text-left focus:outline-none focus-visible:ring-1 focus-visible:ring-white/40 rounded-md"
       :title="props.tooltip ?? chipTitle"
       @click="emit('click')"
+      @contextmenu="
+        favoriteMenu.open($event, {
+          channel: props.channel,
+          platform: props.platform,
+          iframeUrl: props.iframeUrl,
+          displayName: props.displayName,
+        })
+      "
     >
       <span class="relative shrink-0 size-[14px]">
         <component
@@ -87,6 +100,13 @@ const chipTitle = computed(() => {
         props.displayName || status?.displayName || props.channel
       }}</span>
 
+      <Bell
+        v-if="alerting"
+        :size="11"
+        class="shrink-0 text-amber-300"
+        :aria-label="$t('alerts.on')"
+        data-testid="alerts-on"
+      />
       <!-- viewer count badge -->
       <span
         v-if="status?.isLive"

@@ -1,3 +1,5 @@
+import { mediaKindOf, type MediaKind } from "./mediaSource";
+
 function isRedgifsHost(hostname: string): boolean {
   return hostname === "redgifs.com" || hostname.endsWith(".redgifs.com");
 }
@@ -46,7 +48,10 @@ export function normalizeCustomEmbedUrl(raw: string): string {
   return hadProtocol ? trimmed : url.toString();
 }
 
-export type CustomEmbedRoute = { kind: "player"; url: string } | { kind: "browser"; url: string };
+export type CustomEmbedRoute =
+  | { kind: "player"; url: string }
+  | { kind: "browser"; url: string }
+  | { kind: "media"; url: string; media: MediaKind };
 
 export function isOfficialEmbedPlayerUrl(raw: string): boolean {
   return customEmbedRoute(raw).kind === "player";
@@ -54,6 +59,8 @@ export function isOfficialEmbedPlayerUrl(raw: string): boolean {
 
 export function customEmbedRoute(raw: string): CustomEmbedRoute {
   const normalized = normalizeCustomEmbedUrl(raw);
+  const media = mediaKindOf(normalized);
+  if (media) return { kind: "media", url: normalized, media };
   let parsed: URL | null;
   try {
     parsed = new URL(normalized);

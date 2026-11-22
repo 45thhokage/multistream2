@@ -82,19 +82,19 @@ describe("useRecents composable unit tests", () => {
     expect(recents.value.length).toBe(2);
   });
 
-  it("should limit the recent list to a maximum of 8 items", () => {
+  it("should keep the newest 100 entries for the sidebar's History", () => {
     // Arrange
     const { addRecent, recents } = sut;
 
     // Act
-    for (let i = 1; i <= 10; i++) {
+    for (let i = 1; i <= 105; i++) {
       addRecent(`streamer${i}`, "twitch");
     }
 
     // Assert
-    expect(recents.value.length).toBe(8);
-    expect(recents.value[0]?.channel).toBe("streamer10"); // Last added
-    expect(recents.value[7]?.channel).toBe("streamer3"); // First added
+    expect(recents.value.length).toBe(100);
+    expect(recents.value[0]?.channel).toBe("streamer105"); // Last added
+    expect(recents.value[99]?.channel).toBe("streamer6"); // Oldest kept
   });
 
   it("should remove a specific recent channel", () => {

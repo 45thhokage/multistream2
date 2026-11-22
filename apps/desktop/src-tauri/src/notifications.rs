@@ -72,7 +72,7 @@ pub async fn send_notification(
             Ok(handle) => {
                 handle.wait_for_action(move |action| {
                     if action == "watch" {
-                        if let Some(window) = app_clone.get_webview_window("main") {
+                        if let Some(window) = app_clone.get_window("main") {
                             let _ = window.unminimize();
                             let _ = window.show();
                             let _ = window.set_focus();
@@ -141,7 +141,7 @@ pub async fn send_notification(
             .on_activated(move |action| {
                 if let Some(action_id) = action {
                     if action_id == "watch" {
-                        if let Some(window) = app_clone.get_webview_window("main") {
+                        if let Some(window) = app_clone.get_window("main") {
                             let _ = window.unminimize();
                             let _ = window.show();
                             let _ = window.set_focus();

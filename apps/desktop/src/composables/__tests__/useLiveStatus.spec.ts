@@ -3,6 +3,7 @@ import { useLiveStatus } from "../useLiveStatus";
 import { ref, effectScope, type EffectScope } from "vue";
 import { invoke } from "@tauri-apps/api/core";
 import { toast } from "../useToast";
+import { nativePlayerId } from "@/lib/nativePlayer";
 
 // Module-level refs so tests can populate them before startPolling
 const mockRecents = ref<any[]>([]);
@@ -63,6 +64,11 @@ vi.mock("@/lib/http", async (importOriginal) => {
     isTauri: () => mockIsTauri(),
   };
 });
+
+vi.mock("@/lib/nativePlayer", () => ({
+  nativePlayerId: vi.fn(() => null),
+  nativeOutputAvailable: () => false,
+}));
 
 vi.mock("vue-i18n", () => ({
   useI18n: () => ({
@@ -424,15 +430,28 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
             }),
           } as Response;
         }
+        if (urlStr.includes("kick.com") && urlStr.endsWith("/livestream")) {
+          return {
+            ok: true,
+            json: async () => ({
+              data: {
+                thumbnail: { src: "https://images.kick.com/video_thumbnails/abc/def/720.webp" },
+              },
+            }),
+          } as Response;
+        }
         if (urlStr.includes("kick.com")) {
           return {
             ok: true,
             json: async () => ({
               livestream: {
+                id: 42,
                 session_title: "Jogando",
                 viewer_count: 5000,
                 categories: [{ name: "GTA V" }],
-                thumbnail: { url: "https://img.kick/thumb.jpg" },
+                thumbnail: {
+                  url: "https://stream.kick.com/thumbnails/livestream/42/thumb0/video_thumbnail/thumb0.jpg",
+                },
               },
               user: { profile_pic: "https://img.kick/alanzoka.jpg" },
             }),
@@ -460,7 +479,7 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
         title: "Jogando",
         category: "GTA V",
         avatarUrl: "https://img.kick/alanzoka.jpg",
-        thumbnailUrl: "https://img.kick/thumb.jpg",
+        thumbnailUrl: "https://images.kick.com/video_thumbnails/abc/def/720.webp",
       });
 
       fetchSpy.mockRestore();
@@ -604,7 +623,7 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
 
     it("should trigger a single welcome toast on first check when 1 favorite is live", async () => {
       // Arrange
-      mockFavorites.value = [{ channel: "gaules", platform: "twitch" }];
+      mockFavorites.value = [{ channel: "gaules", platform: "twitch", notify: true }];
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
         ok: true,
         json: async () => ({
@@ -636,8 +655,8 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
     it("should trigger a welcome toast for 2 to 12 live favorites", async () => {
       // Arrange
       mockFavorites.value = [
-        { channel: "streamer1", platform: "twitch" },
-        { channel: "streamer2", platform: "twitch" },
+        { channel: "streamer1", platform: "twitch", notify: true },
+        { channel: "streamer2", platform: "twitch", notify: true },
       ];
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
         ok: true,
@@ -665,6 +684,7 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
       const favoritesList = Array.from({ length: 15 }, (_, i) => ({
         channel: `streamer_${i}`,
         platform: "twitch",
+        notify: true,
       }));
       mockFavorites.value = favoritesList;
 
@@ -691,7 +711,7 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
 
     it("should send desktop notification when an offline favorite transitions to online", async () => {
       // Arrange: First check (streamer is offline)
-      mockFavorites.value = [{ channel: "gaules", platform: "twitch" }];
+      mockFavorites.value = [{ channel: "gaules", platform: "twitch", notify: true }];
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
         ok: true,
         json: async () => ({
@@ -742,7 +762,7 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
 
     it("should send desktop notification with title-only or fallback body when category or title are missing", async () => {
       // Arrange: First check (offline)
-      mockFavorites.value = [{ channel: "alanzoka", platform: "kick" }];
+      mockFavorites.value = [{ channel: "alanzoka", platform: "kick", notify: true }];
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
         ok: true,
         json: async () => ({ livestream: null }),
@@ -778,7 +798,7 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
 
     it("should send desktop notification with fallback body when both title and category are missing", async () => {
       // Arrange: First check (offline)
-      mockFavorites.value = [{ channel: "coringa", platform: "kick" }];
+      mockFavorites.value = [{ channel: "coringa", platform: "kick", notify: true }];
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValueOnce({
         ok: true,
         json: async () => ({ livestream: null }),
@@ -1409,8 +1429,8 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
 
     it("should not re-fire notifications for already-live favorites on subsequent checks (EC-isFirstCheck regression)", async () => {
       // Arrange — gaules is a favorite and is live
-      mockFavorites.value = [{ channel: "gaules", platform: "twitch" }];
-      mockRecents.value = [{ channel: "gaules", platform: "twitch" }];
+      mockFavorites.value = [{ channel: "gaules", platform: "twitch", notify: true }];
+      mockRecents.value = [{ channel: "gaules", platform: "twitch", notify: true }];
 
       fetchSpy.mockResolvedValue({
         ok: true,
@@ -1448,8 +1468,8 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
 
     it("should not re-fire notifications after a foreground wake-up check (visibility watcher)", async () => {
       // Arrange — complete a first check so hasCompletedFirstCheck = true
-      mockFavorites.value = [{ channel: "alanzoka", platform: "kick" }];
-      mockRecents.value = [{ channel: "alanzoka", platform: "kick" }];
+      mockFavorites.value = [{ channel: "alanzoka", platform: "kick", notify: true }];
+      mockRecents.value = [{ channel: "alanzoka", platform: "kick", notify: true }];
 
       fetchSpy.mockResolvedValue({
         ok: true,
@@ -1487,8 +1507,8 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
 
     it("should not fire spurious notifications when API returns stream:null for a single cycle (flaky read)", async () => {
       // Arrange — gaules is live
-      mockFavorites.value = [{ channel: "gaules", platform: "twitch" }];
-      mockRecents.value = [{ channel: "gaules", platform: "twitch" }];
+      mockFavorites.value = [{ channel: "gaules", platform: "twitch", notify: true }];
+      mockRecents.value = [{ channel: "gaules", platform: "twitch", notify: true }];
 
       const liveResponse = {
         ok: true,
@@ -1717,7 +1737,7 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
       // Arrange
       mockIsTauri.mockReturnValue(true);
       mockNotificationsEnabled.value = true;
-      mockFavorites.value = [{ channel: "gaules", platform: "twitch" }];
+      mockFavorites.value = [{ channel: "gaules", platform: "twitch", notify: true }];
       mockStreams.value = [];
 
       const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
@@ -1911,6 +1931,88 @@ describe("useLiveStatus composable unit tests (Critical Paths)", () => {
       // Assert
       expect(checkedChannels).toContain("CazeTV");
       expect(checkedChannels).not.toContain("dQw4w9WgXcQ");
+    });
+  });
+
+  describe("Live alerts are opt-in and only sent by the main window", () => {
+    const liveResponse = () =>
+      ({
+        ok: true,
+        json: async () => ({
+          data: {
+            c0: { profileImageURL: "x", stream: { title: "t", viewersCount: 5, game: null } },
+          },
+        }),
+      }) as Response;
+
+    beforeEach(() => {
+      mockIsTauri.mockReturnValue(true);
+      mockNotificationsEnabled.value = true;
+    });
+
+    it("does not announce favorites that were not starred for alerts", async () => {
+      // Arrange
+      mockFavorites.value = [{ channel: "gaules", platform: "twitch" }];
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(liveResponse());
+
+      // Act
+      await sut.checkAll();
+
+      // Assert
+      expect(sut.statuses.value["twitch:gaules"]?.isLive).toBe(true);
+      expect(toast.info).not.toHaveBeenCalled();
+      fetchSpy.mockRestore();
+    });
+
+    it("announces only the favorites that were starred for alerts", async () => {
+      // Arrange
+      mockFavorites.value = [
+        { channel: "gaules", platform: "twitch", notify: true },
+        { channel: "quiet", platform: "twitch" },
+      ];
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: {
+            c0: { profileImageURL: "x", stream: { title: "t", viewersCount: 5, game: null } },
+            c1: { profileImageURL: "x", stream: { title: "t", viewersCount: 5, game: null } },
+          },
+        }),
+      } as Response);
+
+      // Act
+      await sut.checkAll();
+
+      // Assert
+      expect(toast.info).toHaveBeenCalledTimes(1);
+      const [, options] = vi.mocked(toast.info).mock.calls[0]!;
+      expect((options as any)?.description).toContain("gaules");
+      expect((options as any)?.description).not.toContain("quiet");
+      fetchSpy.mockRestore();
+    });
+
+    it("never polls or notifies from inside a native stream tile", async () => {
+      // Arrange
+      // The composable is shared, so the window's own instance must be gone first.
+      scope.stop();
+      vi.mocked(nativePlayerId).mockReturnValue("tile1");
+      const tileScope = effectScope();
+      const tile = tileScope.run(() => useLiveStatus())!;
+      mockFavorites.value = [{ channel: "gaules", platform: "twitch", notify: true }];
+      const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(liveResponse());
+
+      // Act
+      await tile.checkAll();
+      tile.startPolling();
+      await vi.advanceTimersByTimeAsync(120000);
+
+      // Assert
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(toast.info).not.toHaveBeenCalled();
+      expect(vi.mocked(invoke)).not.toHaveBeenCalledWith("send_notification", expect.anything());
+      fetchSpy.mockRestore();
+      tileScope.stop();
+      vi.mocked(nativePlayerId).mockReturnValue(null);
     });
   });
 });

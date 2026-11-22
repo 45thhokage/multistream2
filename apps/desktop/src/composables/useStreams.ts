@@ -25,9 +25,24 @@ export interface Stream {
   displayName?: string;
   handle?: string;
   workspaceId?: string;
+  /** Layout slot this tile is pinned to (set when added to or dropped on an empty tile). */
+  slot?: number;
+  /** Website tiles: play the page's HLS stream directly (experimental). */
+  siteHls?: boolean;
 }
 
+/**
+ * Website tiles: the page each tile is on now (by stream id), which can differ from `iframeUrl`
+ * (the URL it was opened with) once the viewer browses. Reopening a tile returns here. Kept
+ * apart from `streams` on purpose: the grid, the mixer and every player window react to any
+ * change of that list, and browsing a site must not make them redo their work.
+ */
+const tilePages = useStorage<Record<string, string>>("tile-pages", {});
+
 const MAX_STREAMS_PER_WORKSPACE = 16;
+
+/** Empty tile the next added stream should land on (set by clicking an empty tile). */
+const pendingSlot = ref<number | null>(null);
 
 const _useStreams = () => {
   const { t } = useI18n();
@@ -136,10 +151,14 @@ const _useStreams = () => {
 
     const delta = Math.max(0, currentNow - lastTickTime);
 
+    // The same channel can be open in several tiles; it is watched once, not once per tile.
+    const counted = new Set<string>();
     streams.value.forEach((s) => {
       // Only accumulate for streams that are not currently animating out/leaving
       if (!leavingIds.has(s.id)) {
         const key = channelIdentityKey(s.channel, s.platform, s.iframeUrl);
+        if (counted.has(key)) return;
+        counted.add(key);
         memoryAccumulator[key] = (memoryAccumulator[key] || 0) + delta;
       }
     });
@@ -164,9 +183,10 @@ const _useStreams = () => {
   /**
    * @brief Add a stream
    *
-   * Checks if the stream is already added, showing a warning toast if so.
-   * Otherwise, the new entry is appended to the bottom of the list,
-   * a success toast is displayed, and it is added to the recent channels list.
+   * The same stream or site may be added any number of times: every tile has its own id, and a
+   * website tile browses away from the URL it was opened with, so a URL match says nothing about
+   * what is on screen. Only the per-workspace tile limit can refuse it. The new entry is appended
+   * to the bottom of the list, a success toast is displayed, and it is added to the recents.
    *
    * @param channel The channel name
    * @param platform The platform
@@ -181,24 +201,8 @@ const _useStreams = () => {
     handle?: string,
     replacingId?: string
   ) => {
-    const identityKey =
-      platform === "custom"
-        ? `custom:${iframeUrl || channel.toLowerCase()}`
-        : channelIdentityKey(channel, platform, iframeUrl);
     const workspaceId = activeWorkspaceId.value;
     const inWorkspace = (s: Stream) => workspaceIdOf(s.workspaceId) === workspaceId;
-    if (
-      streams.value.some(
-        (s) =>
-          inWorkspace(s) &&
-          (s.platform === "custom"
-            ? `custom:${s.iframeUrl || s.channel.toLowerCase()}`
-            : channelIdentityKey(s.channel, s.platform, s.iframeUrl)) === identityKey
-      )
-    ) {
-      toast.warning(t("toasts.add.alreadyAdded"));
-      return;
-    }
 
     if (
       streams.value.filter((s) => inWorkspace(s) && s.id !== replacingId).length >=
@@ -223,8 +227,10 @@ const _useStreams = () => {
         ...(displayName && { displayName }),
         ...(cleanHandle && { handle: cleanHandle }),
         workspaceId,
+        ...(pendingSlot.value !== null && { slot: pendingSlot.value }),
       },
     ];
+    pendingSlot.value = null;
 
     streamLayout.value = layoutForStreamAddition(
       streamLayout.value,
@@ -290,10 +296,28 @@ const _useStreams = () => {
 
   const isLeaving = (id: string) => leavingIds.has(id);
 
+  /** Updates per-tile settings that live on the stream entry (persisted). */
+  const updateStream = (id: string, patch: Partial<Pick<Stream, "siteHls" | "displayName">>) => {
+    streams.value = streams.value.map((s) => (s.id === id ? { ...s, ...patch } : s));
+  };
+
   /**
    * @brief Get unique Vue render key for a stream
    */
   const getStreamKey = (stream: Stream) => stream.id;
+
+  /** Remember the page a website tile is on, so reopening it returns there. */
+  const setStreamPageUrl = (id: string, url: string) => {
+    if (tilePages.value[id] === url || !streams.value.some((s) => s.id === id)) return;
+    // Drop entries of tiles that no longer exist while writing, so the map cannot grow forever.
+    const live = new Set(streams.value.map((s) => s.id));
+    const next: Record<string, string> = {};
+    for (const [key, value] of Object.entries(tilePages.value))
+      if (live.has(key)) next[key] = value;
+    next[id] = url;
+    tilePages.value = next;
+  };
+  const streamPageUrl = (id: string): string | undefined => tilePages.value[id];
 
   /**
    * @brief Clear all streams
@@ -345,11 +369,15 @@ const _useStreams = () => {
   return {
     streams,
     activeStreams,
+    pendingSlot,
     addStream,
     removeStream,
     requestRemoveStream,
     isLeaving,
+    updateStream,
     getStreamKey,
+    setStreamPageUrl,
+    streamPageUrl,
     clearStreams,
     gridClass,
     sessionStartTimes,

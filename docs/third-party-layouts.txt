@@ -1,3 +1,8 @@
+Covers code adapted from Multi Worldview: the layout preset geometry, the layout
+editor (apps/desktop/src/config/layoutEditorModel.ts and
+apps/desktop/src/components/dialogs/LayoutEditorDialog.vue), tile Maximize, and
+the approach of the website fit-video script.
+
 MIT License
 
 Copyright (c) 2026 Multi Worldview contributors

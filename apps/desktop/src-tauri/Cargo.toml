@@ -52,6 +52,10 @@ tauri-plugin-fs = "2"
 chrono = { version = "0.4", features = ["clock"] }
 uuid = { version = "1", features = ["v4"] }
 tauri-plugin-opener = "2"
+# Website ad blocking (ABP / uBO network + cosmetic filters). `single-thread`
+# is left out so the engine is Send + Sync and can be shared with WebView2 handlers.
+url = "2"
+adblock = { version = "0.13.5", default-features = false, features = ["embedded-domain-resolver", "full-regex-handling"] }
 
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -65,7 +69,17 @@ webview2-com = "0.38"
 windows-core = "0.61"
 tauri-winrt-notification = "0.7.3"
 wasapi = "0.25"
-windows-sys = { version = "0.52", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Diagnostics_ToolHelp"] }
+windows-sys = { version = "0.52", features = ["Win32_Foundation", "Win32_Graphics_Gdi", "Win32_Storage_FileSystem", "Win32_System_Diagnostics_ToolHelp", "Win32_UI_WindowsAndMessaging", "Win32_UI_Input_KeyboardAndMouse", "Win32_Security_Cryptography", "Win32_System_Memory"] }
+
+# Dev builds (Start Desktop Dev) run every website-tile request through the ad-block engine on
+# the UI thread. Unoptimized, one check took ~30 ms with the default lists (about 0.26 ms
+# optimized), so a page with many live previews froze scrolling and typing. Dependencies are
+# optimized; the app's own code keeps fast rebuilds and full debug info.
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
 
 [profile.release]
 lto = "thin"

@@ -205,6 +205,8 @@ export interface PlacedStream {
   style: Record<string, string>;
   spanLastOdd: boolean;
   overlayIndex: number;
+  /** Layout slot this stream occupies, or -1 when it does not fit. */
+  slotIndex: number;
 }
 
 export interface ArrangedLayout {
@@ -217,6 +219,39 @@ export interface ArrangedLayout {
   expanded: boolean;
 }
 
+/**
+ * Streams normally fill slots in order. A stream with a `slot` pin keeps that slot while it is
+ * free, so a stream added to (or dragged onto) an empty tile stays on that tile. The focused
+ * stream always takes the main slot; everything else fills the lowest free slots.
+ */
+function assignSlots(
+  ordered: Stream[],
+  slotCount: number,
+  focusedId: string | null
+): Map<string, number> {
+  const assigned = new Map<string, number>();
+  const taken = new Set<number>();
+  const claim = (stream: Stream, slot: number) => {
+    assigned.set(stream.id, slot);
+    taken.add(slot);
+  };
+  const focused = ordered.find((stream) => stream.id === focusedId);
+  if (focused && slotCount > 0) claim(focused, 0);
+  for (const stream of ordered) {
+    const pin = stream.slot;
+    if (assigned.has(stream.id) || pin === undefined) continue;
+    if (Number.isInteger(pin) && pin >= 0 && pin < slotCount && !taken.has(pin)) claim(stream, pin);
+  }
+  let next = 0;
+  for (const stream of ordered) {
+    if (assigned.has(stream.id)) continue;
+    while (taken.has(next)) next++;
+    if (next >= slotCount) break;
+    claim(stream, next);
+  }
+  return assigned;
+}
+
 function arrangeSlots(
   slots: LayoutSlot[],
   streams: Stream[],
@@ -225,18 +260,23 @@ function arrangeSlots(
   const shownSlots = displaySlots(slots, streams.length);
   const { container, placements } = compileLayout(shownSlots);
   const ordered = orderStreamsForLayout(streams, focusedId);
+  const slotOf = assignSlots(ordered, placements.length, focusedId);
   const placedById: Record<string, PlacedStream> = {};
-  ordered.forEach((stream, index) => {
-    const placement = placements[index];
+  const usedSlots = new Set<number>();
+  ordered.forEach((stream) => {
+    const slotIndex = slotOf.get(stream.id);
+    const placement = slotIndex === undefined ? undefined : placements[slotIndex];
+    if (slotIndex !== undefined) usedSlots.add(slotIndex);
     placedById[stream.id] = {
       id: stream.id,
       hidden: !placement,
       style: placement?.style ?? {},
       spanLastOdd: false,
       overlayIndex: placement?.overlayIndex ?? -1,
+      slotIndex: slotIndex ?? -1,
     };
   });
-  const emptyPlacements = placements.slice(ordered.length);
+  const emptyPlacements = placements.filter((placement) => !usedSlots.has(placement.index));
   return {
     container,
     placedById,

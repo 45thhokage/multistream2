@@ -5,8 +5,8 @@ import { nativeOutputAvailable, nativePlayerId } from "@/lib/nativePlayer";
 import { useLiveStatus, type LiveStatus } from "./useLiveStatus";
 
 export function useNativePlayerBridge(
-  onShortcut?: (key: string) => void,
-  onEdge?: (tileId: string, side: string) => void
+  onEdge?: (tileId: string, side: string) => void,
+  onEscape?: () => void
 ) {
   const { statuses } = useLiveStatus();
   const id = nativePlayerId();
@@ -28,13 +28,11 @@ export function useNativePlayerBridge(
       );
       await emitTo("main", "native-player-ready", { tileId: id });
     } else {
-      await register<{ key: string }>("native-player-shortcut", (value) => {
-        if (typeof value?.key === "string") onShortcut?.(value.key);
-      });
       await register<{ tileId: string; side: string }>("native-player-edge", (value) => {
         if (typeof value?.tileId === "string" && ["left", "right"].includes(value.side))
           onEdge?.(value.tileId, value.side);
       });
+      await register("native-player-escape", () => onEscape?.());
       await register<{ tileId: string }>("native-player-ready", (value) => {
         if (typeof value?.tileId === "string" && /^[a-zA-Z0-9_-]{1,40}$/.test(value.tileId)) {
           void emitTo(`tile-${value.tileId}`, "native-player-status", statuses.value);
@@ -49,6 +47,10 @@ export function useNativePlayerBridge(
     },
     { deep: true }
   );
+  // A focused tile owns the keyboard, so it hands Escape back to the app window.
+  useEventListener(window, "keydown", (event: KeyboardEvent) => {
+    if (event.key === "Escape" && id) void emitTo("main", "native-player-escape");
+  });
   useEventListener(window, "multistream-screenshot", () => {
     if (nativeOutputAvailable() && !id) void emit("native-player-screenshot");
   });

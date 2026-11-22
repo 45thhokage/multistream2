@@ -28,7 +28,7 @@ export function useLinkDrop() {
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
   };
-  const onLinkDrop = (event: DragEvent, targetId?: string) => {
+  const onLinkDrop = (event: DragEvent, targetId?: string, slot?: number) => {
     event.preventDefault();
     linkDragging.value = false;
     if (!event.dataTransfer) return;
@@ -36,7 +36,7 @@ export function useLinkDrop() {
     if (!parsed) return;
     const targetIndex = streams.value.findIndex((stream) => stream.id === targetId);
     const target = streams.value[targetIndex];
-    // Validate duplicates and capacity before removing the existing player.
+    // Check capacity before removing the existing player.
     const newId = addStream(
       parsed.channel,
       parsed.platform,
@@ -45,12 +45,19 @@ export function useLinkDrop() {
       undefined,
       target?.id
     );
+    if (newId && slot !== undefined && !target) {
+      streams.value = streams.value.map((stream) =>
+        stream.id === newId ? { ...stream, slot } : stream
+      );
+      return;
+    }
     if (!newId || !target) return;
     removeStream(target.id);
     const next = [...streams.value];
     const addedIndex = next.findIndex((stream) => stream.id === newId);
     const added = next.splice(addedIndex, 1)[0];
-    if (added) next.splice(targetIndex, 0, added);
+    // The replacement keeps the tile the old stream was pinned to.
+    if (added) next.splice(targetIndex, 0, { ...added, slot: target.slot });
     streams.value = next;
   };
   return { onLinkDrop, onLinkDragOver, linkDragging };

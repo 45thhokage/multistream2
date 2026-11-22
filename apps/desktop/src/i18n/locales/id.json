@@ -139,7 +139,8 @@
       "data": "Data",
       "general": "Umum",
       "recording": "Perekaman",
-      "resources": "Transkripsi"
+      "resources": "Transkripsi",
+      "adblock": "Ad blocking"
     },
     "about": {
       "title": "Tentang Multistream",
@@ -219,6 +220,14 @@
       "title": "Site windows",
       "youtubeHint": "Sign in on youtube.com once — streams and chat reuse it.",
       "youtubeLogin": "Open YouTube to sign in"
+    },
+    "fitVideoAuto": {
+      "description": "Saat Anda menekan putar pada video petak situs web, video akan memenuhi petak. Esc mengembalikan halaman.",
+      "title": "Sesuaikan video saat diputar"
+    },
+    "tabbedSidebar": {
+      "description": "Satu bagian dalam satu waktu, dari deretan tab ikon.",
+      "title": "Bilah samping bertab"
     }
   },
   "share": {
@@ -258,7 +267,9 @@
       "unfocus": "Batal fokuskan",
       "copyUrl": "Salin URL siaran",
       "reload": "Muat ulang siaran",
-      "openInWindow": "Open in window"
+      "openInWindow": "Open in window",
+      "maximize": "Maximize (fill the whole grid)",
+      "restore": "Restore to the grid (Esc)"
     }
   },
   "empty": {
@@ -434,13 +445,13 @@
       "title": "Tambah Stream",
       "description": "Susun grid Anda dengan siaran langsung dari Twitch, Kick, YouTube, atau tautan sematan khusus dalam satu layar dengan koneksi langsung ke setiap platform.",
       "customPlatform": "Kustom",
-      "hint": "Tekan {key} atau klik '+' di bilah sisi kanan untuk menambahkan saluran. Saat beberapa siaran terbuka, seret ubin untuk mengatur ulang urutan grid atau tekan F saat mengarahkan kursor ke siaran untuk memperbesarnya."
+      "hint": "Klik '+' di sidebar kanan untuk menambahkan channel. Saat beberapa stream terbuka, seret ubin melalui pegangannya untuk mengatur ulang grid, atau gunakan tombol perbesar pada stream untuk menjadikannya tampilan utama."
     },
     "step2": {
       "title": "Kontrol Obrolan",
       "description": "Ikuti pesan langsung dari semua siaran yang terbuka di bilah sisi kanan tanpa perlu berpindah jendela.",
       "chatActive": "Obrolan Aktif",
-      "hint": "Gunakan pemilih di bagian atas panel obrolan untuk memilih Obrolan Terpadu (yang menggabungkan semua siaran di grid Anda menjadi satu umpan bacaan), atau tekan {keys} di keyboard untuk berpindah ke obrolan satu saluran dan mengirim pesan."
+      "hint": "Gunakan pemilih di bagian atas panel chat untuk memilih Chat Terpadu (menggabungkan semua stream di grid menjadi satu feed) atau chat satu channel untuk mengirim pesan."
     },
     "step3": {
       "title": "Akun Twitch & Kick",
@@ -455,7 +466,7 @@
     "step4": {
       "title": "Jelajahi Berdasarkan Kategori",
       "description": "Lihat siapa yang sedang siaran langsung saat ini di Twitch dan Kick dengan memfilter berdasarkan game atau kategori, tanpa perlu membuka browser untuk mencari tautan.",
-      "hint": "Saran siaran langsung muncul di layar utama saat grid Anda kosong dan di dalam jendela Tambah Siaran (tombol {key}). Pilih kategori mana saja lalu klik kartu siaran langsung untuk langsung memasukkannya ke grid Anda."
+      "hint": "Saran live muncul di layar utama saat grid kosong dan di dialog Tambah Stream. Pilih kategori mana pun lalu klik kartu live untuk langsung menambahkannya ke grid."
     },
     "step5": {
       "title": "Transkripsi Langsung",
@@ -473,21 +484,6 @@
       "badgeFormat": "MP4 Source",
       "hint": "Aktifkan fitur ini di Pengaturan → Perekaman untuk memasang perekam saat pertama kali digunakan. Lalu arahkan kursor ke siaran aktif mana pun dan klik tombol rekam di bilah alat atas pemutar. Anda juga dapat mengubah folder penyimpanan di Pengaturan."
     },
-    "step7": {
-      "title": "Pintasan Papan Ketik",
-      "description": "Kelola grid Anda, berpindah antar obrolan, dan sorot siaran dengan cepat menggunakan pintasan keyboard global aplikasi.",
-      "add": "Buka dialog tambah stream",
-      "screenshot": "Ambil tangkapan layar stream aktif",
-      "chat": "Beralih ke obrolan stream {keys}",
-      "screenshotTitle": "Tangkapan Layar",
-      "focusTitle": "Fokus Siaran",
-      "focus": "Perbesar siaran di bawah kursor sebagai tampilan utama",
-      "hint": "Pintasan berfungsi kapan saja di luar kolom input teks, bahkan saat kursor Anda berada di atas pemutar video. Anda dapat membuka kembali panduan ini kapan saja melalui Pengaturan → Umum → Tampilkan Tur Pengenalan.",
-      "escTitle": "Keluar & Sembunyikan",
-      "esc": "Keluar dari layar penuh, mode imersif, atau tutup panel",
-      "fullscreenTitle": "Layar Penuh",
-      "fullscreen": "Alihkan mode layar penuh aplikasi"
-    },
     "goToStep": "Buka langkah {step}",
     "hintLabel": "Tips"
   },
@@ -503,7 +499,12 @@
     "loginSubtitle": "Lihat saluran yang Anda ikuti",
     "noChannels": "Tidak ada channel yang online",
     "noChannelsSubtitle": "Favoritkan channel atau hubungkan akun Twitch Anda.",
-    "previewUnavailable": "Pratinjau tidak tersedia"
+    "previewUnavailable": "Pratinjau tidak tersedia",
+    "tabFollowing": "Mengikuti",
+    "tabFavorites": "Favorit",
+    "noFavoriteSites": "Belum ada situs favorit",
+    "noFavoriteSitesSubtitle": "Ketuk ikon hati pada petak situs web untuk menyimpannya di sini.",
+    "tabStreams": "Streams"
   },
   "nativePlayer": {
     "live": "LANGSUNG",
@@ -542,11 +543,14 @@
   },
   "immersive": {
     "tooltip": "Mode Imersif",
-    "exitTooltip": "Keluar dari Mode Imersif (Esc)"
+    "exitTooltip": "Keluar dari Mode Imersif",
+    "enter": "Fullscreen",
+    "exit": "Exit immersive mode",
+    "exitFullscreen": "Exit fullscreen"
   },
   "preferences": {
     "immersive": {
-      "toastEnabled": "Mode imersif diaktifkan — arahkan kursor ke tepi layar atau tekan Esc untuk keluar (F11 untuk Layar Penuh)"
+      "toastEnabled": "Mode imersif aktif — arahkan kursor ke tepi layar untuk menampilkan panel, atau gunakan tombol di atas untuk keluar"
     }
   },
   "app": {
@@ -562,7 +566,10 @@
     "forward": "Go forward",
     "loading": "Loading {title}...",
     "mobileView": "Switch to mobile view",
-    "reload": "Reload page"
+    "reload": "Reload page",
+    "fitVideo": "Sesuaikan video halaman ke petak ini",
+    "fitVideoExit": "Kembalikan halaman",
+    "fitVideoNone": "Tidak ada video di halaman ini"
   },
   "layouts": {
     "addToSlot": "Add stream",
@@ -608,7 +615,77 @@
     "pipFour": "4 PiP di sudut",
     "pipSix": "Kisi 6 PiP",
     "stripThree": "Baris 3 PiP",
-    "stripFour": "Baris 4 PiP"
+    "stripFour": "Baris 4 PiP",
+    "editCustom": "Edit layout",
+    "openEditor": "Layout editor",
+    "editor": {
+      "title": "Layout editor",
+      "name": "Layout name",
+      "defaultName": "My layout",
+      "editedName": "{name} (edited)",
+      "undo": "Undo (Ctrl+Z)",
+      "redo": "Redo (Ctrl+Shift+Z)",
+      "draw": "Draw a slot (D): drag on the canvas. Drawn inside a tile it becomes a PiP",
+      "snap": "Snapping (S): hold Alt while dragging to bypass",
+      "close": "Close (Esc)",
+      "startFrom": "Start from",
+      "blank": "Blank",
+      "grid": "Uniform grid",
+      "applyGrid": "Replace the canvas with a {cols} × {rows} grid",
+      "columns": "columns",
+      "rows": "rows",
+      "fewer": "Fewer {what}",
+      "more": "More {what}",
+      "emptyCanvas": "Empty canvas. Draw a slot, pick a starting shape, or:",
+      "fullTile": "One full tile",
+      "addPip": "Add PiP",
+      "addPipKey": "Add a picture-in-picture (P)",
+      "fillGaps": "Fill gaps",
+      "gapHint": "Empty: double-click to fill with a tile",
+      "summary": "{tiles} tiles · {pips} PiPs",
+      "gapShare": "{pct}% of the frame is empty",
+      "noSelection": "Click a slot to edit it. Drag to move, pull the handles to resize. Shared edges move together; hold Alt to resize one tile on its own.",
+      "main": "Main",
+      "tile": "Tile",
+      "pip": "PiP",
+      "slot": "Slot {n}",
+      "deselect": "Deselect (Esc)",
+      "position": "Position and size (%)",
+      "splitCols": "Split into {n} columns",
+      "splitRows": "Split into {n} rows",
+      "split": "Split",
+      "pipStrip": "PiP row",
+      "pipStripHint": "A row of {n} PiPs along the bottom",
+      "pipPosition": "PiP position",
+      "pipSize": "PiP size",
+      "duplicate": "Duplicate (Ctrl+D)",
+      "earlier": "Fill earlier",
+      "later": "Fill later",
+      "backward": "Send backward",
+      "forward": "Bring forward",
+      "makeMain": "Make main (gets the first stream)",
+      "remove": "Remove (Delete)",
+      "floatLimit": "A PiP stays smaller than the tile it floats on",
+      "unsavedTitle": "Discard your changes?",
+      "unsavedBody": "This layout has edits that are not saved.",
+      "keepEditing": "Keep editing",
+      "discard": "Discard",
+      "cancel": "Cancel",
+      "saveNew": "Save as new",
+      "saveChanges": "Save changes",
+      "saved": "Layout \"{name}\" saved",
+      "anchors": {
+        "tl": "Top left",
+        "tc": "Top centre",
+        "tr": "Top right",
+        "ml": "Middle left",
+        "mc": "Centre",
+        "mr": "Middle right",
+        "bl": "Bottom left",
+        "bc": "Bottom centre",
+        "br": "Bottom right"
+      }
+    }
   },
   "workspaces": {
     "add": "Add workspace",
@@ -649,7 +726,7 @@
   "liveNow": {
     "title": "Sedang live",
     "description": "Temukan stream live dan tambahkan ke ruang kerja saat ini.",
-    "search": "Cari kanal, judul, atau kategori…",
+    "search": "Cari kanal atau topik siaran langsung YouTube…",
     "platforms": "Platform",
     "category": "Kategori",
     "allCategories": "Semua kategori",
@@ -660,6 +737,292 @@
     "favorite": "Favoritkan {channel}",
     "added": "Ditambahkan",
     "add": "Tambahkan ke ruang kerja",
-    "more": "Tampilkan lagi"
+    "more": "Tampilkan lagi",
+    "unknown": "Tidak diketahui",
+    "retry": "Coba lagi",
+    "categorySearch": "Cari kategori (Kick: 3+ huruf)",
+    "moreCategories": "Kategori lainnya",
+    "clearCategory": "Hapus kategori",
+    "directoryTags": "Tag direktori Twitch",
+    "applyTag": "Terapkan tag",
+    "saveFilter": "Simpan filter",
+    "deleteFilter": "Hapus filter tersimpan",
+    "loadedSearch": "Filter kanal dan judul yang dimuat",
+    "loadedTags": "Filter tag siaran yang dimuat",
+    "loadedCount": "Hanya hasil yang dimuat: {matching} / {loaded}",
+    "channelResults": "Pencarian kanal",
+    "channelOffline": "Offline",
+    "separateSearch": "Hasil pencarian kanal",
+    "refresh": "Segarkan",
+    "browseCategories": "Jelajahi kategori",
+    "backStreams": "Kembali ke siaran langsung",
+    "backCategories": "Kembali ke semua kategori",
+    "allTwitchStreams": "Semua siaran langsung Twitch",
+    "clearTags": "Hapus tag",
+    "removeTag": "Hapus tag {tag}",
+    "chooseCategory": "Pilih kategori untuk menjelajahi siaran langsung.",
+    "categoryViewers": "{count} penonton",
+    "twitchCategorySearch": "Cari kategori berdasarkan nama",
+    "saveTags": "Simpan tag",
+    "twitchTagsPlaceholder": "Tag, mis. English, DropsEnabled"
+  },
+  "media": {
+    "source": "Source",
+    "unreachable": "The stream could not be reached. It may be offline, or the server may refuse playback outside its own site.",
+    "unsupported": "This player cannot play HLS here.",
+    "playbackFailed": "Playback failed ({detail}).",
+    "kindFile": "File",
+    "quality": "Quality",
+    "qualityMax": "Max",
+    "qualityAuto": "Auto",
+    "stats": "Stats",
+    "statResolution": "Resolution",
+    "statBitrate": "Bitrate",
+    "statBuffer": "Buffer",
+    "statDropped": "Dropped frames",
+    "retry": "Retry"
+  },
+  "siteTools": {
+    "open": "Site tools",
+    "title": "Site tools",
+    "direct": {
+      "title": "Direct stream playback (HLS, experimental)",
+      "description": "Finds the page's live stream (for example a live-room site) and plays it in this tile at the highest quality. Turn it off to return to the page.",
+      "off": "Off",
+      "waiting": "Waiting for the page to load…",
+      "via": "found via {source}",
+      "state": {
+        "searching": "Looking for the stream",
+        "loading": "Loading stream",
+        "playing": "Playing",
+        "failed": "No playable stream, showing the page",
+        "off": "Off"
+      }
+    },
+    "detected": {
+      "title": "Streams found on this page",
+      "refresh": "Refresh",
+      "none": "None yet. Start the video on the page and they appear here.",
+      "copy": "Copy URL",
+      "openTile": "Open as tile"
+    },
+    "record": {
+      "title": "Record",
+      "description": "Records the page's video with Streamlink: a supported site's own stream, or the stream this page is playing.",
+      "needsTools": "Install the recording tools in Settings → Recording first."
+    },
+    "adblock": {
+      "title": "Block ads on this site",
+      "description": "Website ad blocking is on. Switch it off for {host} if the site breaks.",
+      "globallyOff": "Website ad blocking is switched off in Settings → Ad blocking.",
+      "reloadHint": "Saved. Reload the tile to apply it."
+    },
+    "accounts": {
+      "title": "Sign-ins for {domain}",
+      "description": "Save who is signed in to this site, then switch between saved sign-ins. Every tile on the site uses the same sign-in.",
+      "use": "Use",
+      "remove": "Remove saved sign-in",
+      "nameLabel": "Name for this sign-in",
+      "namePlaceholder": "Name, e.g. Main account",
+      "save": "Save current",
+      "signOut": "Sign out of {domain}",
+      "saved": "Sign-in saved",
+      "switched": "Switched sign-in. Tiles on this site are reloading.",
+      "signedOut": "Signed out. Tiles on this site are reloading."
+    }
+  },
+  "adblock": {
+    "title": "Block ads and trackers on websites",
+    "description": "Applies to website tiles and site windows. Twitch, Kick and YouTube keep their own ad blocker under General.",
+    "desktopOnly": "Website ad blocking needs the desktop app.",
+    "never": "never",
+    "updated": "Filter lists checked: {count} updated",
+    "listAdded": "Filter list added",
+    "rulesSaved": "Rules saved",
+    "everyHours": "Every {n} hours",
+    "everyDays": "Every {n} days",
+    "rules": "{count} rules",
+    "blocked": "{count} requests blocked",
+    "lastCheck": "Last checked {when}",
+    "updating": "Updating…",
+    "updateNow": "Update now",
+    "autoUpdate": "Update lists automatically",
+    "interval": "Update interval",
+    "autoUpdateHint": "Lists are re-downloaded in the background once they are older than this interval, or sooner when a list asks for it. Unchanged lists are not downloaded again.",
+    "lists": "Filter lists",
+    "listMeta": "{rules} rules · updated {when}",
+    "notDownloaded": "Not downloaded yet",
+    "removeList": "Remove {name}",
+    "listName": "Name (optional)",
+    "listUrl": "Filter list URL",
+    "addList": "Subscribe",
+    "allowlist": "Trusted sites",
+    "allowlistHint": "Nothing is blocked on these sites or their subdomains.",
+    "removeAllow": "Stop trusting {host}",
+    "allowPlaceholder": "example.com",
+    "allowAdd": "Trust site",
+    "customRules": "My rules",
+    "customRulesHint": "One rule per line, in Adblock Plus / uBlock Origin syntax. Network rules and element-hiding rules are supported.",
+    "saveRules": "Save rules"
+  },
+  "accounts": {
+    "title": "Saved accounts",
+    "description": "Every account you sign in with is kept here, so you can switch without signing in again.",
+    "none": "No saved accounts yet.",
+    "active": "Active",
+    "switched": "Now using {name}",
+    "use": "Use",
+    "remove": "Remove {name}",
+    "add": "Add another account",
+    "sites": "Website sign-ins",
+    "sitesHint": "Saved from a website tile's site tools."
+  },
+  "usage": {
+    "title": "Penggunaan data",
+    "now": "Sekarang",
+    "session": "Sesi ini",
+    "month": "Bulan ini",
+    "byStream": "Per stream",
+    "other": "Petak lain",
+    "idle": "Tidak ada yang diputar"
+  },
+  "alerts": {
+    "enable": "Beri tahu saat live",
+    "disable": "Hentikan notifikasi live",
+    "enabled": "Anda akan diberi tahu saat {channel} live",
+    "disabled": "Notifikasi live dimatikan untuk {channel}",
+    "on": "Notifikasi live aktif"
+  },
+  "diagnostics": {
+    "open": "Diagnostics",
+    "title": "Diagnostics",
+    "description": "What the app is doing right now: blocked requests, streams found on pages, direct playback and recording.",
+    "desktopOnly": "Diagnostics need the desktop app.",
+    "siteWindow": "Site window",
+    "network": "Network",
+    "online": "Online",
+    "offline": "Offline",
+    "adblock": "Website ad blocking",
+    "rules": "{count} rules",
+    "off": "Off",
+    "blockedTotal": "Requests blocked",
+    "recorder": "Recorder",
+    "installed": "Installed",
+    "notInstalled": "Not installed",
+    "engineBuilt": "filter engine built in {ms} ms",
+    "tiles": "Tiles",
+    "noTiles": "No streams open.",
+    "tile": "Tile",
+    "type": "Type",
+    "blocked": "Blocked",
+    "streamsFound": "Streams found",
+    "directHls": "Direct HLS",
+    "recording": "Recording",
+    "byList": "Blocked by list",
+    "media": "Streams found on pages",
+    "noMedia": "None yet.",
+    "recentBlocked": "Recently blocked",
+    "filter": "Filter",
+    "noBlocked": "Nothing blocked yet.",
+    "refresh": "Refresh",
+    "export": "Export JSON",
+    "clear": "Clear log"
+  },
+  "favoritesPanel": {
+    "title": "Favorites",
+    "liveBadge": "{count} live",
+    "liveBadgeTitle": "{count} of your favorites are live",
+    "empty": "Star a channel or a website tile and it appears here.",
+    "searchLabel": "Search favorites",
+    "searchPlaceholder": "Search {count} favorites…",
+    "clear": "Clear",
+    "filterLabel": "Show favorites",
+    "noMatch": "No favorite matches “{query}”.",
+    "noneHere": "None here right now.",
+    "showAll": "Show all",
+    "allShownWhileSearching": "Every match is shown while searching",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "showMore": "Show {count} more",
+    "showLess": "Show less",
+    "live": "live",
+    "rightClick": "right-click for more",
+    "open": "Open",
+    "pin": "Pin to top",
+    "unpin": "Unpin",
+    "copyAddress": "Copy address",
+    "copied": "Address copied",
+    "remove": "Remove from favorites",
+    "groups": {
+      "pinned": "Pinned",
+      "live": "Live now",
+      "others": "Others"
+    },
+    "chips": {
+      "all": "All",
+      "live": "Live",
+      "twitch": "Twitch",
+      "kick": "Kick",
+      "youtube": "YouTube",
+      "tiktok": "TikTok",
+      "web": "Websites",
+      "other": "More links"
+    }
+  },
+  "sidebarSections": {
+    "title": "Control room",
+    "fold": "Fold the sidebar",
+    "unfold": "Open the sidebar",
+    "collapseAll": "Fold every section away",
+    "expandAll": "Show every section",
+    "collapse": "Collapse {name}",
+    "expand": "Expand {name}",
+    "streams": {
+      "title": "Streams"
+    },
+    "layout": {
+      "title": "Layout"
+    },
+    "following": {
+      "title": "Following",
+      "refresh": "Check who is live now"
+    },
+    "favorites": {
+      "title": "Favorites"
+    },
+    "presets": {
+      "title": "Presets",
+      "defaultName": "My preset",
+      "namePlaceholder": "Preset name…",
+      "save": "Save preset",
+      "saveAll": "Save all {count} streams…",
+      "saveEmpty": "Save workspace…",
+      "saveTitle": "Save all {count} streams in this workspace as one preset",
+      "addFirst": "Add a stream first: a preset saves the whole workspace",
+      "empty": "No presets yet.",
+      "applyTitle": "Add {count} streams from “{name}” to this workspace",
+      "applied": "Added {count} streams from “{name}”",
+      "rename": "Rename preset",
+      "delete": "Delete preset"
+    },
+    "history": {
+      "title": "History",
+      "searchLabel": "Search history",
+      "searchPlaceholder": "Search {count} entries…",
+      "noMatch": "Nothing in history matches “{query}”.",
+      "empty": "Nothing watched yet.",
+      "addFavorite": "Add to favorites",
+      "remove": "Remove from history",
+      "clear": "Clear",
+      "clearConfirm": "Clear all?",
+      "clearTitle": "Clear history (favorites are kept)"
+    },
+    "workspaces": {
+      "title": "Workspaces",
+      "rename": "Workspace name",
+      "renameTitle": "Click to rename",
+      "newPlaceholder": "New workspace…",
+      "open": "Open workspace"
+    }
   }
 }

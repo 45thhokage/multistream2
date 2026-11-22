@@ -20,7 +20,6 @@ watch(
       v-if="thumbnail && !failed"
       :src="thumbnail"
       alt=""
-      referrerpolicy="no-referrer"
       class="w-full aspect-video object-cover"
       @error="failed = true"
     />

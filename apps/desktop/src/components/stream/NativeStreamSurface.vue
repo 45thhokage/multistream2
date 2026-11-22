@@ -33,6 +33,7 @@ const sync = async () => {
     }
     return;
   }
+  setTileVisible(props.streamId, props.visible);
   const box = viewport.value?.getBoundingClientRect();
   if (!box || box.width < 2 || box.height < 2 || opening) return;
   const rect = { x: box.x, y: box.y, width: box.width, height: box.height };
@@ -42,7 +43,16 @@ const sync = async () => {
     nextAttempt = Date.now() + 5000;
     opening = true;
     try {
-      opened = await openTile(props.streamId, "", rect, false, true);
+      const current = streams.value.find((item) => item.id === props.streamId);
+      // Custom embeds get playlist detection so their streams can be recorded.
+      opened = await openTile(
+        props.streamId,
+        "",
+        rect,
+        false,
+        true,
+        current?.platform === "custom"
+      );
       failed.value = !opened;
       if (disposed) {
         await closeTile(props.streamId);
@@ -66,8 +76,7 @@ const sync = async () => {
   }
   const key = JSON.stringify(rect);
   if (opened && key !== previousBounds) {
-    previousBounds = key;
-    await syncTileBounds(props.streamId, rect);
+    if (await syncTileBounds(props.streamId, rect)) previousBounds = key;
   }
   setTileVisible(props.streamId, props.visible);
 };
@@ -92,6 +101,11 @@ useEventListener(window, "multistream-layout-motion", (event: Event) => {
   frame();
 });
 watch(() => [props.visible, props.dead], synchronize, { flush: "post" });
+const resendBounds = () => {
+  previousBounds = "";
+};
+useEventListener(window, "focus", resendBounds);
+useEventListener(document, "visibilitychange", resendBounds);
 useIntervalFn(synchronize, 200, { immediateCallback: true });
 onBeforeUnmount(() => {
   disposed = true;

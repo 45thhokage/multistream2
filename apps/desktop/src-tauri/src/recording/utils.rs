@@ -17,6 +17,79 @@ pub fn build_stream_url(platform: &str, channel: &str) -> String {
     }
 }
 
+const DIRECT_FILE_EXTENSIONS: &[&str] = &[
+    ".mp4", ".m4v", ".webm", ".mkv", ".mov", ".ts", ".flv", ".mp3", ".aac", ".m4a", ".ogg", ".ogv",
+];
+
+/// Streamlink protocol prefix for a URL that is itself a stream, if it is one.
+pub fn direct_stream_target(url: &str) -> Option<String> {
+    let parsed = url.parse::<tauri::Url>().ok()?;
+    let path = parsed.path().to_ascii_lowercase();
+    if path.ends_with(".m3u8") || path.ends_with(".m3u") {
+        Some(format!("hls://{url}"))
+    } else if path.ends_with(".mpd") {
+        Some(format!("dash://{url}"))
+    } else if DIRECT_FILE_EXTENSIONS.iter().any(|ext| path.ends_with(ext)) {
+        Some(format!("httpstream://{url}"))
+    } else {
+        None
+    }
+}
+
+/// `platform_channel` label for a URL recording: host plus last path segment.
+pub fn url_label(url: &str) -> String {
+    let parsed = url.parse::<tauri::Url>().ok();
+    let host = parsed
+        .as_ref()
+        .and_then(|u| u.host_str())
+        .unwrap_or("site")
+        .trim_start_matches("www.")
+        .to_string();
+    let segment = parsed
+        .as_ref()
+        .and_then(|u| u.path_segments())
+        .and_then(|mut s| s.rfind(|p| !p.is_empty()).map(str::to_string))
+        .unwrap_or_default();
+    let raw = if segment.is_empty() {
+        host
+    } else {
+        format!("{host}-{segment}")
+    };
+    let clean: String = raw
+        .chars()
+        .map(|c| {
+            if c.is_alphanumeric() || matches!(c, '-' | '_' | '.') {
+                c
+            } else {
+                '_'
+            }
+        })
+        .take(64)
+        .collect();
+    if clean.is_empty() {
+        "stream".to_string()
+    } else {
+        clean
+    }
+}
+
+/// Extra request headers so CDNs that check where a playlist was opened from accept Streamlink.
+pub fn streamlink_header_args(referer: Option<&str>) -> Vec<String> {
+    let mut args = vec![
+        "--http-header".to_string(),
+        format!("User-Agent={}", crate::USER_AGENT),
+    ];
+    if let Some(referer) = referer.filter(|r| r.starts_with("http")) {
+        args.push("--http-header".to_string());
+        args.push(format!("Referer={referer}"));
+        if let Ok(url) = referer.parse::<tauri::Url>() {
+            args.push("--http-header".to_string());
+            args.push(format!("Origin={}", url.origin().ascii_serialization()));
+        }
+    }
+    args
+}
+
 /// Builds the full argument list to pass to the Streamlink executable.
 ///
 /// On Windows and macOS, the executable is `python3`/`python.exe` so we prefix
@@ -111,6 +184,43 @@ mod tests {
         }
 
         assert!(args.contains(&"--force".to_string()));
+    }
+
+    #[test]
+    fn should_prefix_direct_stream_urls_for_streamlink() {
+        assert_eq!(
+            direct_stream_target("https://cdn.example/live/master.m3u8?t=1").as_deref(),
+            Some("hls://https://cdn.example/live/master.m3u8?t=1")
+        );
+        assert_eq!(
+            direct_stream_target("https://cdn.example/v/manifest.mpd").as_deref(),
+            Some("dash://https://cdn.example/v/manifest.mpd")
+        );
+        assert_eq!(
+            direct_stream_target("https://cdn.example/clip.mp4").as_deref(),
+            Some("httpstream://https://cdn.example/clip.mp4")
+        );
+        assert_eq!(direct_stream_target("https://site.example/room"), None);
+    }
+
+    #[test]
+    fn should_derive_safe_labels_from_urls() {
+        assert_eq!(
+            url_label("https://www.site.example/room_1/"),
+            "site.example-room_1"
+        );
+        assert_eq!(url_label("https://site.example/"), "site.example");
+        assert!(url_label("https://site.example/a%20b?x=1")
+            .chars()
+            .all(|c| c.is_alphanumeric() || matches!(c, '-' | '_' | '.')));
+    }
+
+    #[test]
+    fn should_add_referer_and_origin_headers() {
+        let args = streamlink_header_args(Some("https://site.example/room"));
+        assert!(args.contains(&"Referer=https://site.example/room".to_string()));
+        assert!(args.contains(&"Origin=https://site.example".to_string()));
+        assert_eq!(streamlink_header_args(None).len(), 2);
     }
 
     #[test]

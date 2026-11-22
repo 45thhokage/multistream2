@@ -12,9 +12,13 @@ use super::error::RecordingError;
 use super::orphan::OrphanRecording;
 use super::paths::{final_path, temp_path};
 use super::state::{RecordingEntry, RecordingManager, RecordingStatus, StopReason};
-use super::utils::{build_stream_url, ffmpeg_remux_args, is_recording_supported, streamlink_args};
+use super::utils::{
+    build_stream_url, direct_stream_target, ffmpeg_remux_args, is_recording_supported,
+    streamlink_args, streamlink_header_args, url_label,
+};
 use super::validation::{
-    validate_channel, validate_orphan_id, validate_platform, validate_quality, validate_stream_id,
+    validate_channel, validate_orphan_id, validate_platform, validate_quality, validate_source_url,
+    validate_stream_id,
 };
 
 #[derive(Clone, Serialize)]
@@ -63,6 +67,7 @@ pub struct RecordingInfo {
 }
 
 #[tauri::command]
+#[allow(clippy::too_many_arguments)]
 pub async fn start_recording(
     app: AppHandle,
     state: State<'_, RecordingManager>,
@@ -71,11 +76,26 @@ pub async fn start_recording(
     platform: String,
     quality: String,
     output_dir: Option<String>,
+    source_url: Option<String>,
 ) -> Result<(), RecordingError> {
     validate_stream_id(&stream_id)?;
-    validate_channel(&channel)?;
     validate_platform(&platform)?;
     validate_quality(&quality)?;
+    let source_url = match source_url.filter(|s| !s.is_empty()) {
+        Some(raw) => Some(validate_source_url(&raw)?),
+        None => None,
+    };
+    // URL recordings are named after the source so the file name is always safe.
+    let channel = match (platform.as_str(), source_url.as_deref()) {
+        ("url", Some(source)) => url_label(source),
+        ("url", None) => {
+            return Err(RecordingError::InvalidInput(
+                "a source url is required for this stream".into(),
+            ))
+        }
+        _ => channel,
+    };
+    validate_channel(&channel)?;
 
     if !is_recording_supported() {
         return Err(RecordingError::UnsupportedOs);
@@ -92,11 +112,19 @@ pub async fn start_recording(
     check_disk_space(ts_path.parent().unwrap_or(&ts_path))?;
     let mp4_path = final_path(&ts_path);
 
-    let url = build_stream_url(&platform, &channel);
-    let args = streamlink_args(&url, &quality, &ts_path);
-
     let python_exe =
         crate::recording::installer::get_python_exe(&app).map_err(RecordingError::SpawnFailed)?;
+
+    let (url, referer) = match source_url.as_deref() {
+        Some(source) if platform == "url" => {
+            resolve_url_target(&app, &python_exe, &stream_id, source).await?
+        }
+        _ => (build_stream_url(&platform, &channel), None),
+    };
+    let mut args = streamlink_args(&url, &quality, &ts_path);
+    if platform == "url" {
+        args.extend(streamlink_header_args(referer.as_deref()));
+    }
 
     let mut cmd = tokio::process::Command::new(python_exe);
     cmd.args(&args);
@@ -202,6 +230,67 @@ pub async fn start_recording(
     });
 
     Ok(())
+}
+
+fn streamlink_command(python_exe: &std::path::Path) -> tokio::process::Command {
+    let mut cmd = tokio::process::Command::new(python_exe);
+    #[cfg(not(target_os = "linux"))]
+    cmd.args(["-m", "streamlink"]);
+    cmd.stdout(std::process::Stdio::null());
+    cmd.stderr(std::process::Stdio::null());
+    cmd.stdin(std::process::Stdio::null());
+    cmd.kill_on_drop(true);
+    #[cfg(target_os = "windows")]
+    {
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
+    cmd
+}
+
+/// Whether one of Streamlink's site plugins recognises the page URL.
+async fn streamlink_can_handle(python_exe: &std::path::Path, url: &str) -> bool {
+    let mut cmd = streamlink_command(python_exe);
+    cmd.args(["--can-handle-url", url]);
+    match tokio::time::timeout(Duration::from_secs(20), cmd.status()).await {
+        Ok(Ok(status)) => status.success(),
+        _ => false,
+    }
+}
+
+/// Picks what Streamlink records for a `url` stream and the Referer to send:
+/// 1. the URL itself when it is a playlist or media file,
+/// 2. the page, when a Streamlink plugin supports the site,
+/// 3. the playlist the tile's page was seen loading.
+async fn resolve_url_target(
+    app: &AppHandle,
+    python_exe: &std::path::Path,
+    stream_id: &str,
+    source: &str,
+) -> Result<(String, Option<String>), RecordingError> {
+    if let Some(target) = direct_stream_target(source) {
+        return Ok((target, None));
+    }
+    if streamlink_can_handle(python_exe, source).await {
+        return Ok((source.to_string(), None));
+    }
+    let label = format!("{}{stream_id}", crate::browser_tiles::TILE_WEBVIEW_PREFIX);
+    let detected = app
+        .state::<crate::web_guard::GuardState>()
+        .diag
+        .lock()
+        .map(|diag| diag.media_for(&label))
+        .unwrap_or_default();
+    if let Some(media) = detected.first() {
+        let target = if media.kind == "dash" {
+            format!("dash://{}", media.url)
+        } else {
+            format!("hls://{}", media.url)
+        };
+        return Ok((target, Some(source.to_string())));
+    }
+    Err(RecordingError::InvalidInput(
+        "No recordable stream was found on this page yet. Start the video in the tile, then press record again.".into(),
+    ))
 }
 
 async fn kill_streamlink_pid(pid: u32) {

@@ -14,7 +14,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { isTauri } from "@/composables/useUpdater";
 import { useTranscription } from "@/composables/useTranscription";
-import { Settings, Database, Link, Captions, Video, Info } from "@lucide/vue";
+import { Settings, Database, Link, Captions, Video, Info, ShieldCheck } from "@lucide/vue";
 
 import SettingsGeneralTab from "./settings/SettingsGeneralTab.vue";
 import SettingsConnectionsTab from "./settings/SettingsConnectionsTab.vue";
@@ -22,6 +22,7 @@ import SettingsDataTab from "./settings/SettingsDataTab.vue";
 import SettingsResourcesTab from "./settings/SettingsResourcesTab.vue";
 import SettingsRecordingTab from "./settings/SettingsRecordingTab.vue";
 import SettingsAboutTab from "./settings/SettingsAboutTab.vue";
+import SettingsAdblockTab from "./settings/SettingsAdblockTab.vue";
 
 defineProps<{
   open?: boolean;
@@ -99,6 +100,14 @@ onMounted(() => {
             <span class="truncate">{{ $t("settings.recording.tabLabel") }}</span>
           </TabsTrigger>
           <TabsTrigger
+            v-if="isRunningInTauri"
+            value="adblock"
+            class="flex-none flex items-center justify-center gap-1.5 text-xs px-4 py-1.5 text-gray-400 hover:text-white dark:text-gray-400 dark:hover:text-white data-[state=active]:bg-[#2a2d33] data-[state=active]:text-white dark:data-[state=active]:text-white transition-all duration-150"
+          >
+            <ShieldCheck class="size-4 shrink-0" />
+            <span class="truncate">{{ $t("settings.tabs.adblock") }}</span>
+          </TabsTrigger>
+          <TabsTrigger
             value="sobre"
             class="flex-none flex items-center justify-center gap-1.5 text-xs px-4 py-1.5 text-gray-400 hover:text-white dark:text-gray-400 dark:hover:text-white data-[state=active]:bg-[#2a2d33] data-[state=active]:text-white dark:data-[state=active]:text-white transition-all duration-150"
           >
@@ -117,6 +126,7 @@ onMounted(() => {
             :open="open"
             :is-recording-supported="isRecordingSupported"
           />
+          <SettingsAdblockTab v-if="isRunningInTauri" />
           <SettingsAboutTab @close="emit('update:open', false)" />
         </div>
       </Tabs>

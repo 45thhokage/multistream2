@@ -712,6 +712,7 @@ onBeforeUnmount(() => {
             <button
               class="text-white/90 hover:text-white transition-colors cursor-pointer p-1"
               :aria-label="isPlaying ? t('common.pause') : t('common.play')"
+              :title="isPlaying ? t('common.pause') : t('common.play')"
               @click="togglePlay"
             >
               <Pause v-if="isPlaying" :class="isCompact ? 'size-4.5' : 'size-5'" />
@@ -722,6 +723,7 @@ onBeforeUnmount(() => {
             <button
               class="text-white/90 hover:text-white transition-colors cursor-pointer p-1"
               :aria-label="isMuted ? t('common.unmute') : t('common.mute')"
+              :title="isMuted ? t('common.unmute') : t('common.mute')"
               @click="toggleMute"
             >
               <component :is="volumeIcon" :class="isCompact ? 'size-4.5' : 'size-5'" />
@@ -732,6 +734,7 @@ onBeforeUnmount(() => {
               :step="1"
               :class="isCompact ? 'w-12' : 'w-20'"
               :aria-label="t('common.volume')"
+              :title="t('common.volume')"
               @update:model-value="onVolumeChange"
             />
 
@@ -755,6 +758,7 @@ onBeforeUnmount(() => {
               <button
                 class="text-white/90 hover:text-white transition-colors cursor-pointer p-1 flex items-center gap-1"
                 :aria-label="t('common.settings')"
+                :title="t('common.settings')"
                 @click="toggleQualityMenu"
               >
                 <Settings class="size-4" />
@@ -799,6 +803,7 @@ onBeforeUnmount(() => {
             <button
               class="text-white/90 hover:text-white transition-colors cursor-pointer p-1"
               :aria-label="isFullscreen ? t('common.exitFullscreen') : t('common.fullscreen')"
+              :title="isFullscreen ? t('common.exitFullscreen') : t('common.fullscreen')"
               @click="toggleFullscreen"
             >
               <Minimize v-if="isFullscreen" :class="isCompact ? 'size-4.5' : 'size-5'" />

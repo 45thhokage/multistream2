@@ -13,6 +13,7 @@ defineProps<{ channel: string; channelid: string }>();
     <iframe
       :title="`Kick Stream: ${channel}`"
       :src="PLATFORMS.kick.getEmbedUrl(channel)"
+      allow="autoplay; encrypted-media; fullscreen"
       allowfullscreen
       frameborder="0"
       scrolling="no"

@@ -42,17 +42,13 @@ watch(
   },
   { immediate: true, deep: true }
 );
-const forwardShortcut = (key: string) => {
-  void emitTo("main", "native-player-shortcut", { key }).catch(() => {});
-};
 useEventListener(window, "message", (event: MessageEvent) => {
   if (event.data?.type === "NATIVE_INTERACTION" && ["click", "hover"].includes(event.data.kind))
     interact(event.data.kind);
+  if (event.data?.type === "NATIVE_ESCAPE" && id) void emitTo("main", "native-player-escape");
   if (event.data?.type === "NATIVE_EDGE" && ["left", "right"].includes(event.data.side) && id) {
     void emitTo("main", "native-player-edge", { tileId: id, side: event.data.side });
   }
-  if (event.data?.type === "SHORTCUT" && typeof event.data.key === "string")
-    forwardShortcut(event.data.key);
 });
 useEventListener(window, "mousemove", (event: MouseEvent) => {
   if (!id) return;
@@ -60,23 +56,34 @@ useEventListener(window, "mousemove", (event: MouseEvent) => {
     event.clientX < 14 ? "left" : event.clientX > window.innerWidth - 14 ? "right" : null;
   if (side) void emitTo("main", "native-player-edge", { tileId: id, side });
 });
-useEventListener(window, "keydown", (event: KeyboardEvent) => {
-  const target = event.target;
-  if (
-    target instanceof HTMLElement &&
-    (target.closest("input,textarea,select") || target.isContentEditable)
-  )
-    return;
-  if (/^[1-9sd]$/i.test(event.key) || ["F11", "Escape"].includes(event.key)) {
-    event.preventDefault();
-    forwardShortcut(event.key);
-  }
-});
 useEventListener(window, "multistream-native-screenshot", () =>
   window.dispatchEvent(new CustomEvent("multistream-screenshot"))
 );
-const beginDrag = () => {
-  if (id) void emitTo("main", "native-player-drag", { tileId: id });
+// A press on the grip only starts a rearrange once the pointer moves, so a plain click
+// never hides every player.
+const DRAG_THRESHOLD_PX = 4;
+const beginDrag = (event: PointerEvent) => {
+  if (!id || event.button !== 0) return;
+  const startX = event.clientX;
+  const startY = event.clientY;
+  const stop = () => {
+    window.removeEventListener("pointermove", move);
+    window.removeEventListener("pointerup", stop);
+    window.removeEventListener("pointercancel", stop);
+  };
+  function move(next: PointerEvent) {
+    // Released where this page did not see it: this is no longer the same press.
+    if ((next.buttons & 1) === 0) {
+      stop();
+      return;
+    }
+    if (Math.hypot(next.clientX - startX, next.clientY - startY) < DRAG_THRESHOLD_PX) return;
+    stop();
+    void emitTo("main", "native-player-drag", { tileId: id });
+  }
+  window.addEventListener("pointermove", move);
+  window.addEventListener("pointerup", stop);
+  window.addEventListener("pointercancel", stop);
 };
 </script>
 
@@ -119,7 +126,8 @@ const beginDrag = () => {
       type="button"
       class="absolute top-3 left-1/2 -translate-x-1/2 z-50 rounded-md border border-white/10 bg-black/60 p-1.5 text-gray-300 opacity-0 group-hover/native:opacity-100 focus-visible:opacity-100 cursor-grab"
       :aria-label="$t('mixer.dragTile')"
-      @mousedown="beginDrag"
+      :title="$t('mixer.dragTile')"
+      @pointerdown="beginDrag"
     >
       <GripVertical class="size-4" aria-hidden="true" />
     </button>

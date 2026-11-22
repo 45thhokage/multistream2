@@ -2,7 +2,7 @@
 import { useLinkDrop } from "@/composables/useLinkDrop";
 import NativeStreamSurface from "@/components/stream/NativeStreamSurface.vue";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
-import { useBrowserTiles } from "@/composables/useBrowserTiles";
+import { invoke } from "@tauri-apps/api/core";
 import { nativeOutputAvailable } from "@/lib/nativePlayer";
 import { usesPlayerSurface } from "@/lib/nativePlayer";
 import KickStream from "@/components/stream/KickStream.vue";
@@ -14,6 +14,8 @@ import { GripVertical, Plus } from "@lucide/vue";
 import { useDragAndDrop } from "@/composables/useDragAndDrop";
 import { useStreams, type Stream } from "@/composables/useStreams";
 import { useFocusedStream } from "@/composables/useFocusedStream";
+import { useMaximizedStream } from "@/composables/useMaximizedStream";
+import { useBrowserTiles } from "@/composables/useBrowserTiles";
 import { usePreferences } from "@/composables/usePreferences";
 import { useCustomLayouts } from "@/composables/useCustomLayouts";
 import { useWorkspaces } from "@/composables/useWorkspaces";
@@ -25,20 +27,26 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 const { onLinkDrop, onLinkDragOver, linkDragging } = useLinkDrop();
 
-const { streams, isLeaving, getStreamKey } = useStreams();
+const { streams, isLeaving, getStreamKey, pendingSlot } = useStreams();
 const { focusedStreamId, isFocused } = useFocusedStream();
 const {
   draggingId,
   overId,
+  overSlot,
   isDragging,
   onMouseDown,
+  beginDragOnMove,
   onMouseEnter,
   onMouseLeave,
   onMouseUp,
+  onSlotEnter,
+  onSlotLeave,
+  onSlotMouseUp,
   onGlobalMouseUp,
+  cancelDrag,
 } = useDragAndDrop();
-const { setTilesHidden } = useBrowserTiles();
 let stopNativeDrag: UnlistenFn | undefined;
+let stopDragPointer: UnlistenFn | undefined;
 let disposed = false;
 onMounted(async () => {
   if (!nativeOutputAvailable()) return;
@@ -48,13 +56,66 @@ onMounted(async () => {
   });
   if (disposed) unlisten();
   else stopNativeDrag = unlisten;
+  const unlistenPointer = await listen<DragPointer>("drag-pointer", (event) =>
+    onDragPointer(event.payload)
+  );
+  if (disposed) unlistenPointer();
+  else stopDragPointer = unlistenPointer;
 });
 onBeforeUnmount(() => {
   disposed = true;
   stopNativeDrag?.();
+  stopDragPointer?.();
 });
-watch(isDragging, (value) => {
-  if (nativeOutputAvailable()) setTilesHidden(value);
+
+// Streams stay visible and playing while one is dragged. A native stream under the cursor swallows
+// the mouse, so the drag is followed through the OS cursor instead: the cell under the pointer is
+// the target, and releasing the button drops on it.
+interface DragPointer {
+  x: number;
+  y: number;
+  down: boolean;
+}
+const cellAt = (x: number, y: number): { id?: string; slot?: number } => {
+  const root = grid.value?.querySelector(
+    `[data-testid="workspace-grid-${activeWorkspaceId.value}"]`
+  );
+  let best: { id?: string; slot?: number; area: number } | null = null;
+  root?.querySelectorAll<HTMLElement>("[data-stream-id], [data-layout-slot]").forEach((element) => {
+    const box = element.getBoundingClientRect();
+    if (box.width < 2 || box.height < 2) return;
+    if (x < box.left || x > box.right || y < box.top || y > box.bottom) return;
+    const area = box.width * box.height;
+    if (best && area >= best.area) return;
+    const slot = element.dataset.layoutSlot;
+    best =
+      slot !== undefined ? { slot: Number(slot), area } : { id: element.dataset.streamId, area };
+  });
+  return best ?? {};
+};
+const onDragPointer = ({ x, y, down }: DragPointer) => {
+  if (!isDragging.value) return;
+  const { id, slot } = cellAt(x, y);
+  if (down) {
+    if (slot !== undefined) onSlotEnter(slot);
+    else if (id !== undefined && id !== draggingId.value) onMouseEnter(id);
+    else {
+      onMouseLeave();
+      onSlotLeave();
+    }
+    return;
+  }
+  if (slot !== undefined) {
+    onSlotEnter(slot);
+    onSlotMouseUp(slotOfStream);
+  } else if (id !== undefined && id !== draggingId.value) {
+    onMouseEnter(id);
+    onMouseUp(id, slotOfStream);
+  } else cancelDrag();
+};
+watch(isDragging, (dragging) => {
+  if (nativeOutputAvailable())
+    void invoke("drag_pointer_watch", { active: dragging }).catch(() => {});
 });
 const { setSelectedChat, nativePlayerEnabled, streamLayout } = usePreferences();
 const { customLayouts } = useCustomLayouts();
@@ -67,6 +128,10 @@ watch(nativePlayerEnabled, () => {
 
 useEventListener(window, "mouseup", onGlobalMouseUp);
 
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  if (event.key === "Escape" && isDragging.value) cancelDrag();
+});
+
 type DomStream = Stream & { _isDead?: boolean };
 const domStreams = ref<DomStream[]>([]);
 
@@ -75,15 +140,64 @@ const customDef = computed(() => customLayouts.value.find((c) => c.id === stream
 const streamsForWorkspace = (workspaceId: string) =>
   streams.value.filter((s) => workspaceIdOf(s.workspaceId) === workspaceId);
 
+const { maximizedStreamId, restore: restoreMaximized } = useMaximizedStream();
+const { setTileCovered } = useBrowserTiles();
+
 const arrangedByWorkspace = computed(() => {
   const map: Record<string, ReturnType<typeof arrangeStreams>> = {};
   for (const ws of workspaces.value) {
     const list = streamsForWorkspace(ws.id);
-    map[ws.id] = customDef.value
+    const arranged = customDef.value
       ? arrangeCustomStreams(customDef.value, list, focusedStreamId.value)
       : arrangeStreams(resolveLayout(streamLayout.value), list, focusedStreamId.value);
+    const maxId = maximizedStreamId.value;
+    const maximized = maxId ? arranged.placedById[maxId] : undefined;
+    // Maximize: that tile spans every track above the others, whatever the layout says. The
+    // others keep their cells (and keep playing) underneath; empty "+" slots are hidden.
+    map[ws.id] =
+      maxId && maximized
+        ? {
+            ...arranged,
+            placedById: {
+              ...arranged.placedById,
+              [maxId]: {
+                ...maximized,
+                hidden: false,
+                style: { gridColumn: "1 / -1", gridRow: "1 / -1", zIndex: "30" },
+              },
+            },
+            emptySlots: 0,
+            emptyPlacements: [],
+          }
+        : arranged;
   }
   return map;
+});
+
+// A removed stream cannot stay maximized.
+watch(streams, (list) => {
+  const id = maximizedStreamId.value;
+  if (id && !list.some((stream) => stream.id === id)) restoreMaximized();
+});
+
+// Native tiles are drawn above the page, so CSS stacking cannot put the maximized tile over them:
+// the tiles it covers are parked off-screen instead (they keep playing) until it is restored.
+watch(
+  [maximizedStreamId, streams],
+  ([maxId, list]) => {
+    const owner = maxId ? list.find((stream) => stream.id === maxId) : undefined;
+    for (const stream of list) {
+      const covered =
+        !!owner &&
+        stream.id !== owner.id &&
+        workspaceIdOf(stream.workspaceId) === workspaceIdOf(owner.workspaceId);
+      setTileCovered(stream.id, covered);
+    }
+  },
+  { immediate: true }
+);
+onBeforeUnmount(() => {
+  for (const stream of streams.value) setTileCovered(stream.id, false);
 });
 
 const activeArranged = computed(
@@ -221,7 +335,9 @@ async function playFlipAnimation() {
   window.dispatchEvent(new CustomEvent("multistream-layout-motion", { detail: reduced ? 0 : 300 }));
 }
 
-watch([focusedStreamId, arrangedByWorkspace], playFlipAnimation, { flush: "pre" });
+watch([focusedStreamId, maximizedStreamId, arrangedByWorkspace], playFlipAnimation, {
+  flush: "pre",
+});
 
 const isHiddenByLayout = (workspaceId: string, streamId: string) =>
   arrangedByWorkspace.value[workspaceId]?.placedById[streamId]?.hidden ?? false;
@@ -238,7 +354,10 @@ const isSpanLastOdd = (workspaceId: string, streamId: string) =>
 const domStreamsForWorkspace = (workspaceId: string) =>
   domStreams.value.filter((ds) => workspaceIdOf(ds.workspaceId) === workspaceId);
 
-const openAddDialog = () => {
+const slotOfStream = (id: string) => activeArranged.value.placedById[id]?.slotIndex;
+
+const openAddDialog = (slot: number) => {
+  pendingSlot.value = slot;
   window.dispatchEvent(new CustomEvent("multistream-show-dialog", { detail: "add-stream" }));
 };
 </script>
@@ -276,7 +395,7 @@ const openAddDialog = () => {
         @drop.stop="onLinkDrop($event, stream.id)"
         @mouseenter="onMouseEnter(stream.id)"
         @mouseleave="onMouseLeave"
-        @mouseup="onMouseUp(stream.id)"
+        @mouseup="onMouseUp(stream.id, slotOfStream)"
       >
         <div
           v-if="isDragging || linkDragging"
@@ -284,7 +403,7 @@ const openAddDialog = () => {
           :class="[
             'absolute inset-0 z-40 transition-colors',
             overId === stream.id && draggingId !== stream.id
-              ? 'bg-blue-500/10 ring-2 ring-blue-500'
+              ? 'bg-blue-500/15 outline-2 -outline-offset-4 outline-dashed outline-blue-500'
               : 'bg-transparent',
           ]"
         />
@@ -295,7 +414,7 @@ const openAddDialog = () => {
             'top-3 left-1/2 -translate-x-1/2',
             isDragging ? 'cursor-grabbing' : '',
           ]"
-          @mousedown.stop="onMouseDown(stream.id)"
+          @mousedown.stop.prevent="beginDragOnMove(stream.id, $event)"
         >
           <GripVertical class="size-4 pointer-events-none" />
         </div>
@@ -348,11 +467,19 @@ const openAddDialog = () => {
           :data-layout-slot="slot.index"
           :style="{ ...slot.style, zIndex: slot.overlayIndex >= 0 ? slot.style.zIndex : '1' }"
           data-testid="layout-placeholder"
-          class="min-h-0 min-w-0 rounded-sm border border-dashed border-[#3a3f4b] bg-white/[0.02] hover:bg-[#3b82f6]/10 hover:border-[#5b8def] transition-colors cursor-pointer flex items-center justify-center group/placeholder"
+          :class="[
+            'min-h-0 min-w-0 rounded-sm border border-dashed transition-colors cursor-pointer flex items-center justify-center group/placeholder',
+            isDragging && overSlot === slot.index
+              ? 'border-[#5b8def] bg-[#3b82f6]/15'
+              : 'border-[#3a3f4b] bg-white/[0.02] hover:bg-[#3b82f6]/10 hover:border-[#5b8def]',
+          ]"
           :aria-label="t('layouts.addToSlot')"
           @dragover="onLinkDragOver"
-          @drop.stop="onLinkDrop($event)"
-          @click="openAddDialog"
+          @drop.stop="onLinkDrop($event, undefined, slot.index)"
+          @mouseenter="onSlotEnter(slot.index)"
+          @mouseleave="onSlotLeave"
+          @mouseup="onSlotMouseUp(slotOfStream)"
+          @click="openAddDialog(slot.index)"
         >
           <Plus class="size-6 text-gray-600 group-hover/placeholder:text-white transition-colors" />
         </button>

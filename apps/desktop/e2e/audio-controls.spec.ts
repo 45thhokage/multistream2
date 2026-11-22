@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { expect, test, type Page } from "@playwright/test";
 
-async function builtApp(page: Page) {
+async function builtApp(page: Page, startupRace = false) {
   await page.route("http://localhost/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     try {
@@ -20,11 +20,12 @@ async function builtApp(page: Page) {
       await route.fulfill({ status: 404, body: "" });
     }
   });
-  await page.addInitScript(() => {
+  await page.addInitScript((startupRace: boolean) => {
     localStorage.clear();
     localStorage.setItem("locale", "en");
     localStorage.setItem("preferences.onboardingCompleted", "true");
     localStorage.setItem("preferences.followedSidebarOpen", "true");
+    localStorage.setItem("preferences.streamLayout", "quad");
     localStorage.setItem(
       "streams",
       JSON.stringify([
@@ -35,11 +36,17 @@ async function builtApp(page: Page) {
     Object.defineProperty(navigator, "platform", { get: () => "Win32" });
     const host = window as unknown as {
       __TAURI_INTERNALS__: unknown;
+      nativeVisible: Record<string, boolean>;
+      failFirstShow: boolean;
+      failFirstBounds: boolean;
       calls: { command: string; args: Record<string, unknown> }[];
       callbacks: Record<number, (event: unknown) => void>;
       events: Record<string, number>;
     };
     host.calls = [];
+    host.nativeVisible = {};
+    host.failFirstShow = startupRace;
+    host.failFirstBounds = startupRace;
     host.callbacks = {};
     host.events = {};
     let next = 1;
@@ -57,9 +64,43 @@ async function builtApp(page: Page) {
         host.calls.push({ command, args });
         if (command === "plugin:event|listen") {
           host.events[String(args.event)] = Number(args.handler);
+          if (args.event === "ui-overlay-content") {
+            const params = new URLSearchParams(location.search);
+            const kind = params.get("nativeOverlay");
+            if (kind === "layout" || kind === "preview")
+              setTimeout(() => {
+                host.callbacks[Number(args.handler)]?.({
+                  payload: { generation: 1, kind, data: JSON.parse(params.get("data") || "{}") },
+                });
+              }, 0);
+          }
           return 1;
         }
-        if (command === "open_player_webview") return `tile-${args.tileId}`;
+        if (command === "open_player_webview") {
+          if (startupRace) {
+            setTimeout(() => document.body.appendChild(document.createElement("span")), 20);
+            await new Promise((resolve) => setTimeout(resolve, args.tileId === "one" ? 250 : 650));
+            host.nativeVisible[String(args.tileId)] = false;
+          }
+          return `tile-${args.tileId}`;
+        }
+        if (startupRace && command === "tile_set_visible") {
+          const id = String(args.tileId);
+          if (!(id in host.nativeVisible)) throw Error("tile webview not found");
+          if (id === "one" && args.visible && host.failFirstShow) {
+            host.failFirstShow = false;
+            throw Error("temporarily unavailable");
+          }
+          host.nativeVisible[id] = Boolean(args.visible);
+        }
+        if (command === "tile_set_bounds_batch") {
+          const tiles = args.tiles as { tileId: string }[];
+          if (startupRace && host.failFirstBounds && tiles.some((tile) => tile.tileId === "one")) {
+            host.failFirstBounds = false;
+            throw Error("bounds not ready");
+          }
+          return tiles.map((tile) => tile.tileId);
+        }
         if (command === "twitch_get_auth_state") return { authenticated: true, username: "viewer" };
         if (command === "twitch_get_followed_streams")
           return [
@@ -79,7 +120,7 @@ async function builtApp(page: Page) {
         return [];
       },
     };
-  });
+  }, startupRace);
 }
 
 test("Layout opens above native players without hiding any stream", async ({ page }) => {
@@ -295,4 +336,132 @@ test("the native hover preview renders its thumbnail and channel information", a
   await expect
     .poll(() => page.locator("img").evaluate((image: HTMLImageElement) => image.naturalWidth))
     .toBe(320);
+});
+
+test("restored native streams become visible without dragging or adding another stream", async ({
+  page,
+}) => {
+  // Arrange
+  await builtApp(page, true);
+  // Act
+  await page.goto("http://localhost/");
+  // Assert
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () => (window as unknown as { nativeVisible: Record<string, boolean> }).nativeVisible
+      )
+    )
+    .toEqual({ one: true, two: true });
+  await expect
+    .poll(() =>
+      page.evaluate(
+        () =>
+          (
+            window as unknown as { calls: { command: string; args: { tileId?: string } }[] }
+          ).calls.filter(
+            (call) =>
+              call.command === "tile_set_bounds_batch" &&
+              (call.args as { tiles?: { tileId: string }[] }).tiles?.some(
+                (tile) => tile.tileId === "one"
+              )
+          ).length
+      )
+    )
+    .toBeGreaterThanOrEqual(2);
+  await expect(page.locator('[data-native-stream="one"]')).toBeVisible();
+  await expect(page.locator('[data-native-stream="two"]')).toBeVisible();
+});
+
+test("dragging a stream keeps tiles in view, highlights targets and can be cancelled", async ({
+  page,
+}) => {
+  // Arrange
+  await builtApp(page, true);
+  await page.goto("http://localhost/");
+  await expect(page.locator('[data-native-stream="one"]')).toBeVisible();
+  const cell = page.locator('[data-testid="stream-item-test"]').first();
+  const grip = cell.locator("div.cursor-grab").first();
+  await cell.hover();
+  const box = (await cell.boundingBox())!;
+  // Act: a press that barely moves is not a drag
+  await grip.dispatchEvent("mousedown", { clientX: box.x + 5, clientY: box.y + 5 });
+  await page.mouse.move(box.x + 7, box.y + 6);
+  // Assert
+  await expect(page.locator("div.cursor-grabbing")).toHaveCount(0);
+  await page.mouse.up();
+  // Act: a real drag
+  await grip.dispatchEvent("mousedown", { clientX: box.x + 5, clientY: box.y + 5 });
+  await page.mouse.move(box.x + 30, box.y + 30);
+  // Assert
+  await expect(page.locator("div.cursor-grabbing")).toHaveCount(2);
+  await expect(page.locator('[data-native-stream="one"]')).toBeVisible();
+  // Act: hovering an empty slot highlights it
+  await page.locator('[data-testid="layout-placeholder"]').first().hover();
+  // Assert
+  await expect(page.locator('[data-testid="layout-placeholder"]').first()).toHaveClass(
+    /bg-\[#3b82f6\]\/15/
+  );
+  // Act
+  await page.keyboard.press("Escape");
+  // Assert
+  await expect(page.locator("div.cursor-grabbing")).toHaveCount(0);
+});
+
+test("dropping a dragged stream on an empty slot moves it to the end", async ({ page }) => {
+  // Arrange
+  await builtApp(page, true);
+  await page.goto("http://localhost/");
+  await expect(page.locator('[data-native-stream="one"]')).toBeVisible();
+  const cell = page.locator('[data-testid="stream-item-shroud"]').first();
+  await cell.hover();
+  const box = (await cell.boundingBox())!;
+  // Act
+  await cell
+    .locator("div.cursor-grab")
+    .first()
+    .dispatchEvent("mousedown", { clientX: box.x + 5, clientY: box.y + 5 });
+  await page.mouse.move(box.x + 30, box.y + 30);
+  await page.locator('[data-testid="layout-placeholder"]').first().hover();
+  await page.mouse.up();
+  // Assert
+  const order = await page.evaluate(() =>
+    (JSON.parse(localStorage.getItem("streams") || "[]") as { id: string }[]).map((s) => s.id)
+  );
+  expect(order).toEqual(["two", "one"]);
+});
+
+test("Twitch starts without buffered data and leaves a later user pause alone", async ({
+  page,
+}) => {
+  // Arrange
+  await page.route("https://player.twitch.tv/**", (route) =>
+    route.fulfill({ body: '<video id="media"></video>', contentType: "text/html" })
+  );
+  await page.goto("https://player.twitch.tv/?channel=test&autoplay=true&muted=false");
+  await page.evaluate(() => {
+    const host = window as unknown as { playCalls: number };
+    host.playCalls = 0;
+    HTMLMediaElement.prototype.play = function () {
+      host.playCalls++;
+      this.dispatchEvent(new Event("playing", { bubbles: true }));
+      return Promise.resolve();
+    };
+  });
+  // Act
+  await page.addScriptTag({
+    path: fileURLToPath(new URL("../src-tauri/src/core/player_autoplay.js", import.meta.url)),
+  });
+  // Assert
+  expect(await page.evaluate(() => (window as unknown as { playCalls: number }).playCalls)).toBe(1);
+  expect(await page.locator("video").evaluate((video: HTMLVideoElement) => video.readyState)).toBe(
+    0
+  );
+  // Act
+  await page.locator("video").evaluate((video: HTMLVideoElement) => {
+    video.pause();
+    video.dispatchEvent(new Event("canplay", { bubbles: true }));
+  });
+  // Assert
+  expect(await page.evaluate(() => (window as unknown as { playCalls: number }).playCalls)).toBe(1);
 });

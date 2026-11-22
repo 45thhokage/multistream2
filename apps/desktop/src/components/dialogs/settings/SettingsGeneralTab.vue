@@ -16,6 +16,8 @@ import {
   Download,
   RefreshCw,
   HelpCircle,
+  Fullscreen,
+  PanelLeft,
 } from "@lucide/vue";
 
 const emit = defineEmits<{
@@ -23,7 +25,8 @@ const emit = defineEmits<{
 }>();
 
 const { locale, t } = useI18n();
-const { notificationsEnabled, nativePlayerEnabled, adblockEnabled } = usePreferences();
+const { notificationsEnabled, nativePlayerEnabled, adblockEnabled, fitVideoAuto, tabbedSidebar } =
+  usePreferences();
 const { checkForUpdates, isChecking } = useUpdater();
 
 const isRunningInTauri = isTauri();
@@ -178,6 +181,50 @@ watch(adblockEnabled, (enabled) => {
               id="adblock-switch"
               v-model:checked="adblockEnabled"
               :aria-label="$t('settings.adblock.title')"
+            />
+          </div>
+        </div>
+
+        <!-- Fit video on play (website tiles) -->
+        <div v-if="isRunningInTauri" class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-2.5 px-0.5 min-w-0 flex-1">
+            <Fullscreen class="size-4 text-gray-400 shrink-0" aria-hidden="true" />
+            <div class="min-w-0 flex-1">
+              <h3 class="text-white text-sm font-medium">
+                {{ $t("settings.fitVideoAuto.title") }}
+              </h3>
+              <p class="text-gray-400 text-xs mt-0.5">
+                {{ $t("settings.fitVideoAuto.description") }}
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0">
+            <Switch
+              id="fit-video-auto-switch"
+              v-model:checked="fitVideoAuto"
+              :aria-label="$t('settings.fitVideoAuto.title')"
+            />
+          </div>
+        </div>
+
+        <!-- Tabbed sidebar -->
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center gap-2.5 px-0.5 min-w-0 flex-1">
+            <PanelLeft class="size-4 text-gray-400 shrink-0" aria-hidden="true" />
+            <div class="min-w-0 flex-1">
+              <h3 class="text-white text-sm font-medium">
+                {{ $t("settings.tabbedSidebar.title") }}
+              </h3>
+              <p class="text-gray-400 text-xs mt-0.5">
+                {{ $t("settings.tabbedSidebar.description") }}
+              </p>
+            </div>
+          </div>
+          <div class="shrink-0">
+            <Switch
+              id="tabbed-sidebar-switch"
+              v-model:checked="tabbedSidebar"
+              :aria-label="$t('settings.tabbedSidebar.title')"
             />
           </div>
         </div>
